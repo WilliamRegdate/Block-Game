@@ -1,0 +1,237 @@
+#ifndef RENDER_TYPES_H
+#define RENDER_TYPES_H
+
+#include<glad/glad.h>
+#include<glm/glm.hpp>
+#include<cstdint>
+
+
+constexpr uint32_t HANDLE_INDEX_BITS   = 24;
+constexpr uint32_t HANDLE_INDEX_MASK   = (1u << HANDLE_INDEX_BITS) - 1;
+constexpr uint32_t INVALID_HANDLE_VALUE = 0xFFFFFFFFu;
+
+struct EntityHandle
+{
+    uint32_t value = INVALID_HANDLE_VALUE;
+
+    uint32_t Index()      const { return value & HANDLE_INDEX_MASK; }
+    uint32_t Generation() const { return value >> HANDLE_INDEX_BITS; }
+    bool     IsValid()    const { return value != INVALID_HANDLE_VALUE; }
+
+    static EntityHandle Make(uint32_t index, uint32_t generation)
+    {
+        return EntityHandle{ (generation << HANDLE_INDEX_BITS) | (index & HANDLE_INDEX_MASK) };
+    }
+
+    bool operator==(const EntityHandle& other) const { return value == other.value; }
+    bool operator!=(const EntityHandle& other) const { return value != other.value; }
+};
+
+struct MeshHandle
+{
+    uint32_t value = INVALID_HANDLE_VALUE;
+
+    uint32_t Index()      const { return value & HANDLE_INDEX_MASK; }
+    uint32_t Generation() const { return value >> HANDLE_INDEX_BITS; }
+    bool     IsValid()    const { return value != INVALID_HANDLE_VALUE; }
+
+    static MeshHandle Make(uint32_t index, uint32_t generation)
+    {
+        return MeshHandle{ (generation << HANDLE_INDEX_BITS) | (index & HANDLE_INDEX_MASK) };
+    }
+
+    bool operator==(const MeshHandle& other) const { return value == other.value; }
+    bool operator!=(const MeshHandle& other) const { return value != other.value; }
+};
+
+
+// ============================================================
+// Vertex formats
+// ============================================================
+
+struct StaticVertex
+{
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 uv;
+};
+
+struct SkinnedVertex
+{
+    glm::vec3  position;
+    glm::vec3  normal;
+    glm::vec2  uv;
+    glm::uvec4 boneIndices;
+    glm::vec4  boneWeights;
+};
+
+
+// ============================================================
+// GPU-resident lookup data
+// ============================================================
+// These mirror what the shaders read back via SSBO (std430).
+// Watch alignment when editing - vec3 has a 16-byte base
+// alignment in std430 same as vec4, even though sizeof(glm::vec3)
+// is 12 on the CPU side, so a raw vec3 field can silently drift
+// out of sync with the GLSL-side layout. Safer options: pad
+// explicitly, or switch to vec4 / a bounding sphere (center+radius
+// in one vec4) if you want a tightly packed struct.
+
+struct AABB
+{
+    glm::vec3 boundsMin;
+    glm::vec3 boundsMax;
+};
+
+struct MeshDescriptor
+{
+    uint32_t firstIndex = 0;
+    uint32_t indexCount = 0;
+    int32_t  baseVertex = 0;
+    uint32_t materialID = 0;
+    uint32_t skeletonID = 0;   // only meaningful if isAnimated
+    uint32_t isAnimated = 0;   // bool kept as uint32 for std430
+    AABB     localBounds{};
+};
+
+struct Material
+{
+    uint32_t  albedoTexIndex = 0;
+    uint32_t  normalTexIndex = 0;
+    uint32_t  ormTexIndex    = 0;
+    uint32_t  _pad0          = 0;
+    glm::vec4 tint{ 1.0f };
+};
+
+
+// One entry per live entity slot. Never reordered or compacted -
+// this is the stable-slot buffer. Per-frame visibility is resolved
+// through a separate index list (bound as a divisor-1 vertex
+// attribute), not by moving this data around.
+struct InstanceData
+{
+    glm::mat4 transform{ 1.0f };
+    uint32_t  meshID     = 0;   // -> MeshDescriptor
+    uint32_t  materialID = 0;   // default from MeshDescriptor, may be overridden
+    uint32_t  animOffset = 0;   // -> baked pose buffer; unused if mesh is static
+    uint32_t  _pad0      = 0;
+};
+
+// Matches OpenGL's DrawElementsIndirectCommand layout exactly -
+// field order and sizes must not change.
+struct DrawIndexedIndirectCommand
+{
+    uint32_t indexCount    = 0;
+    uint32_t instanceCount = 0;
+    uint32_t firstIndex    = 0;
+    int32_t  baseVertex    = 0;
+    uint32_t baseInstance  = 0;
+};
+
+
+// ============================================================
+// Buffer objects
+// ============================================================
+
+// Common base for the wrappers below - owns the GL buffer ID and
+// the sub-range upload path they all share. No Bind() here: each
+// derived type binds to a different target with different
+// semantics (VBO/EBO/IndirectBuffer bind to their own target on
+// demand; SSBO binds to an indexed binding point instead).
+class GPUBuffer
+{
+    public:
+        GLuint ID = 0;
+
+        GPUBuffer(GLsizeiptr capacityBytes, GLenum target, GLenum usage);
+
+        // Writes into an existing sub-range - this is how a mesh's
+        // geometry lands in the shared buffer at load time, and how
+        // per-frame dynamic data gets updated if you're not using
+        // persistent mapping.
+        void Upload(GLintptr offsetBytes, const void* data, GLsizeiptr sizeBytes);
+
+        void Delete();
+
+    protected:
+        GLenum m_target;
+};
+
+// Global vertex buffer - one for StaticVertex, one for
+// SkinnedVertex. Allocated once at a fixed capacity; meshes are
+// written into sub-ranges as they load, not given their own
+// buffer each.
+class VBO : public GPUBuffer
+{
+public:
+    VBO(GLsizeiptr capacityBytes, GLenum usage = GL_STATIC_DRAW)
+        : GPUBuffer(capacityBytes, GL_ARRAY_BUFFER, usage) {}
+
+    void Bind();
+    void Unbind();
+};
+
+// Global index buffer, same shape as VBO - kept as its own type
+// so it can't accidentally be bound as a vertex source.
+class EBO : public GPUBuffer
+{
+public:
+    EBO(GLsizeiptr capacityBytes, GLenum usage = GL_STATIC_DRAW)
+        : GPUBuffer(capacityBytes, GL_ELEMENT_ARRAY_BUFFER, usage) {}
+
+    void Bind();
+    void Unbind();
+};
+
+// Shader Storage Buffer - random-access data a shader indexes
+// into directly rather than fetching via fixed-function vertex
+// pulling. Used for the MeshDescriptor table, the Material table,
+// the InstanceData buffer, and baked pose data.
+class SSBO : public GPUBuffer
+{
+    public:
+        SSBO(GLsizeiptr capacityBytes, GLenum usage = GL_DYNAMIC_DRAW)
+            : GPUBuffer(capacityBytes, GL_SHADER_STORAGE_BUFFER, usage) {}
+
+        // Binds to a specific GL_SHADER_STORAGE_BUFFER binding point,
+        // matching the `layout(std430, binding = N)` in the shader.
+        void BindBase(GLuint bindingIndex);
+};
+
+// Holds the DrawIndexedIndirectCommand array consumed by
+// glMultiDrawElementsIndirect - one instance of this for the
+// static pipeline, one for the animated pipeline. Rewritten each
+// frame from the cull pass's per-mesh visible counts.
+class IndirectBuffer : public GPUBuffer
+{
+    public:
+        IndirectBuffer(GLsizeiptr capacityBytes, GLenum usage = GL_DYNAMIC_DRAW)
+            : GPUBuffer(capacityBytes, GL_DRAW_INDIRECT_BUFFER, usage) {}
+        void Bind();
+        void Unbind();
+};
+
+// Wraps vertex attribute state for one vertex format (static or
+// skinned). Bound once per pipeline per pass, not once per mesh.
+class VAO
+{
+    public:
+        GLuint ID = 0;
+
+        VAO();
+
+        // divisor = 0 -> per-vertex attribute (position, normal, uv...)
+        // divisor = 1 -> per-instance attribute - this is where the
+        //                culled visible-index buffer gets bound, giving
+        //                each instance its real InstanceData slot number
+        //                via automatic baseInstance offsetting.
+        void LinkAttrib(GPUBuffer& buffer, GLuint layout, GLuint numComponents,
+                        GLenum type, GLsizeiptr stride, void* offset,
+                        GLuint divisor = 0);
+
+        void Bind();
+        void Unbind();
+        void Delete();
+};
+
+#endif
