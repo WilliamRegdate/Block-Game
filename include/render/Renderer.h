@@ -6,6 +6,7 @@
 #include<memory>
 #include<cstdint>
 
+#include"EntityManager.h"
 #include"RenderTypes.h"   // EntityHandle, MeshTypeHandle, VBO/EBO/SSBO/IndirectBuffer/VAO, InstanceData, MeshDescriptor...
 
 // ------------------------------------------------------------
@@ -13,7 +14,6 @@
 // needs to know they're types; nothing here requires their full
 // definition.
 // ------------------------------------------------------------
-class EntityTracker;
 class MeshTracker;
 class DirtyTracker;
 class Allocator;
@@ -25,23 +25,6 @@ struct ChunkMeshData;
 using MeshAssetID = uint64_t;   // interned/hashed identifier, assumed to come from your asset system
 
 
-// ------------------------------------------------------------
-// Setup-time configuration - sizes everything Init() allocates.
-// ------------------------------------------------------------
-struct EntityRendererConfig
-{
-    GLsizeiptr staticVertexCapacityBytes  = 0;
-    GLsizeiptr staticIndexCapacityBytes   = 0;
-    GLsizeiptr skinnedVertexCapacityBytes = 0;
-    GLsizeiptr skinnedIndexCapacityBytes  = 0;
-    GLsizeiptr poseBufferCapacityBytes    = 0;
-
-    uint32_t maxEntities  = 0;
-    uint32_t maxMeshTypes = 0;
-    uint32_t maxMaterials = 0;
-};
-
-
 class Renderer
 {
     public:
@@ -49,18 +32,18 @@ class Renderer
 
         ~Renderer();
 
-        void Init(const EntityRendererConfig& config);
+        void Init();
         void Shutdown();
 
         void SetCamera(Camera* camera) { m_camera = camera; }
 
         // ---------------- Entities ----------------
-        EntityHandle AddEntity(MeshAssetID meshID, const glm::mat4& transform, uint32_t animOffset = 0);
-        void         UpdateEntity(EntityHandle handle, const glm::mat4& transform, uint32_t animOffset = 0);
-        void         RemoveEntity(EntityHandle handle);
+        void         AddEntity(int entityID, const glm::mat4& transform, uint32_t animOffset = 0);
+        void         UpdateEntity(int entityID, const glm::mat4& transform, uint32_t animOffset = 0);
+        void         RemoveEntity(int entityID);
 
         // ---------------- Chunks ----------------
-        ChunkHandle AddChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData);
+        void        AddChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData);
         void        UpdateChunk(ChunkHandle handle, const ChunkMeshData& meshData);
         void        RemoveChunk(ChunkHandle handle);
 
@@ -77,7 +60,7 @@ class Renderer
 
     private:
         // ---------------- Bookkeeping ----------------
-        std::unique_ptr<EntityTracker> m_entityTracker;  // keeps track of where entities are stored
+        std::unique_ptr<EntityManager> m_entityTracker;  // keeps track of where entities are stored
         std::unique_ptr<MeshTracker>   m_meshTracker;    // keeps track of where meshes are stored
         std::unique_ptr<DirtyTracker>  m_dirtyTracker;   // what needs re-uploading this frame
         std::unique_ptr<Allocator>     m_allocator;      // free-slot tracking + alloc for the entity and mesh-geometry buffers
