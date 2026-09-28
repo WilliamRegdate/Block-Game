@@ -24,6 +24,8 @@ struct MeshTracker
 {
     MeshHandle handle;
     int users = 0; // how many entities use the mesh
+    bool isSkinned;
+    int assetID;
 };
 
 
@@ -36,9 +38,13 @@ class EntityManager
         // TryGetValue(key, out value) - a null result IS the failure
         // signal, no separate out-parameter needed.
 
-        void AddEntity(EntityHandle entity);
+        bool AddEntity(Entity& entity,EntityTracker& tracker);
+        bool AddMesh(Mesh& mesh, MeshTracker& tracker);
+        void RemoveEntity(Entity& entity);
+        void RemoveMesh(uint32_t assetID);
 
-        EntityTracker* GetEntity(int entityID);
+        //tries to get entity from the map returns nullptr if get fails.
+        EntityTracker* GetEntity(Entity& entity);
 
         // tries to get mesh from the map returns nullptr if get fails.
         MeshTracker* GetMesh(uint32_t meshID);
@@ -48,7 +54,7 @@ class EntityManager
         // full handle - the generation check happens separately, against
         // EntityTracker::generation / MeshTracker::generation, inside
         // GetEntity/GetMesh above.
-        std::unordered_map<uint32_t, EntityTracker> m_entities;
+        std::unordered_map<Entity*, EntityTracker> m_entities;
         std::unordered_map<uint32_t, MeshTracker>   m_meshes;
 };
 

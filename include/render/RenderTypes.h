@@ -10,38 +10,58 @@ constexpr uint32_t HANDLE_INDEX_BITS   = 24;
 constexpr uint32_t HANDLE_INDEX_MASK   = (1u << HANDLE_INDEX_BITS) - 1;
 constexpr uint32_t INVALID_HANDLE_VALUE = 0xFFFFFFFFu;
 
-struct EntityHandle
+// A contiguous range of elements inside one GPU buffer. The unit depends on
+// which buffer it indexes: vertices for a VBO, indices for an EBO, slots
+// for a descriptor/instance SSBO, mat4s for the pose buffer.
+struct BufferRange
 {
-    uint32_t value = INVALID_HANDLE_VALUE;
+    uint32_t start = INVALID_HANDLE_VALUE;
+    uint32_t size  = 0;
 
-    uint32_t Index()      const { return value & HANDLE_INDEX_MASK; }
-    uint32_t Generation() const { return value >> HANDLE_INDEX_BITS; }
-    bool     IsValid()    const { return value != INVALID_HANDLE_VALUE; }
-
-    static EntityHandle Make(uint32_t index, uint32_t generation)
-    {
-        return EntityHandle{ (generation << HANDLE_INDEX_BITS) | (index & HANDLE_INDEX_MASK) };
-    }
-
-    bool operator==(const EntityHandle& other) const { return value == other.value; }
-    bool operator!=(const EntityHandle& other) const { return value != other.value; }
+    bool IsValid() const { return start != INVALID_HANDLE_VALUE; }
 };
 
+// Everything needed to find and upload one entity's GPU data: which pool
+// it's in (static or skinned), and its slot in that pool's InstanceData SSBO.
+//
+// NOTE: unlike the old packed-uint32 handle, there is no generation field
+// here, so nothing currently guards against a stale copy of this handle
+// (e.g. held elsewhere after Deallocate) being mistaken for valid. Lookups
+// go through EntityManager (keyed by Entity*, not by this handle) so it
+// isn't needed for that path. Add one back if you need to validate a raw
+// handle on its own later - e.g. GPU picking, reading a slot index back from
+// a buffer and turning it into a handle.
+struct EntityHandle
+{
+    bool        isSkinned = false;
+    BufferRange instanceRange; // in the static or skinned InstanceData SSBO; size is always 1
+
+    bool IsValid() const { return instanceRange.IsValid(); }
+
+    bool operator==(const EntityHandle& other) const
+    {
+        return isSkinned == other.isSkinned && instanceRange.start == other.instanceRange.start;
+    }
+    bool operator!=(const EntityHandle& other) const { return !(*this == other); }
+};
+
+// Everything needed to find and upload one mesh's GPU data: which pool it's
+// in, and its ranges in that pool's VBO, EBO and MeshDescriptor SSBO.
+// Same generation caveat as EntityHandle above.
 struct MeshHandle
 {
-    uint32_t value = INVALID_HANDLE_VALUE;
+    bool        isSkinned = false;
+    BufferRange vertexRange;     // in the static or skinned VBO, in vertices
+    BufferRange indexRange;      // in the static or skinned EBO, in indices
+    BufferRange descriptorRange; // in the static or skinned MeshDescriptor SSBO; size is always 1
 
-    uint32_t Index()      const { return value & HANDLE_INDEX_MASK; }
-    uint32_t Generation() const { return value >> HANDLE_INDEX_BITS; }
-    bool     IsValid()    const { return value != INVALID_HANDLE_VALUE; }
+    bool IsValid() const { return vertexRange.IsValid(); }
 
-    static MeshHandle Make(uint32_t index, uint32_t generation)
+    bool operator==(const MeshHandle& other) const
     {
-        return MeshHandle{ (generation << HANDLE_INDEX_BITS) | (index & HANDLE_INDEX_MASK) };
+        return isSkinned == other.isSkinned && descriptorRange.start == other.descriptorRange.start;
     }
-
-    bool operator==(const MeshHandle& other) const { return value == other.value; }
-    bool operator!=(const MeshHandle& other) const { return value != other.value; }
+    bool operator!=(const MeshHandle& other) const { return !(*this == other); }
 };
 
 

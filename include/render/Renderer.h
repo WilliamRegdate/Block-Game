@@ -6,6 +6,7 @@
 #include<memory>
 #include<cstdint>
 
+#include "Entity.h"
 #include"EntityManager.h"
 #include"RenderTypes.h"   // EntityHandle, MeshTypeHandle, VBO/EBO/SSBO/IndirectBuffer/VAO, InstanceData, MeshDescriptor...
 
@@ -38,9 +39,9 @@ class Renderer
         void SetCamera(Camera* camera) { m_camera = camera; }
 
         // ---------------- Entities ----------------
-        void         AddEntity(int entityID, const glm::mat4& transform, uint32_t animOffset = 0);
-        void         UpdateEntity(int entityID, const glm::mat4& transform, uint32_t animOffset = 0);
-        void         RemoveEntity(int entityID);
+        void         AddEntity(Entity entity);
+        void         UpdateEntity(Entity entity);
+        void         RemoveEntity(Entity entity);
 
         // ---------------- Chunks ----------------
         void        AddChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData);

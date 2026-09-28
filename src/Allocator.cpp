@@ -3,30 +3,12 @@
 #include <algorithm>
 #include <cstdint>
 
-// ============================================================
-// Free-list helpers
-// ============================================================
-// These take just the vector of empty slots, not a BufferTracker,
-// so the allocation logic has no GL dependency and can be tested
-// on its own.
-constexpr uint32_t INVALID_RANGE = 0xFFFFFFFFu;
-
-// Static and skinned pools each hand out slots starting at 0, so a raw
-// slot number would collide between the two in EntityManager's maps
-// (keyed by handle.Index()). The top bit of the handle's 24-bit index
-// says which pool the slot belongs to.
-constexpr uint32_t SKINNED_FLAG    = 1u << (HANDLE_INDEX_BITS - 1);
-constexpr uint32_t SLOT_MASK       = SKINNED_FLAG - 1;
-constexpr uint32_t GENERATION_MASK = (1u << (32 - HANDLE_INDEX_BITS)) - 1;
-
-uint32_t PackIndex(uint32_t slot, bool skinned)
+// Everything in this block is file-local: the free-list logic has no GL
+// dependency and can be tested on its own.
+namespace
 {
-    return skinned ? (slot | SKINNED_FLAG) : slot;
-}
 
-bool IsSkinnedIndex(uint32_t index) { return (index & SKINNED_FLAG) != 0; }
-uint32_t SlotOf(uint32_t index)     { return index & SLOT_MASK; }
-
+constexpr uint32_t INVALID_RANGE = 0xFFFFFFFFu;
 
 void SeedSlots(std::vector<emptySlot>& slots, uint32_t count)
 {
@@ -79,15 +61,18 @@ void FreeRange(std::vector<emptySlot>& slots, uint32_t start, uint32_t size)
     }
 }
 
+} // namespace
+
 
 // ============================================================
 // Construction
 // ============================================================
 
-Allocator::Allocator(EntityRendererConfig config)
+Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
 // Members are constructed in declaration order, so this list matches
 // the order in Allocator.h. Each buffer is created at its full size.
-: staticVBO(config.staticVertexCapacityBytes),
+: entityManager(manager),
+    staticVBO(config.staticVertexCapacityBytes),
     staticEBO(config.staticIndexCapacityBytes),
     staticMeshDescriptorSSBO(config.maxMeshTypes * sizeof(MeshDescriptor)),
     staticInstanceDataSSBO(config.maxEntities * sizeof(InstanceData)),
@@ -97,26 +82,19 @@ Allocator::Allocator(EntityRendererConfig config)
     skinnedInstanceDataSSBO(config.maxEntities * sizeof(InstanceData)),
     BonePoseSSBO(config.poseBufferCapacityBytes)
 {
-// Start every buffer as one big empty range.
-SeedSlots(staticVBO.emptySlots, static_cast<uint32_t>(config.staticVertexCapacityBytes / sizeof(StaticVertex)));
-SeedSlots(staticEBO.emptySlots, static_cast<uint32_t>(config.staticIndexCapacityBytes / sizeof(uint32_t)));
-SeedSlots(staticMeshDescriptorSSBO.emptySlots, config.maxMeshTypes);
-SeedSlots(staticInstanceDataSSBO.emptySlots, config.maxEntities);
+    // Start every buffer as one big empty range.
+    SeedSlots(staticVBO.emptySlots, static_cast<uint32_t>(config.staticVertexCapacityBytes / sizeof(StaticVertex)));
+    SeedSlots(staticEBO.emptySlots, static_cast<uint32_t>(config.staticIndexCapacityBytes / sizeof(uint32_t)));
+    SeedSlots(staticMeshDescriptorSSBO.emptySlots, config.maxMeshTypes);
+    SeedSlots(staticInstanceDataSSBO.emptySlots, config.maxEntities);
 
-SeedSlots(skinnedVBO.emptySlots, static_cast<uint32_t>(config.skinnedVertexCapacityBytes / sizeof(SkinnedVertex)));
-SeedSlots(skinnedEBO.emptySlots, static_cast<uint32_t>(config.skinnedIndexCapacityBytes / sizeof(uint32_t)));
-SeedSlots(skinnedMeshDescriptorSSBO.emptySlots, config.maxMeshTypes);
-SeedSlots(skinnedInstanceDataSSBO.emptySlots, config.maxEntities);
+    SeedSlots(skinnedVBO.emptySlots, static_cast<uint32_t>(config.skinnedVertexCapacityBytes / sizeof(SkinnedVertex)));
+    SeedSlots(skinnedEBO.emptySlots, static_cast<uint32_t>(config.skinnedIndexCapacityBytes / sizeof(uint32_t)));
+    SeedSlots(skinnedMeshDescriptorSSBO.emptySlots, config.maxMeshTypes);
+    SeedSlots(skinnedInstanceDataSSBO.emptySlots, config.maxEntities);
 
-// Pose space is counted in bone matrices.
-SeedSlots(BonePoseSSBO.emptySlots, static_cast<uint32_t>(config.poseBufferCapacityBytes / sizeof(glm::mat4)));
-
-// One generation counter per slot. A slot's generation goes up each time
-// it is freed, so handles from its previous occupant stop matching.
-staticEntityGeneration.assign(config.maxEntities, 0);
-skinnedEntityGeneration.assign(config.maxEntities, 0);
-staticMeshGeneration.assign(config.maxMeshTypes, 0);
-skinnedMeshGeneration.assign(config.maxMeshTypes, 0);
+    // Pose space is counted in bone matrices.
+    SeedSlots(BonePoseSSBO.emptySlots, static_cast<uint32_t>(config.poseBufferCapacityBytes / sizeof(glm::mat4)));
 }
 
 
@@ -130,66 +108,120 @@ EntityTracker Allocator::Allocate(Entity& entity)
     // what the caller gets back if allocation fails.
     EntityTracker tracker{};
 
-    // TODO(entity): need a value that uniquely identifies this entity's mesh
-    // (e.g. its asset ID), so two entities using the same mesh find the same
-    // MeshTracker.
-    uint64_t meshKey = 0;
+    if (entity.mesh == nullptr)
+        return tracker;
 
-    // TODO(entity): need to know whether this mesh is skinned (has bones and
-    // animation) or static. This decides which set of buffers is used.
-    bool skinned = false;
+    Mesh& mesh = *entity.mesh;
+    const bool skinned = mesh.isSkinned;
 
     // 1. Find the mesh, or register it if this is the first entity using it.
-    MeshTracker* mesh = entityManager->GetMesh(meshKey);
-    if (mesh == nullptr)
+    MeshTracker* meshTracker = entityManager->GetMesh(mesh.ID);
+    const bool meshIsNew = (meshTracker == nullptr);
+    if (meshIsNew)
     {
-        MeshRegistration info{};
-        info.key     = meshKey;
-        info.skinned = skinned;
+        MeshTracker fresh;
+        if (!AllocateMesh(mesh, fresh))
+            return tracker; // no buffer space, can't fit the mesh
 
-        // TODO(entity / resourceLoader): need the loaded mesh data to fill in:
-        //   info.vertexCount, info.indexCount   element counts, not bytes
-        //   info.vertexData,  info.indexData    pointers to the CPU-side arrays
-        //   info.poseCount,   info.poseData     skinned meshes only: number of bone
-        //                                       matrices and a pointer to them
-        //   info.bounds                         the mesh's local AABB
+        if (!entityManager->AddMesh(mesh, fresh))
+        {
+            // Someone else registered this asset ID between the GetMesh
+            // check above and here. Give back what AllocateMesh just
+            // reserved rather than leaking it.
+            FreeMeshRanges(fresh);
+            return tracker;
+        }
 
-        mesh = RegisterMesh(info);
-        if (mesh == nullptr)
-            return tracker;   // out of vertex / index / descriptor / pose space
+        // AddMesh only reports success/failure, not a pointer to the
+        // stored copy, so fetch it now that it's actually in the map.
+        meshTracker = entityManager->GetMesh(mesh.ID);
     }
 
-    // 2. Reserve a slot for this entity in the matching instance buffer.
-    BufferTracker<SSBO>&   instances   = skinned ? skinnedInstanceDataSSBO : staticInstanceDataSSBO;
-    std::vector<uint32_t>& generations = skinned ? skinnedEntityGeneration : staticEntityGeneration;
+    // 2. One slot in the instance buffer for this entity.
+    BufferTracker<SSBO>& instances = skinned ? skinnedInstanceDataSSBO : staticInstanceDataSSBO;
 
     const uint32_t slot = AllocRange(instances.emptySlots, 1);
     if (slot == INVALID_RANGE)
     {
-        // Out of entity slots. If we only just registered the mesh for this
-        // call, don't leave its space allocated with nobody using it.
-        if (!MeshHasUser(*mesh))
-            DeallocateMesh(*mesh);
+        // Don't leave a mesh registered that nothing ended up using.
+        if (meshIsNew)
+            DeallocateMesh(*meshTracker);
         return tracker;
     }
 
-    // 3. Build the handle and fill in the tracker.
-    tracker.handle      = EntityHandle::Make(PackIndex(slot, skinned), generations[slot]);
-    tracker.meshTracker = mesh;
-    mesh->users++;
+    tracker.handle.isSkinned     = skinned;
+    tracker.handle.instanceRange = BufferRange{ slot, 1 };
+    tracker.meshTracker          = meshTracker;
 
-    // TODO(entity): the instance data itself is not written here (see the
-    // questions in the reply). If Allocate should write it, it needs from the
-    // entity: position, rotation and scale (combined into the transform), and
-    // the texture ID. Roughly:
-    //   InstanceData data{};
-    //   data.transform  = <entity's position / rotation / scale as a mat4>;
-    //   data.meshID     = SlotOf(mesh->handle.Index());
-    //   data.materialID = <entity's texture ID>;
-    //   instances.buffer.Upload(static_cast<GLintptr>(slot * sizeof(InstanceData)),
-    //                           &data, sizeof(InstanceData));
+    meshTracker->users++;
+
+    if (!entityManager->AddEntity(entity, tracker))
+    {
+        // This exact Entity was already registered. Undo the slot and the
+        // user-count bump so state stays consistent with what's actually
+        // stored in entityManager.
+        meshTracker->users--;
+        FreeRange(instances.emptySlots, slot, 1);
+        if (meshIsNew && !MeshHasUser(*meshTracker))
+            DeallocateMesh(*meshTracker);
+        return EntityTracker{};
+    }
 
     return tracker;
+}
+
+// Reserves vertex, index and descriptor space for one mesh.
+// Either everything is reserved and `out` is filled, or nothing is taken.
+bool Allocator::AllocateMesh(Mesh& mesh, MeshTracker& out)
+{
+    const bool skinned = mesh.isSkinned;
+
+    BufferTracker<VBO>&  vbo         = skinned ? skinnedVBO : staticVBO;
+    BufferTracker<EBO>&  ebo         = skinned ? skinnedEBO : staticEBO;
+    BufferTracker<SSBO>& descriptors = skinned ? skinnedMeshDescriptorSSBO : staticMeshDescriptorSSBO;
+
+    // Vertices live in the derived class, so the cast depends on the flag.
+    const uint32_t vertexCount = skinned
+        ? static_cast<uint32_t>(static_cast<SkinnedMesh&>(mesh).vertices.size())
+        : static_cast<uint32_t>(static_cast<StaticMesh&>(mesh).vertices.size());
+    const uint32_t indexCount = static_cast<uint32_t>(mesh.indices.size());
+
+    // A zero-sized range would be "successfully" allocated and then never freed.
+    if (vertexCount == 0 || indexCount == 0)
+        return false;
+
+    const uint32_t vertexStart = AllocRange(vbo.emptySlots, vertexCount);
+    if (vertexStart == INVALID_RANGE)
+        return false;
+
+    const uint32_t indexStart = AllocRange(ebo.emptySlots, indexCount);
+    if (indexStart == INVALID_RANGE)
+    {
+        FreeRange(vbo.emptySlots, vertexStart, vertexCount);
+        return false;
+    }
+
+    const uint32_t descriptorSlot = AllocRange(descriptors.emptySlots, 1);
+    if (descriptorSlot == INVALID_RANGE)
+    {
+        FreeRange(vbo.emptySlots, vertexStart, vertexCount);
+        FreeRange(ebo.emptySlots, indexStart, indexCount);
+        return false;
+    }
+
+    // TODO(pose): if the mesh is skinned, reserve space in BonePoseSSBO for
+    // its baked bone poses (boneCount * frameCount mat4s, counted in mat4s
+    // to match how the pose buffer's free list was seeded). Free everything
+    // taken above if this fails, and store the range on out.handle.
+
+    out.handle.isSkinned      = skinned;
+    out.handle.vertexRange     = BufferRange{ vertexStart, vertexCount };
+    out.handle.indexRange      = BufferRange{ indexStart,  indexCount };
+    out.handle.descriptorRange = BufferRange{ descriptorSlot, 1 };
+    out.assetID = mesh.ID;
+    out.users   = 0;
+
+    return true;
 }
 
 
@@ -197,142 +229,69 @@ EntityTracker Allocator::Allocate(Entity& entity)
 // Deallocate
 // ============================================================
 
-void Allocator::Deallocate(EntityTracker tracker)
+void Allocator::Deallocate(Entity& entity)
 {
-if (!tracker.handle.IsValid() || tracker.meshTracker == nullptr)
-    return;
+    EntityTracker* tracker = entityManager->GetEntity(entity);
+    if (tracker == nullptr || !tracker->handle.IsValid())
+        return;
 
-const uint32_t index   = tracker.handle.Index();
-const bool     skinned = IsSkinnedIndex(index);
-const uint32_t slot    = SlotOf(index);
+    // Captured before DeallocateEntity erases the map entry `tracker` points into.
+    MeshTracker* mesh = tracker->meshTracker;
 
-std::vector<uint32_t>& generations = skinned ? skinnedEntityGeneration : staticEntityGeneration;
+    DeallocateEntity(entity);
 
-// Stale handle or double free: this slot has already been released
-// (and possibly reused), so its generation no longer matches.
-if (slot >= generations.size() || generations[slot] != tracker.handle.Generation())
-    return;
+    if (mesh != nullptr)
+    {
+        mesh->users--;
 
-// Give the slot back. The GPU may still be drawing this slot from an
-// in-flight frame, but reuse is safe as long as instance data is written
-// with glBufferSubData, since the driver synchronises those writes. If you
-// ever switch to persistent mapping, delay this release by a few frames.
-BufferTracker<SSBO>& instances = skinned ? skinnedInstanceDataSSBO : staticInstanceDataSSBO;
-FreeRange(instances.emptySlots, slot, 1);
-generations[slot] = (generations[slot] + 1) & GENERATION_MASK;
+        // Mesh goes last: it removes the MeshTracker that `mesh` refers to.
+        if (!MeshHasUser(*mesh))
+            DeallocateMesh(*mesh);
+    }
+}
 
-MeshTracker* mesh = tracker.meshTracker;
-if (mesh->users > 0)
-    mesh->users--;
+// Frees the entity's instance slot and forgets the entity.
+// Does not touch the mesh - Deallocate decides that.
+void Allocator::DeallocateEntity(Entity& entity)
+{
+    EntityTracker* tracker = entityManager->GetEntity(entity);
+    if (tracker == nullptr)
+        return;
 
-if (!MeshHasUser(*mesh))
-    DeallocateMesh(*mesh);
+    BufferTracker<SSBO>& instances = tracker->handle.isSkinned ? skinnedInstanceDataSSBO : staticInstanceDataSSBO;
+    FreeRange(instances.emptySlots, tracker->handle.instanceRange.start, tracker->handle.instanceRange.size);
+
+    entityManager->RemoveEntity(entity);
+}
+
+// Frees the mesh's geometry and descriptor slot and unregisters it.
+// `mesh` must not be used after this call.
+void Allocator::DeallocateMesh(MeshTracker& mesh)
+{
+    FreeMeshRanges(mesh);
+    entityManager->RemoveMesh(mesh.assetID); // erases the MeshTracker, `mesh` dangles after this
+}
+
+// Just the buffer-side free for a mesh's ranges - no entityManager call.
+// Shared by DeallocateMesh and by Allocate's rollback path, where a
+// freshly reserved MeshTracker never made it into entityManager at all.
+void Allocator::FreeMeshRanges(MeshTracker& mesh)
+{
+    const bool skinned = mesh.handle.isSkinned;
+
+    BufferTracker<VBO>&  vbo         = skinned ? skinnedVBO : staticVBO;
+    BufferTracker<EBO>&  ebo         = skinned ? skinnedEBO : staticEBO;
+    BufferTracker<SSBO>& descriptors = skinned ? skinnedMeshDescriptorSSBO : staticMeshDescriptorSSBO;
+
+    FreeRange(vbo.emptySlots, mesh.handle.vertexRange.start, mesh.handle.vertexRange.size);
+    FreeRange(ebo.emptySlots, mesh.handle.indexRange.start,  mesh.handle.indexRange.size);
+    FreeRange(descriptors.emptySlots, mesh.handle.descriptorRange.start, mesh.handle.descriptorRange.size);
+
+    // TODO(pose): if skinned, free the mesh's range in BonePoseSSBO here.
 }
 
 
-// ============================================================
-// Mesh helpers
-// ============================================================
-
-MeshTracker* Allocator::RegisterMesh(const MeshRegistration& info)
+bool Allocator::MeshHasUser(MeshTracker& mesh)
 {
-const bool skinned  = info.skinned;
-const bool needPose = skinned && info.poseCount > 0;
-
-BufferTracker<VBO>&    vbo         = skinned ? skinnedVBO : staticVBO;
-BufferTracker<EBO>&    ebo         = skinned ? skinnedEBO : staticEBO;
-BufferTracker<SSBO>&   desc        = skinned ? skinnedMeshDescriptorSSBO : staticMeshDescriptorSSBO;
-std::vector<uint32_t>& generations = skinned ? skinnedMeshGeneration : staticMeshGeneration;
-
-// Reserve everything first. If any of it fails, hand back what we took.
-const uint32_t vertexStart = AllocRange(vbo.emptySlots, info.vertexCount);
-const uint32_t indexStart  = AllocRange(ebo.emptySlots, info.indexCount);
-const uint32_t descSlot    = AllocRange(desc.emptySlots, 1);
-const uint32_t poseStart   = needPose ? AllocRange(BonePoseSSBO.emptySlots, info.poseCount) : 0;
-
-const bool ok = vertexStart != INVALID_RANGE && indexStart != INVALID_RANGE &&
-                descSlot    != INVALID_RANGE && poseStart  != INVALID_RANGE;
-if (!ok)
-{
-    if (vertexStart != INVALID_RANGE) FreeRange(vbo.emptySlots, vertexStart, info.vertexCount);
-    if (indexStart  != INVALID_RANGE) FreeRange(ebo.emptySlots, indexStart, info.indexCount);
-    if (descSlot    != INVALID_RANGE) FreeRange(desc.emptySlots, descSlot, 1);
-    if (needPose && poseStart != INVALID_RANGE) FreeRange(BonePoseSSBO.emptySlots, poseStart, info.poseCount);
-    return nullptr;
+    return mesh.users > 0;
 }
-
-// Upload the geometry. Free space is tracked in elements, uploads are in bytes.
-const size_t vertexStride = skinned ? sizeof(SkinnedVertex) : sizeof(StaticVertex);
-vbo.buffer.Upload(static_cast<GLintptr>(vertexStart * vertexStride),
-                    info.vertexData,
-                    static_cast<GLsizeiptr>(info.vertexCount * vertexStride));
-
-ebo.buffer.Upload(static_cast<GLintptr>(indexStart * sizeof(uint32_t)),
-                    info.indexData,
-                    static_cast<GLsizeiptr>(info.indexCount * sizeof(uint32_t)));
-
-if (needPose)
-{
-    BonePoseSSBO.buffer.Upload(static_cast<GLintptr>(poseStart * sizeof(glm::mat4)),
-                                info.poseData,
-                                static_cast<GLsizeiptr>(info.poseCount * sizeof(glm::mat4)));
-}
-
-// Write this mesh's descriptor into its slot.
-MeshDescriptor descriptor{};
-descriptor.firstIndex  = indexStart;
-descriptor.indexCount  = info.indexCount;
-descriptor.baseVertex  = static_cast<int32_t>(vertexStart);
-descriptor.materialID  = 0;                 // texture is per entity, so it goes in InstanceData
-descriptor.skeletonID  = poseStart;         // start of this mesh's poses (see questions in the reply)
-descriptor.isAnimated  = skinned ? 1u : 0u;
-descriptor.localBounds = info.bounds;
-
-desc.buffer.Upload(static_cast<GLintptr>(descSlot * sizeof(MeshDescriptor)),
-                    &descriptor, sizeof(MeshDescriptor));
-
-// Record everything DeallocateMesh will need to give the space back.
-MeshTracker mesh{};
-mesh.handle      = MeshHandle::Make(PackIndex(descSlot, skinned), generations[descSlot]);
-mesh.users       = 0;
-mesh.key         = info.key;
-mesh.skinned     = skinned;
-mesh.vertexStart = vertexStart;
-mesh.vertexCount = info.vertexCount;
-mesh.indexStart  = indexStart;
-mesh.indexCount  = info.indexCount;
-mesh.poseStart   = poseStart;
-mesh.poseCount   = needPose ? info.poseCount : 0;
-
-// unordered_map keeps element addresses stable until erase, so the
-// pointer we return (and that entities store) stays valid while the
-// mesh has users.
-return &meshTrackers.emplace(info.key, mesh).first->second;
-}
-
-bool Allocator::MeshHasUser(MeshTracker mesh)
-{
-return mesh.users > 0;
-}
-
-void Allocator::DeallocateMesh(MeshTracker mesh)
-{
-const bool skinned = mesh.skinned;
-
-BufferTracker<VBO>&    vbo         = skinned ? skinnedVBO : staticVBO;
-BufferTracker<EBO>&    ebo         = skinned ? skinnedEBO : staticEBO;
-BufferTracker<SSBO>&   desc        = skinned ? skinnedMeshDescriptorSSBO : staticMeshDescriptorSSBO;
-std::vector<uint32_t>& generations = skinned ? skinnedMeshGeneration : staticMeshGeneration;
-
-FreeRange(vbo.emptySlots, mesh.vertexStart, mesh.vertexCount);
-FreeRange(ebo.emptySlots, mesh.indexStart, mesh.indexCount);
-
-if (mesh.poseCount > 0)
-    FreeRange(BonePoseSSBO.emptySlots, mesh.poseStart, mesh.poseCount);
-
-const uint32_t descSlot = SlotOf(mesh.handle.Index());
-FreeRange(desc.emptySlots, descSlot, 1);
-generations[descSlot] = (generations[descSlot] + 1) & GENERATION_MASK;
-
-// `mesh` is a copy, so erasing the map entry here is safe.
-meshTrackers.erase(mesh.key);
