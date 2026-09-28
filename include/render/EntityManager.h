@@ -40,8 +40,8 @@ class EntityManager
 
         EntityTracker* GetEntity(int entityID);
 
-        // Resolves the mesh an already-looked-up entity uses.
-        MeshTracker* GetMesh(const EntityTracker& entity);
+        // tries to get mesh from the map returns nullptr if get fails.
+        MeshTracker* GetMesh(uint32_t meshID);
 
     private:
         // Keyed by the handle's Index() (a plain uint32_t), not the

@@ -43,9 +43,11 @@ class Allocator
         void Deallocate(EntityTracker& tracker); // deallocates the space used by the entity
 
     private:
+        EntityManager* entityManager;
+
         BufferTracker<VBO> staticVBO; // stores vertices for static meshes
         BufferTracker<EBO> staticEBO; // stores indices for static meshes
-
+        
         BufferTracker<SSBO> staticMeshDescriptorSSBO; // stores information on how to render all static meshes
         BufferTracker<SSBO> staticInstanceDataSSBO; // stores information about each static render instance
 
