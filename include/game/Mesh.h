@@ -8,5 +8,4 @@ class Mesh
     Transform transform;
     
 };
-
 #endif
