@@ -11,27 +11,27 @@ class Mesh
 {
 
     public:
+        Mesh(std::vector<uint32_t> indices);   
+
         uint32_t ID;
         bool isSkinned;
 
         Transform transform;
         std::vector <uint32_t> indices;
-        std::vector <Texture> textures;
-
+        Material* material;
 };
 
-// public: Allocator casts a Mesh& to SkinnedMesh&/StaticMesh& depending on
-// isSkinned, which needs Mesh to be an accessible base from outside these
-// classes. Private (the default for `class X : Y`) blocks that cast.
 class SkinnedMesh : public Mesh
 {
     public:
-        std::vector <SkinnedVertex> vertices;
+        SkinnedMesh(std::vector<SkinnedVertex> vertices, std::vector<uint32_t> indices);
+        std::vector<SkinnedVertex> vertices;
 };
 class StaticMesh : public Mesh
 {
     public:
-        std::vector <StaticVertex> vertices;
+        StaticMesh(std::vector<StaticVertex> vertices, std::vector<uint32_t> indices);
+        std::vector<StaticVertex> vertices;
 };
 
 
