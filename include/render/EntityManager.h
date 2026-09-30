@@ -6,15 +6,27 @@
 
 #include "RenderTypes.h"
 
+// Entity.h, Mesh.h and Material.h aren't included here - only
+// pointers/references to them are needed below, and Allocator.h already
+// includes all three alongside this header, so forward declarations are
+// enough and avoid widening EntityManager.h's own include graph.
+class Entity;
+class Mesh;
+class Material;
+
+struct MeshTracker;     // defined below, EntityTracker only needs the name
+struct MaterialTracker; // defined below, EntityTracker only needs the name
+
 // ------------------------------------------------------------
 // Per-entity record - what EntityManager stores for one live
-// entity. Just data, no behaviour: where it lives and which mesh
-// it uses.
+// entity. Just data, no behaviour: where it lives, which mesh it
+// uses, and which material it uses.
 // ------------------------------------------------------------
 struct EntityTracker
 {
-    EntityHandle handle; // stores information about where it is in the buffer
-    MeshTracker* meshTracker; //which mesh this entity uses
+    EntityHandle      handle;                    // where this entity's data lives on the GPU
+    MeshTracker*      meshTracker = nullptr;      // which mesh this entity uses
+    MaterialTracker*  materialTracker = nullptr;  // which material this entity uses; nullptr if it has none
 };
 
 // ------------------------------------------------------------
@@ -22,40 +34,67 @@ struct EntityTracker
 // ------------------------------------------------------------
 struct MeshTracker
 {
-    MeshHandle handle;
-    int users = 0; // how many entities use the mesh
-    bool isSkinned;
-    int assetID;
+    MeshHandle handle;      // where this mesh's data lives on the GPU
+    uint32_t   assetID = 0; // Mesh::ID - the key EntityManager finds this mesh by
+    int        users = 0;   // how many entities use the mesh
+
+    // TODO(pose): BufferRange poseRange; - the mesh's baked bone poses in
+    // BonePoseSSBO, counted in mat4s. Only meaningful when handle.isSkinned.
+};
+
+// ------------------------------------------------------------
+// Per-material record - what's known about one unique material.
+// ------------------------------------------------------------
+struct MaterialTracker
+{
+    MaterialHandle handle;      // where this material's data lives on the GPU
+    uint32_t       assetID = 0; // Material::ID - the key EntityManager finds this material by
+    int            users = 0;   // how many entities use the material
 };
 
 
 class EntityManager
 {
     public:
-        // Returns nullptr if the handle is invalid, unknown, or stale
-        // (its generation doesn't match what's currently stored for
-        // that slot). This is the direct replacement for a C#-style
-        // TryGetValue(key, out value) - a null result IS the failure
-        // signal, no separate out-parameter needed.
-
-        bool AddEntity(Entity& entity,EntityTracker& tracker);
-        bool AddMesh(Mesh& mesh, MeshTracker& tracker);
+        // ---- Entities ----
+        // Stores `tracker` keyed by &entity. Returns false if this exact
+        // Entity is already registered.
+        bool AddEntity(Entity& entity, EntityTracker& tracker);
         void RemoveEntity(Entity& entity);
-        void RemoveMesh(uint32_t assetID);
-
-        //tries to get entity from the map returns nullptr if get fails.
+        // Returns nullptr if this exact Entity has no tracker registered.
         EntityTracker* GetEntity(Entity& entity);
 
-        // tries to get mesh from the map returns nullptr if get fails.
-        MeshTracker* GetMesh(uint32_t meshID);
+        // ---- Meshes ----
+        // Stores `tracker` keyed by mesh.ID. Returns false if this asset ID
+        // is already registered.
+        bool AddMesh(Mesh& mesh, MeshTracker& tracker);
+        void RemoveMesh(uint32_t assetID); // takes the ID, not a Mesh&: by the
+                                            // time this runs the original Mesh
+                                            // may not be reachable, only the
+                                            // assetID stored in MeshTracker
+        // Returns nullptr if this asset ID has no tracker registered.
+        MeshTracker* GetMesh(uint32_t assetID);
+
+        // ---- Materials ----
+        // Stores `tracker` keyed by material.ID. Returns false if this
+        // asset ID is already registered.
+        bool AddMaterial(Material& material, MaterialTracker& tracker);
+        void RemoveMaterial(uint32_t assetID); // same reasoning as RemoveMesh
+        // Returns nullptr if this asset ID has no tracker registered.
+        MaterialTracker* GetMaterial(uint32_t assetID);
 
     private:
-        // Keyed by the handle's Index() (a plain uint32_t), not the
-        // full handle - the generation check happens separately, against
-        // EntityTracker::generation / MeshTracker::generation, inside
-        // GetEntity/GetMesh above.
+        // Keyed by the entity's own address.
+        // NOTE: a tracker becomes unreachable - GetEntity/RemoveEntity
+        // silently stop finding it - if the Entity is ever moved or
+        // reallocated (e.g. stored in a std::vector that resizes) without
+        // this map being updated. If entities live somewhere that can
+        // reallocate, consider keying by entity.ID instead, the same way
+        // m_meshes/m_materials are keyed by their assets' IDs below rather
+        // than by address.
         std::unordered_map<Entity*, EntityTracker> m_entities;
-        std::unordered_map<uint32_t, MeshTracker>   m_meshes;
+        std::unordered_map<uint32_t, MeshTracker>     m_meshes;    // keyed by Mesh::ID
+        std::unordered_map<uint32_t, MaterialTracker> m_materials; // keyed by Material::ID
 };
 
 #endif

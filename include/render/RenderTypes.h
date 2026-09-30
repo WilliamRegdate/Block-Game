@@ -99,28 +99,60 @@ struct SkinnedVertex
 
 struct AABB
 {
-    glm::vec3 boundsMin;
-    glm::vec3 boundsMax;
+    glm::vec4 boundsMin;
+    glm::vec4 boundsMax;
 };
 
 struct MeshDescriptor
 {
-    uint32_t firstIndex = 0;
-    uint32_t indexCount = 0;
-    int32_t  baseVertex = 0;
-    uint32_t materialID = 0;
-    uint32_t skeletonID = 0;   // only meaningful if isAnimated
-    uint32_t isAnimated = 0;   // bool kept as uint32 for std430
-    AABB     localBounds{};
+    uint32_t firstIndex;
+    uint32_t indexCount;
+    int32_t  baseVertex;
+    uint32_t materialID;
+    uint32_t skeletonID;
+    uint32_t isAnimated;
+    uint32_t _pad0;
+    uint32_t _pad1;
+    glm::vec4 boundsMin;   // xyz used
+    glm::vec4 boundsMax;   // xyz used
 };
 
-struct Material
+// Renamed from `Material` (then briefly `MaterialGPU`) - that name belongs
+// to the CPU-side asset class in Material.h, which owns actual Texture
+// objects. This is only the flat GPU-mirror of one (indices into the
+// material TextureArray, no ownership), so it gets a distinct name rather
+// than colliding when both headers end up in the same translation unit (as
+// they do via Mesh.h).
+
+
+constexpr uint32_t MATERIAL_HAS_ALBEDO = 1u << 0;
+constexpr uint32_t MATERIAL_HAS_NORMAL = 1u << 1;
+constexpr uint32_t MATERIAL_HAS_ORM    = 1u << 2;
+
+struct MaterialDescriptor
 {
     uint32_t  albedoTexIndex = 0;
     uint32_t  normalTexIndex = 0;
     uint32_t  ormTexIndex    = 0;
-    uint32_t  _pad0          = 0;
+    uint32_t  flags          = 0; // MATERIAL_HAS_* bits; a clear bit means "don't sample that map"
     glm::vec4 tint{ 1.0f };
+};
+
+// Not included here - only a pointer to it is needed for TextureArray's
+// declaration below, and Material.h doesn't need anything from RenderTypes.h.
+class Material;
+
+// Everything needed to find a material's GPU data: its three texture-array
+// layers (any of which may be absent - IsValid() on the individual
+// BufferRange tells you) and its slot in the MaterialDescriptor SSBO.
+struct MaterialHandle
+{
+    BufferRange albedoLayer;     // in the material TextureArray; invalid if this material has no albedo map
+    BufferRange normalLayer;     // in the material TextureArray; invalid if this material has no normal map
+    BufferRange ormLayer;        // in the material TextureArray; invalid if this material has no orm map
+    BufferRange descriptorRange; // in the MaterialDescriptor SSBO; size is always 1
+
+    bool IsValid() const { return descriptorRange.IsValid(); }
 };
 
 
@@ -252,6 +284,46 @@ class VAO
         void Bind();
         void Unbind();
         void Delete();
+};
+
+// Holds every material's albedo/normal/orm textures as layers of one
+// GL_TEXTURE_2D_ARRAY, so materials can be swapped by index at draw time
+// instead of rebinding a different texture per material. Every layer
+// shares width, height and internalFormat, fixed at construction - an
+// image uploaded into a layer must already match those dimensions exactly.
+//
+// This class doesn't decide which layer a given texture goes into - same
+// as VBO/EBO/SSBO, that's Allocator's job via a BufferTracker<TextureArray>
+// and its emptySlots free list. UploadLayer/UploadMaterial just write
+// pixels into whichever layer they're told to.
+class TextureArray
+{
+    public:
+        GLuint ID = 0;
+
+        TextureArray(GLsizei width, GLsizei height, GLsizei layerCount,
+                     GLenum internalFormat = GL_RGBA8);
+
+        // Uploads one already-decoded image into one layer. pixelData must
+        // already be width x height, matching this array's fixed size - no
+        // resizing happens here.
+        void UploadLayer(GLint layer, const void* pixelData,
+                          GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE);
+
+        // Loads material's up-to-three textures from disk (via
+        // Texture::GetImage) and uploads each into the given layer -
+        // -1 for any layer means "this material has no such map, skip it".
+        void UploadMaterial(Material* material, GLint albedoLayer, GLint normalLayer, GLint ormLayer);
+
+        void GenerateMipmaps();
+        void Bind(GLuint unit);
+
+        void Delete();
+
+    private:
+        GLsizei m_width      = 0;
+        GLsizei m_height     = 0;
+        GLsizei m_layerCount = 0;
 };
 
 #endif

@@ -7,17 +7,16 @@
 #include<cstdint>
 
 #include "Entity.h"
-#include"EntityManager.h"
-#include"RenderTypes.h"   // EntityHandle, MeshTypeHandle, VBO/EBO/SSBO/IndirectBuffer/VAO, InstanceData, MeshDescriptor...
+#include "Allocator.h"
+#include "EntityManager.h"
+#include "RenderTypes.h"
 
 // ------------------------------------------------------------
 // Forward declarations - these don't exist yet. This header only
 // needs to know they're types; nothing here requires their full
 // definition.
 // ------------------------------------------------------------
-class MeshTracker;
 class DirtyTracker;
-class Allocator;
 class Camera;
 
 struct ChunkHandle; 
@@ -29,8 +28,7 @@ using MeshAssetID = uint64_t;   // interned/hashed identifier, assumed to come f
 class Renderer
 {
     public:
-        Renderer();
-
+        explicit Renderer(Camera* camera);   // was Renderer(); you wanted the constructor to take a camera
         ~Renderer();
 
         void Init();
@@ -38,10 +36,10 @@ class Renderer
 
         void SetCamera(Camera* camera) { m_camera = camera; }
 
-        // ---------------- Entities ----------------
-        void         AddEntity(Entity entity);
-        void         UpdateEntity(Entity entity);
-        void         RemoveEntity(Entity entity);
+        
+        bool         AddEntity(Entity& entity);
+        void         UpdateEntity(Entity& entity);
+        void         RemoveEntity(Entity& entity);
 
         // ---------------- Chunks ----------------
         void        AddChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData);
@@ -61,37 +59,14 @@ class Renderer
 
     private:
         // ---------------- Bookkeeping ----------------
-        std::unique_ptr<EntityManager> m_entityTracker;  // keeps track of where entities are stored
-        std::unique_ptr<MeshTracker>   m_meshTracker;    // keeps track of where meshes are stored
-        std::unique_ptr<DirtyTracker>  m_dirtyTracker;   // what needs re-uploading this frame
-        std::unique_ptr<Allocator>     m_allocator;      // free-slot tracking + alloc for the entity and mesh-geometry buffers
+            private:
+        std::unique_ptr<EntityManager> m_entityManager;
+        std::unique_ptr<Allocator>     m_allocator;
+        // TODO(dirty): std::unique_ptr<DirtyTracker> m_dirtyTracker;
+        // Left out for now: unique_ptr can't be destroyed while DirtyTracker is
+        // an incomplete type, so the member would break compilation.
 
-        Camera* m_camera = nullptr;  // not owned - used for culling and for this pass's view/proj
-
-        // ---------------- GPU resources ----------------
-        // unique_ptr rather than plain members: VBO/EBO/SSBO/etc. have
-        // no default constructor (they need a real capacity up front),
-        // so construction is deferred to Init() rather than happening
-        // implicitly whenever an Renderer is constructed.
-        std::unique_ptr<VBO> m_staticVBO;
-        std::unique_ptr<EBO> m_staticEBO;
-        std::unique_ptr<VBO> m_skinnedVBO;
-        std::unique_ptr<EBO> m_skinnedEBO;
-
-        std::unique_ptr<VAO> m_staticVAO;
-        std::unique_ptr<VAO> m_skinnedVAO;
-
-        std::unique_ptr<SSBO> m_meshDescriptors;
-        std::unique_ptr<SSBO> m_materials;
-        std::unique_ptr<SSBO> m_instanceData;
-        std::unique_ptr<SSBO> m_bonePoses;
-
-        std::unique_ptr<SSBO> m_staticVisibleIndex;
-        std::unique_ptr<SSBO> m_animatedVisibleIndex;
-
-        std::unique_ptr<IndirectBuffer> m_staticDrawArgs;
-        std::unique_ptr<IndirectBuffer> m_animatedDrawArgs;
-
+        Camera* m_camera = nullptr;
 };
 
 

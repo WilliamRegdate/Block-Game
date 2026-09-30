@@ -9,7 +9,8 @@ class Entity
     public:
         uint32_t ID;
         Transform transform;
-        Mesh* mesh;
+        Mesh* mesh = nullptr;
+        Material* material = nullptr;
         
     
 };

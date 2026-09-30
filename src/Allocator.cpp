@@ -8,58 +8,71 @@
 namespace
 {
 
-constexpr uint32_t INVALID_RANGE = 0xFFFFFFFFu;
-
-void SeedSlots(std::vector<emptySlot>& slots, uint32_t count)
-{
-    if (count > 0)
-        slots.push_back(emptySlot{ 0, count });
-}
-
-// First-fit. Returns the start of a free range of `size` elements,
-// or INVALID_RANGE if no free range is big enough.
-uint32_t AllocRange(std::vector<emptySlot>& slots, uint32_t size)
-{
-    for (size_t i = 0; i < slots.size(); ++i)
+    template<typename VertexT>
+    AABB ComputeBounds(const std::vector<VertexT>& vertices)
     {
-        if (slots[i].size < size)
-            continue;
+        glm::vec3 mn(FLT_MAX);
+        glm::vec3 mx(-FLT_MAX);
+        for (const VertexT& v : vertices)
+        {
+            mn = glm::min(mn, v.position);
+            mx = glm::max(mx, v.position);
+        }
+        return AABB{ glm::vec4(mn, 0.0f), glm::vec4(mx, 0.0f) };
+    }
 
-        const uint32_t start = slots[i].start;
-        slots[i].start += size;
-        slots[i].size  -= size;
+    constexpr uint32_t INVALID_RANGE = 0xFFFFFFFFu;
 
-        if (slots[i].size == 0)
+    void SeedSlots(std::vector<emptySlot>& slots, uint32_t count)
+    {
+        if (count > 0)
+            slots.push_back(emptySlot{ 0, count });
+    }
+
+    // First-fit. Returns the start of a free range of `size` elements,
+    // or INVALID_RANGE if no free range is big enough.
+    uint32_t AllocRange(std::vector<emptySlot>& slots, uint32_t size)
+    {
+        for (size_t i = 0; i < slots.size(); ++i)
+        {
+            if (slots[i].size < size)
+                continue;
+
+            const uint32_t start = slots[i].start;
+            slots[i].start += size;
+            slots[i].size  -= size;
+
+            if (slots[i].size == 0)
+                slots.erase(slots.begin() + i);
+            return start;
+        }
+        return INVALID_RANGE;
+    }
+
+    // Returns a range to the free list, keeping the list sorted by start
+    // and merging with any free neighbours so space doesn't fragment.
+    void FreeRange(std::vector<emptySlot>& slots, uint32_t start, uint32_t size)
+    {
+        auto it = std::lower_bound(slots.begin(), slots.end(), start,
+            [](const emptySlot& s, uint32_t value) { return s.start < value; });
+
+        size_t i = static_cast<size_t>(it - slots.begin());
+        slots.insert(it, emptySlot{ start, size });
+
+        // merge with the slot after
+        if (i + 1 < slots.size() && slots[i].start + slots[i].size == slots[i + 1].start)
+        {
+            slots[i].size += slots[i + 1].size;
+            slots.erase(slots.begin() + i + 1);
+        }
+
+        // merge with the slot before
+        if (i > 0 && slots[i - 1].start + slots[i - 1].size == slots[i].start)
+        {
+            slots[i - 1].size += slots[i].size;
             slots.erase(slots.begin() + i);
-        return start;
+        }
     }
-    return INVALID_RANGE;
-}
-
-// Returns a range to the free list, keeping the list sorted by start
-// and merging with any free neighbours so space doesn't fragment.
-void FreeRange(std::vector<emptySlot>& slots, uint32_t start, uint32_t size)
-{
-    auto it = std::lower_bound(slots.begin(), slots.end(), start,
-        [](const emptySlot& s, uint32_t value) { return s.start < value; });
-
-    size_t i = static_cast<size_t>(it - slots.begin());
-    slots.insert(it, emptySlot{ start, size });
-
-    // merge with the slot after
-    if (i + 1 < slots.size() && slots[i].start + slots[i].size == slots[i + 1].start)
-    {
-        slots[i].size += slots[i + 1].size;
-        slots.erase(slots.begin() + i + 1);
-    }
-
-    // merge with the slot before
-    if (i > 0 && slots[i - 1].start + slots[i - 1].size == slots[i].start)
-    {
-        slots[i - 1].size += slots[i].size;
-        slots.erase(slots.begin() + i);
-    }
-}
 
 } // namespace
 
@@ -80,7 +93,10 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
     skinnedEBO(config.skinnedIndexCapacityBytes),
     skinnedMeshDescriptorSSBO(config.maxMeshTypes * sizeof(MeshDescriptor)),
     skinnedInstanceDataSSBO(config.maxEntities * sizeof(InstanceData)),
-    BonePoseSSBO(config.poseBufferCapacityBytes)
+    bonePoseSSBO(config.poseBufferCapacityBytes),
+    materialDescriptorSSBO(config.maxMaterials * sizeof(MaterialDescriptor)),
+    materialTextureArray(config.materialTextureWidth, config.materialTextureHeight,
+                          static_cast<GLsizei>(config.maxMaterials) * 3, config.materialTextureFormat)
 {
     // Start every buffer as one big empty range.
     SeedSlots(staticVBO.emptySlots, static_cast<uint32_t>(config.staticVertexCapacityBytes / sizeof(StaticVertex)));
@@ -94,7 +110,13 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
     SeedSlots(skinnedInstanceDataSSBO.emptySlots, config.maxEntities);
 
     // Pose space is counted in bone matrices.
-    SeedSlots(BonePoseSSBO.emptySlots, static_cast<uint32_t>(config.poseBufferCapacityBytes / sizeof(glm::mat4)));
+    SeedSlots(bonePoseSSBO.emptySlots, static_cast<uint32_t>(config.poseBufferCapacityBytes / sizeof(glm::mat4)));
+
+    SeedSlots(materialDescriptorSSBO.emptySlots, config.maxMaterials);
+    // Layers aren't typed by texture kind - any layer can hold an albedo,
+    // normal or orm map, since the shader just samples whichever index the
+    // MaterialDescriptor gives it. One shared free list over all of them.
+    SeedSlots(materialTextureArray.emptySlots, config.maxMaterials * 3);
 }
 
 
@@ -104,8 +126,8 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
 
 EntityTracker Allocator::Allocate(Entity& entity)
 {
-    // Value-initialised: invalid handle and null mesh pointer, which is
-    // what the caller gets back if allocation fails.
+    // Value-initialised: invalid handle and null mesh/material pointers,
+    // which is what the caller gets back if allocation fails.
     EntityTracker tracker{};
 
     if (entity.mesh == nullptr)
@@ -137,13 +159,48 @@ EntityTracker Allocator::Allocate(Entity& entity)
         meshTracker = entityManager->GetMesh(mesh.ID);
     }
 
-    // 2. One slot in the instance buffer for this entity.
+    // 2. Find the material, or register it if this is the first entity
+    // using it. A null material is allowed - the entity just renders
+    // without one; tracker.materialTracker stays nullptr, same as if
+    // entityManager->GetMaterial simply never found anything.
+    MaterialTracker* materialTracker = nullptr;
+    bool materialIsNew = false;
+    if (entity.material != nullptr)
+    {
+        Material& material = *entity.material;
+        materialTracker = entityManager->GetMaterial(material.ID);
+        materialIsNew = (materialTracker == nullptr);
+        if (materialIsNew)
+        {
+            MaterialTracker fresh;
+            if (!AllocateMaterial(material, fresh))
+            {
+                if (meshIsNew)
+                    DeallocateMesh(*meshTracker);
+                return tracker;
+            }
+
+            if (!entityManager->AddMaterial(material, fresh))
+            {
+                FreeMaterialRanges(fresh);
+                if (meshIsNew)
+                    DeallocateMesh(*meshTracker);
+                return tracker;
+            }
+
+            materialTracker = entityManager->GetMaterial(material.ID);
+        }
+    }
+
+    // 3. One slot in the instance buffer for this entity.
     BufferTracker<SSBO>& instances = skinned ? skinnedInstanceDataSSBO : staticInstanceDataSSBO;
 
     const uint32_t slot = AllocRange(instances.emptySlots, 1);
     if (slot == INVALID_RANGE)
     {
-        // Don't leave a mesh registered that nothing ended up using.
+        // Don't leave a mesh or material registered that nothing ended up using.
+        if (materialIsNew)
+            DeallocateMaterial(*materialTracker);
         if (meshIsNew)
             DeallocateMesh(*meshTracker);
         return tracker;
@@ -152,18 +209,29 @@ EntityTracker Allocator::Allocate(Entity& entity)
     tracker.handle.isSkinned     = skinned;
     tracker.handle.instanceRange = BufferRange{ slot, 1 };
     tracker.meshTracker          = meshTracker;
+    tracker.materialTracker      = materialTracker;
 
     meshTracker->users++;
+    if (materialTracker != nullptr)
+        materialTracker->users++;
 
     if (!entityManager->AddEntity(entity, tracker))
     {
-        // This exact Entity was already registered. Undo the slot and the
-        // user-count bump so state stays consistent with what's actually
+        // This exact Entity was already registered. Undo the slot and both
+        // user-count bumps so state stays consistent with what's actually
         // stored in entityManager.
         meshTracker->users--;
         FreeRange(instances.emptySlots, slot, 1);
         if (meshIsNew && !MeshHasUser(*meshTracker))
             DeallocateMesh(*meshTracker);
+
+        if (materialTracker != nullptr)
+        {
+            materialTracker->users--;
+            if (materialIsNew && !MaterialHasUser(*materialTracker))
+                DeallocateMaterial(*materialTracker);
+        }
+
         return EntityTracker{};
     }
 
@@ -209,7 +277,7 @@ bool Allocator::AllocateMesh(Mesh& mesh, MeshTracker& out)
         return false;
     }
 
-    // TODO(pose): if the mesh is skinned, reserve space in BonePoseSSBO for
+    // TODO(pose): if the mesh is skinned, reserve space in bonePoseSSBO for
     // its baked bone poses (boneCount * frameCount mat4s, counted in mat4s
     // to match how the pose buffer's free list was seeded). Free everything
     // taken above if this fails, and store the range on out.handle.
@@ -220,6 +288,59 @@ bool Allocator::AllocateMesh(Mesh& mesh, MeshTracker& out)
     out.handle.descriptorRange = BufferRange{ descriptorSlot, 1 };
     out.assetID = mesh.ID;
     out.users   = 0;
+
+    return true;
+}
+
+// Reserves a texture-array layer for each map material actually has, and a
+// MaterialDescriptor slot. Either everything asked for is reserved and
+// `out` is filled, or nothing is taken.
+bool Allocator::AllocateMaterial(Material& material, MaterialTracker& out)
+{
+    BufferRange albedoLayer, normalLayer, ormLayer;
+
+    auto rollbackLayers = [&]()
+    {
+        if (albedoLayer.IsValid()) FreeRange(materialTextureArray.emptySlots, albedoLayer.start, 1);
+        if (normalLayer.IsValid()) FreeRange(materialTextureArray.emptySlots, normalLayer.start, 1);
+        if (ormLayer.IsValid())    FreeRange(materialTextureArray.emptySlots, ormLayer.start, 1);
+    };
+
+    if (material.albedo.has_value())
+    {
+        const uint32_t layer = AllocRange(materialTextureArray.emptySlots, 1);
+        if (layer == INVALID_RANGE) { rollbackLayers(); return false; }
+        albedoLayer = BufferRange{ layer, 1 };
+    }
+    if (material.normal.has_value())
+    {
+        const uint32_t layer = AllocRange(materialTextureArray.emptySlots, 1);
+        if (layer == INVALID_RANGE) { rollbackLayers(); return false; }
+        normalLayer = BufferRange{ layer, 1 };
+    }
+    if (material.orm.has_value())
+    {
+        const uint32_t layer = AllocRange(materialTextureArray.emptySlots, 1);
+        if (layer == INVALID_RANGE) { rollbackLayers(); return false; }
+        ormLayer = BufferRange{ layer, 1 };
+    }
+
+    const uint32_t descriptorSlot = AllocRange(materialDescriptorSSBO.emptySlots, 1);
+    if (descriptorSlot == INVALID_RANGE)
+    {
+        rollbackLayers();
+        return false;
+    }
+
+    out.handle.albedoLayer     = albedoLayer;
+    out.handle.normalLayer     = normalLayer;
+    out.handle.ormLayer        = ormLayer;
+    out.handle.descriptorRange = BufferRange{ descriptorSlot, 1 };
+    out.assetID = material.ID;
+    out.users   = 0;
+
+    //upload actual material data here because it only needs doing once
+    UploadMaterialData(material);
 
     return true;
 }
@@ -236,7 +357,8 @@ void Allocator::Deallocate(Entity& entity)
         return;
 
     // Captured before DeallocateEntity erases the map entry `tracker` points into.
-    MeshTracker* mesh = tracker->meshTracker;
+    MeshTracker*     mesh     = tracker->meshTracker;
+    MaterialTracker* material = tracker->materialTracker;
 
     DeallocateEntity(entity);
 
@@ -248,10 +370,17 @@ void Allocator::Deallocate(Entity& entity)
         if (!MeshHasUser(*mesh))
             DeallocateMesh(*mesh);
     }
+
+    if (material != nullptr)
+    {
+        material->users--;
+        if (!MaterialHasUser(*material))
+            DeallocateMaterial(*material);
+    }
 }
 
 // Frees the entity's instance slot and forgets the entity.
-// Does not touch the mesh - Deallocate decides that.
+// Does not touch the mesh or material - Deallocate decides that.
 void Allocator::DeallocateEntity(Entity& entity)
 {
     EntityTracker* tracker = entityManager->GetEntity(entity);
@@ -287,11 +416,179 @@ void Allocator::FreeMeshRanges(MeshTracker& mesh)
     FreeRange(ebo.emptySlots, mesh.handle.indexRange.start,  mesh.handle.indexRange.size);
     FreeRange(descriptors.emptySlots, mesh.handle.descriptorRange.start, mesh.handle.descriptorRange.size);
 
-    // TODO(pose): if skinned, free the mesh's range in BonePoseSSBO here.
+    // TODO(pose): if skinned, free the mesh's range in bonePoseSSBO here.
 }
 
+// Frees the material's texture-array layers and descriptor slot and
+// unregisters it. `material` must not be used after this call.
+void Allocator::DeallocateMaterial(MaterialTracker& material)
+{
+    FreeMaterialRanges(material);
+    entityManager->RemoveMaterial(material.assetID); // erases the MaterialTracker, `material` dangles after this
+}
+
+// Just the buffer-side free for a material's ranges - no entityManager
+// call. Same reasoning as FreeMeshRanges.
+void Allocator::FreeMaterialRanges(MaterialTracker& material)
+{
+    if (material.handle.albedoLayer.IsValid())
+        FreeRange(materialTextureArray.emptySlots, material.handle.albedoLayer.start, 1);
+    if (material.handle.normalLayer.IsValid())
+        FreeRange(materialTextureArray.emptySlots, material.handle.normalLayer.start, 1);
+    if (material.handle.ormLayer.IsValid())
+        FreeRange(materialTextureArray.emptySlots, material.handle.ormLayer.start, 1);
+
+    FreeRange(materialDescriptorSSBO.emptySlots, material.handle.descriptorRange.start, material.handle.descriptorRange.size);
+}
+
+bool Allocator::UploadMeshData(Mesh& mesh)
+{
+    MeshTracker* tracker = entityManager->GetMesh(mesh.ID);
+    if (tracker == nullptr || !tracker->handle.IsValid())
+        return false;
+
+    const MeshHandle& h = tracker->handle;
+    const bool skinned = h.isSkinned;
+
+    BufferTracker<VBO>&  vbo         = skinned ? skinnedVBO : staticVBO;
+    BufferTracker<EBO>&  ebo         = skinned ? skinnedEBO : staticEBO;
+    BufferTracker<SSBO>& descriptors = skinned ? skinnedMeshDescriptorSSBO : staticMeshDescriptorSSBO;
+
+    // The reserved ranges were sized from the mesh at Allocate time. If the
+    // mesh has changed size since, writing would spill into a neighbour's range.
+    if (mesh.indices.size() != h.indexRange.size)
+        return false;
+
+    MeshDescriptor descriptor;
+    descriptor.firstIndex = h.indexRange.start;
+    descriptor.indexCount = h.indexRange.size;
+    descriptor.baseVertex = static_cast<int32_t>(h.vertexRange.start);
+    descriptor.materialID = 0; // meshes don't know their material; InstanceData supplies it
+    descriptor.skeletonID = 0; // TODO(pose): bonePoseSSBO range once that's reserved
+    descriptor.isAnimated = skinned ? 1u : 0u;
+
+    if (skinned)
+    {
+        SkinnedMesh& m = static_cast<SkinnedMesh&>(mesh);
+        if (m.vertices.size() != h.vertexRange.size)
+            return false;
+
+        vbo.buffer.Upload(static_cast<GLintptr>(h.vertexRange.start) * sizeof(SkinnedVertex),
+                          m.vertices.data(),
+                          static_cast<GLsizeiptr>(m.vertices.size() * sizeof(SkinnedVertex)));
+                          
+        AABB aabb = ComputeBounds(m.vertices);
+        descriptor.boundsMin = aabb.boundsMin;
+        descriptor.boundsMin = aabb.boundsMax;
+    }
+    else
+    {
+        StaticMesh& m = static_cast<StaticMesh&>(mesh);
+        if (m.vertices.size() != h.vertexRange.size)
+            return false;
+
+        vbo.buffer.Upload(static_cast<GLintptr>(h.vertexRange.start) * sizeof(StaticVertex),
+                          m.vertices.data(),
+                          static_cast<GLsizeiptr>(m.vertices.size() * sizeof(StaticVertex)));
+        AABB aabb = ComputeBounds(m.vertices);
+        descriptor.boundsMin = aabb.boundsMin;
+        descriptor.boundsMin = aabb.boundsMax;
+    }
+
+    // Indices stay relative to the mesh's own vertices. baseVertex in the
+    // descriptor shifts them to the mesh's place in the shared VBO at draw time.
+    ebo.buffer.Upload(static_cast<GLintptr>(h.indexRange.start) * sizeof(uint32_t),
+                      mesh.indices.data(),
+                      static_cast<GLsizeiptr>(mesh.indices.size() * sizeof(uint32_t)));
+
+    descriptors.buffer.Upload(static_cast<GLintptr>(h.descriptorRange.start) * sizeof(MeshDescriptor),
+                              &descriptor, sizeof(MeshDescriptor));
+    return true;
+}
+
+bool Allocator::UploadEntityData(Entity& entity)
+{
+    EntityTracker* tracker = entityManager->GetEntity(entity);
+    if (tracker == nullptr || !tracker->handle.IsValid() || tracker->meshTracker == nullptr)
+        return false;
+
+    BufferTracker<SSBO>& instances = tracker->handle.isSkinned ? skinnedInstanceDataSSBO
+                                                               : staticInstanceDataSSBO;
+
+    InstanceData data;
+    data.transform  = entity.transform.GetMatrix(); // assumption: see below
+    data.meshID     = tracker->meshTracker->handle.descriptorRange.start;
+    data.materialID = tracker->materialTracker != nullptr
+                          ? tracker->materialTracker->handle.descriptorRange.start
+                          : 0;
+    data.animOffset = 0; // TODO(pose)
+
+    instances.buffer.Upload(static_cast<GLintptr>(tracker->handle.instanceRange.start) * sizeof(InstanceData),
+                            &data, sizeof(InstanceData));
+    return true;
+}
+
+void Allocator::Shutdown()
+{
+    staticVBO.buffer.Delete();
+    staticEBO.buffer.Delete();
+    staticMeshDescriptorSSBO.buffer.Delete();
+    staticInstanceDataSSBO.buffer.Delete();
+
+    skinnedVBO.buffer.Delete();
+    skinnedEBO.buffer.Delete();
+    skinnedMeshDescriptorSSBO.buffer.Delete();
+    skinnedInstanceDataSSBO.buffer.Delete();
+    bonePoseSSBO.buffer.Delete();
+
+    materialDescriptorSSBO.buffer.Delete();
+    materialTextureArray.buffer.Delete();
+}
+
+bool Allocator::UploadMaterialData(Material& material)
+{
+    
+    MaterialTracker* tracker = entityManager->GetMaterial(material.ID);
+    if (tracker == nullptr || !tracker->handle.IsValid())
+        return false;
+
+    const MaterialHandle& h = tracker->handle;
+
+    // -1 tells UploadMaterial "no such map, skip it".
+    auto layerOrSkip = [](const BufferRange& r) -> GLint
+    {
+        return r.IsValid() ? static_cast<GLint>(r.start) : -1;
+    };
+
+    materialTextureArray.buffer.UploadMaterial(&material,
+                                               layerOrSkip(h.albedoLayer),
+                                               layerOrSkip(h.normalLayer),
+                                               layerOrSkip(h.ormLayer));
+
+    // Absent maps get index 0 here, since the descriptor fields are plain
+    // uint32s. See the note below.
+    MaterialDescriptor descriptor;
+    descriptor.flags = 0;
+    if (h.albedoLayer.IsValid()) descriptor.flags |= MATERIAL_HAS_ALBEDO;
+    if (h.normalLayer.IsValid()) descriptor.flags |= MATERIAL_HAS_NORMAL;
+    if (h.ormLayer.IsValid())    descriptor.flags |= MATERIAL_HAS_ORM;
+    // tint stays at its default (white) for now.
+
+    materialDescriptorSSBO.buffer.Upload(
+        static_cast<GLintptr>(h.descriptorRange.start) * sizeof(MaterialDescriptor),
+        &descriptor, sizeof(MaterialDescriptor));
+
+    materialMipsDirty = true;
+    
+    return true;
+}
 
 bool Allocator::MeshHasUser(MeshTracker& mesh)
 {
     return mesh.users > 0;
+}
+
+bool Allocator::MaterialHasUser(MaterialTracker& material)
+{
+    return material.users > 0;
 }

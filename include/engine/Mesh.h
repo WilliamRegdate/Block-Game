@@ -15,10 +15,7 @@ class Mesh
 
         uint32_t ID;
         bool isSkinned;
-
-        Transform transform;
         std::vector <uint32_t> indices;
-        Material* material;
 };
 
 class SkinnedMesh : public Mesh
