@@ -23,7 +23,7 @@ CMAKE_AR:FILEPATH=C:/msys64/ucrt64/bin/ar.exe
 //Build type for single-configuration generators (Makefile Generators,
 // Ninja, etc.). Typical values: Debug, Release, RelWithDebInfo,
 // MinSizeRel; custom build types may also be defined.
-CMAKE_BUILD_TYPE:STRING=Debug
+CMAKE_BUILD_TYPE:STRING=Release
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON

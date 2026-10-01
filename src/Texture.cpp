@@ -17,7 +17,7 @@ Texture::Texture(const char* path)
 unsigned char* Texture::GetImage(int& width, int& height)
 {
     int channels = 0;
-    stbi_set_flip_vertically_on_load(true);
+    //stbi_set_flip_vertically_on_load(true);
     unsigned char* pixels = stbi_load(filepath.c_str(), &width, &height, &channels, 4);
 
     if (pixels == nullptr)
