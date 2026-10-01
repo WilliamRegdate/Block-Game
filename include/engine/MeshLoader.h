@@ -28,7 +28,7 @@ class MeshLoader
         //
         // Mesh::ID is a hash of `file`, so loading the same path twice
         // produces the same ID.
-        Mesh* Load(const char* file);
+        Mesh* Load(const char* filePath);
 
     private:
         const char* file = nullptr;

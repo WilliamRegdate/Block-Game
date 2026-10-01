@@ -37,9 +37,6 @@ uint32_t HashID(const std::string& id)
 // asset-root resolution ends up being (once ResourceContainer exists).
 std::string ResolveResourcePath(const std::string& path)
 {
-    const std::string prefix = "res://";
-    if (path.rfind(prefix, 0) == 0)
-        return path.substr(prefix.size());
     return path;
 }
 

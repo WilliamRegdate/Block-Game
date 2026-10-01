@@ -28,7 +28,7 @@ class MaterialLoader
         //     { "id": "metal_wall", "albedoPath": "...", "normalPath": "...", "ormPath": "..." }
         //   ]
         // }
-        std::vector<Material> Load(const char* file);
+        std::vector<Material> Load(const char* filePath);
 
     private:
         const char* file = nullptr;

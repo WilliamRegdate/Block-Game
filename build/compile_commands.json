@@ -1,0 +1,80 @@
+[
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Camera.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\Camera.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/Camera.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Camera.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Allocator.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\Allocator.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/Allocator.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Allocator.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\EntityManager.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\EntityManager.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/EntityManager.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/EntityManager.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\gcc.exe  @CMakeFiles\\MyProject.dir\\includes_C.rsp -g -o CMakeFiles\\MyProject.dir\\src\\glad.c.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\glad.c\"",
+  "file": "C:/Users/willi/C++/Block Game/src/glad.c",
+  "output": "CMakeFiles/MyProject.dir/src/glad.c.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\MaterialLoader.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\MaterialLoader.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/MaterialLoader.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Mesh.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\Mesh.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/Mesh.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Mesh.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\MeshLoader.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\MeshLoader.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/MeshLoader.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/MeshLoader.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Renderer.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\Renderer.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/Renderer.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Renderer.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\RenderTypes.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\RenderTypes.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/RenderTypes.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/RenderTypes.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Shader.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\Shader.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/Shader.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Shader.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\stb.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\stb.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/stb.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/stb.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Texture.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\Texture.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/Texture.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Texture.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\main.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\main.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/main.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/main.cpp.obj"
+}
+]

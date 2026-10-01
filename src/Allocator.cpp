@@ -479,7 +479,7 @@ bool Allocator::UploadMeshData(Mesh& mesh)
                           
         AABB aabb = ComputeBounds(m.vertices);
         descriptor.boundsMin = aabb.boundsMin;
-        descriptor.boundsMin = aabb.boundsMax;
+        descriptor.boundsMax = aabb.boundsMax;
     }
     else
     {
@@ -492,7 +492,7 @@ bool Allocator::UploadMeshData(Mesh& mesh)
                           static_cast<GLsizeiptr>(m.vertices.size() * sizeof(StaticVertex)));
         AABB aabb = ComputeBounds(m.vertices);
         descriptor.boundsMin = aabb.boundsMin;
-        descriptor.boundsMin = aabb.boundsMax;
+        descriptor.boundsMax = aabb.boundsMax;
     }
 
     // Indices stay relative to the mesh's own vertices. baseVertex in the
@@ -506,25 +506,38 @@ bool Allocator::UploadMeshData(Mesh& mesh)
     return true;
 }
 
-bool Allocator::UploadEntityData(Entity& entity)
+bool Allocator::BuildInstanceData(Entity& entity, InstanceData& out, EntityHandle& handle)
 {
     EntityTracker* tracker = entityManager->GetEntity(entity);
     if (tracker == nullptr || !tracker->handle.IsValid() || tracker->meshTracker == nullptr)
         return false;
 
-    BufferTracker<SSBO>& instances = tracker->handle.isSkinned ? skinnedInstanceDataSSBO
-                                                               : staticInstanceDataSSBO;
+    handle = tracker->handle;
 
+    out.transform  = entity.transform.GetMatrix();
+    out.meshID     = tracker->meshTracker->handle.descriptorRange.start;
+    out.materialID = tracker->materialTracker != nullptr
+                         ? tracker->materialTracker->handle.descriptorRange.start
+                         : 0;
+    out.animOffset = 0; // TODO(pose)
+    return true;
+}
+
+void Allocator::UploadInstanceRange(bool skinned, uint32_t firstSlot, const InstanceData* data, uint32_t count)
+{
+    BufferTracker<SSBO>& instances = skinned ? skinnedInstanceDataSSBO : staticInstanceDataSSBO;
+    instances.buffer.Upload(static_cast<GLintptr>(firstSlot) * sizeof(InstanceData),
+                            data, static_cast<GLsizeiptr>(count) * sizeof(InstanceData));
+}
+
+bool Allocator::UploadEntityData(Entity& entity)
+{
     InstanceData data;
-    data.transform  = entity.transform.GetMatrix(); // assumption: see below
-    data.meshID     = tracker->meshTracker->handle.descriptorRange.start;
-    data.materialID = tracker->materialTracker != nullptr
-                          ? tracker->materialTracker->handle.descriptorRange.start
-                          : 0;
-    data.animOffset = 0; // TODO(pose)
+    EntityHandle handle;
+    if (!BuildInstanceData(entity, data, handle))
+        return false;
 
-    instances.buffer.Upload(static_cast<GLintptr>(tracker->handle.instanceRange.start) * sizeof(InstanceData),
-                            &data, sizeof(InstanceData));
+    UploadInstanceRange(handle.isSkinned, handle.instanceRange.start, &data, 1);
     return true;
 }
 
@@ -574,6 +587,10 @@ bool Allocator::UploadMaterialData(Material& material)
     if (h.ormLayer.IsValid())    descriptor.flags |= MATERIAL_HAS_ORM;
     // tint stays at its default (white) for now.
 
+       descriptor.albedoTexIndex = h.albedoLayer.start;
+        descriptor.normalTexIndex = h.normalLayer.start;
+        descriptor.ormTexIndex    = h.ormLayer.start;
+
     materialDescriptorSSBO.buffer.Upload(
         static_cast<GLintptr>(h.descriptorRange.start) * sizeof(MaterialDescriptor),
         &descriptor, sizeof(MaterialDescriptor));
@@ -591,4 +608,12 @@ bool Allocator::MeshHasUser(MeshTracker& mesh)
 bool Allocator::MaterialHasUser(MaterialTracker& material)
 {
     return material.users > 0;
+}
+
+void Allocator::GenerateMaterialMipmaps()
+{
+    if (!materialMipsDirty)
+        return;
+    materialTextureArray.buffer.GenerateMipmaps();
+    materialMipsDirty = false;
 }

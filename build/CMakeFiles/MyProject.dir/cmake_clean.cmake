@@ -1,0 +1,37 @@
+file(REMOVE_RECURSE
+  "C:/Users/willi/C++/Block Game/bin/MyProject.exe"
+  "C:/Users/willi/C++/Block Game/bin/MyProject.exe.manifest"
+  "C:/Users/willi/C++/Block Game/bin/MyProject.pdb"
+  "CMakeFiles/MyProject.dir/src/Allocator.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/Allocator.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/Camera.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/Camera.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/EntityManager.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/EntityManager.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/Mesh.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/Mesh.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/MeshLoader.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/MeshLoader.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/RenderTypes.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/RenderTypes.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/Renderer.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/Renderer.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/Shader.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/Shader.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/Texture.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/Texture.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/glad.c.obj"
+  "CMakeFiles/MyProject.dir/src/glad.c.obj.d"
+  "CMakeFiles/MyProject.dir/src/main.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/main.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/stb.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/stb.cpp.obj.d"
+  "libMyProject.dll.a"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C CXX)
+  include(CMakeFiles/MyProject.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

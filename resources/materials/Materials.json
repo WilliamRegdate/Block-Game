@@ -1,0 +1,12 @@
+{
+  "materials": [
+    {
+      "id": "methaneMonster",
+      "albedoPath": "../resources/textures/methaneMonster.png"
+    },
+    {
+      "id": "maxSternum",
+      "albedoPath": "../resources/textures/maxSternum_baseColor.png"
+    }
+  ]
+}

@@ -1,4 +1,6 @@
 {
-    "cmake.sourceDirectory": "C:/Users/willi/C++/Block Game/include/glm",
-    "cmake.ignoreCMakeListsMissing": true
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    "cmake.generator": "MinGW Makefiles",
+    "cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe"
 }
