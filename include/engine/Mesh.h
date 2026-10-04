@@ -3,19 +3,24 @@
 
 #include "Transform.h"
 #include "Material.h"
+#include "Skeleton.h"
 
 #include "RenderTypes.h"
 #include <vector>
+#include <cstdint>
 
 class Mesh
 {
-
     public:
-        Mesh(std::vector<uint32_t> indices);   
+        virtual ~Mesh() = default;
+        uint32_t ID = 0;
+        bool isSkinned = false;
 
-        uint32_t ID;
-        bool isSkinned;
-        std::vector <uint32_t> indices;
+        Transform transform;
+        std::vector<uint32_t> indices;
+
+    protected:
+        Mesh(std::vector<uint32_t> indices);
 };
 
 class SkinnedMesh : public Mesh
@@ -23,6 +28,8 @@ class SkinnedMesh : public Mesh
     public:
         SkinnedMesh(std::vector<SkinnedVertex> vertices, std::vector<uint32_t> indices);
         std::vector<SkinnedVertex> vertices;
+        Skeleton skeleton;
+        
 };
 class StaticMesh : public Mesh
 {

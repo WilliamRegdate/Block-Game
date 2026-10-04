@@ -10,6 +10,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "C:/Users/willi/C++/Block Game/src/glad.c" "CMakeFiles/MyProject.dir/src/glad.c.obj" "gcc" "CMakeFiles/MyProject.dir/src/glad.c.obj.d"
   "C:/Users/willi/C++/Block Game/src/Allocator.cpp" "CMakeFiles/MyProject.dir/src/Allocator.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Allocator.cpp.obj.d"
+  "C:/Users/willi/C++/Block Game/src/Animation.cpp" "CMakeFiles/MyProject.dir/src/Animation.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Animation.cpp.obj.d"
+  "C:/Users/willi/C++/Block Game/src/AnimationPlayer.cpp" "CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj.d"
   "C:/Users/willi/C++/Block Game/src/Camera.cpp" "CMakeFiles/MyProject.dir/src/Camera.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Camera.cpp.obj.d"
   "C:/Users/willi/C++/Block Game/src/EntityManager.cpp" "CMakeFiles/MyProject.dir/src/EntityManager.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/EntityManager.cpp.obj.d"
   "C:/Users/willi/C++/Block Game/src/MaterialLoader.cpp" "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj.d"

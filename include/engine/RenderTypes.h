@@ -63,6 +63,19 @@ struct MeshHandle
     }
     bool operator!=(const MeshHandle& other) const { return !(*this == other); }
 };
+struct MaterialHandle
+{
+    BufferRange albedoLayer;     // in the material TextureArray; invalid if this material has no albedo map
+    BufferRange normalLayer;     // in the material TextureArray; invalid if this material has no normal map
+    BufferRange ormLayer;        // in the material TextureArray; invalid if this material has no orm map
+    BufferRange descriptorRange; // in the MaterialDescriptor SSBO; size is always 1
+
+    bool IsValid() const { return descriptorRange.IsValid(); }
+};
+struct AnimationHandle
+{
+    BufferRange animationIndex; // where in the animation descriptor buffer this animation is
+};
 
 
 // ============================================================
@@ -109,8 +122,8 @@ struct MeshDescriptor
     uint32_t indexCount;
     int32_t  baseVertex;
     uint32_t materialID;
-    uint32_t skeletonID;
-    uint32_t isAnimated;
+    uint32_t skeletonID; // TODO: not sure if these are needed change
+    uint32_t isAnimated; // and this one
     uint32_t _pad0;
     uint32_t _pad1;
     glm::vec4 boundsMin;   // xyz used
@@ -138,22 +151,15 @@ struct MaterialDescriptor
     glm::vec4 tint{ 1.0f };
 };
 
-// Not included here - only a pointer to it is needed for TextureArray's
-// declaration below, and Material.h doesn't need anything from RenderTypes.h.
-class Material;
-
+struct AnimationDescriptor
+{
+    uint32_t firstIndex; // first index of the animation
+    uint32_t indexCount;  // amount of indices in the animation
+    float duration; // duration of the animation clip in seconds
+};
 // Everything needed to find a material's GPU data: its three texture-array
 // layers (any of which may be absent - IsValid() on the individual
 // BufferRange tells you) and its slot in the MaterialDescriptor SSBO.
-struct MaterialHandle
-{
-    BufferRange albedoLayer;     // in the material TextureArray; invalid if this material has no albedo map
-    BufferRange normalLayer;     // in the material TextureArray; invalid if this material has no normal map
-    BufferRange ormLayer;        // in the material TextureArray; invalid if this material has no orm map
-    BufferRange descriptorRange; // in the MaterialDescriptor SSBO; size is always 1
-
-    bool IsValid() const { return descriptorRange.IsValid(); }
-};
 
 
 // One entry per live entity slot. Never reordered or compacted -
@@ -163,10 +169,10 @@ struct MaterialHandle
 struct InstanceData
 {
     glm::mat4 transform{ 1.0f };
-    uint32_t  meshID     = 0;   // -> MeshDescriptor
-    uint32_t  materialID = 0;   // default from MeshDescriptor, may be overridden
-    uint32_t  animOffset = 0;   // -> baked pose buffer; unused if mesh is static
-    uint32_t  _pad0      = 0;
+    uint32_t  meshID      = 0;   // -> MeshDescriptor
+    uint32_t  materialID  = 0;   // default from MeshDescriptor, may be overridden
+    uint32_t  animOffset  = 0;   // -> baked pose buffer; unused if mesh is static
+    uint32_t  animationID = 0;
 };
 
 // Matches OpenGL's DrawElementsIndirectCommand layout exactly -

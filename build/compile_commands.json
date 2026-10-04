@@ -76,5 +76,17 @@
   "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\main.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\main.cpp\"",
   "file": "C:/Users/willi/C++/Block Game/src/main.cpp",
   "output": "CMakeFiles/MyProject.dir/src/main.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Animation.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\Animation.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/Animation.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Animation.cpp.obj"
+},
+{
+  "directory": "C:/Users/willi/C++/Block Game/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe  @CMakeFiles\\MyProject.dir\\includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\AnimationPlayer.cpp.obj -c \"C:\\Users\\willi\\C++\\Block Game\\src\\AnimationPlayer.cpp\"",
+  "file": "C:/Users/willi/C++/Block Game/src/AnimationPlayer.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj"
 }
 ]

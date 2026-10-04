@@ -23,6 +23,8 @@ add_executable(MyProject
     src/Texture.cpp
     
     src/main.cpp
+    src/Animation.cpp
+    src/AnimationPlayer.cpp
 )
 
 file(GLOB_RECURSE INCLUDE_PATHS

@@ -37,9 +37,6 @@ struct MeshTracker
     MeshHandle handle;      // where this mesh's data lives on the GPU
     uint32_t   assetID = 0; // Mesh::ID - the key EntityManager finds this mesh by
     int        users = 0;   // how many entities use the mesh
-
-    // TODO(pose): BufferRange poseRange; - the mesh's baked bone poses in
-    // BonePoseSSBO, counted in mat4s. Only meaningful when handle.isSkinned.
 };
 
 // ------------------------------------------------------------
@@ -50,6 +47,14 @@ struct MaterialTracker
     MaterialHandle handle;      // where this material's data lives on the GPU
     uint32_t       assetID = 0; // Material::ID - the key EntityManager finds this material by
     int            users = 0;   // how many entities use the material
+};
+//---------------------------------------------------------------
+// Per Animation record
+//---------------------------------------------------------------
+struct AnimationTracker
+{
+    AnimationHandle handle;
+    int users;
 };
 
 
@@ -103,8 +108,7 @@ class EntityManager
         std::unordered_map<Entity*, EntityTracker> m_entities;
         std::unordered_map<uint32_t, MeshTracker>     m_meshes;    // keyed by Mesh::ID
         std::unordered_map<uint32_t, MaterialTracker> m_materials; // keyed by Material::ID
-
-        
+        std::unordered_map<uint32_t, AnimationTracker> m_animations; // keyed by hashed animation name
 };
 
 #endif

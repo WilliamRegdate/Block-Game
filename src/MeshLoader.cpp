@@ -6,6 +6,9 @@
 #include <iostream>
 #include <stdexcept>
 #include <functional>
+#include <unordered_map>
+#include <algorithm>
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace
 {
@@ -32,7 +35,41 @@ uint32_t HashPath(const char* path)
     return static_cast<uint32_t>(std::hash<std::string>{}(path));
 }
 
-} // namespace 
+// Topological sort: every parent before its children. Bones are usually
+// already in that order (skin.joints almost always lists parents before
+// children), but this guarantees it rather than assuming. Iterative DFS
+// (not recursive) so a very deep bone chain can't blow the stack.
+std::vector<uint32_t> ComputeEvalOrder(const Skeleton& skeleton)
+{
+    const size_t boneCount = skeleton.bones.size();
+    std::vector<std::vector<uint32_t>> children(boneCount);
+    std::vector<uint32_t> roots;
+
+    for (uint32_t i = 0; i < boneCount; i++)
+    {
+        if (skeleton.bones[i].parent < 0)
+            roots.push_back(i);
+        else
+            children[skeleton.bones[i].parent].push_back(i);
+    }
+
+    std::vector<uint32_t> order;
+    order.reserve(boneCount);
+
+    std::vector<uint32_t> stack(roots.rbegin(), roots.rend());
+    while (!stack.empty())
+    {
+        uint32_t bone = stack.back();
+        stack.pop_back();
+        order.push_back(bone);
+        for (auto it = children[bone].rbegin(); it != children[bone].rend(); ++it)
+            stack.push_back(*it);
+    }
+
+    return order;
+}
+
+} // namespace
 
 
 MeshLoader::MeshLoader() {}
@@ -66,10 +103,9 @@ Mesh* MeshLoader::Load(const char* filePath)
     {
         std::vector<SkinnedVertex> vertices;
         traverseNode(0, vertices, indices);
-        mesh = new SkinnedMesh(vertices, indices);
-        // TODO(skeleton): populate the SkinnedMesh's skeleton once Skeleton
-        // holds real joint data - it's a stub for now, so there's nothing
-        // to fill in yet.
+        auto* skinnedMesh = new SkinnedMesh(vertices, indices);
+        skinnedMesh->skeleton = LoadSkeleton(); // reads the same JSON Load() just parsed
+        mesh = skinnedMesh;
     }
     else
     {
@@ -87,8 +123,248 @@ Mesh* MeshLoader::Load(const char* filePath)
 
 
 // ============================================================
+// Skeleton
+// ============================================================
+
+Skeleton MeshLoader::LoadSkeleton()
+{
+    Skeleton skeleton; // bones stays empty if returned early below - that's the "no skin found" signal
+
+    if (!JSON.contains("skins") || JSON["skins"].empty())
+    {
+        std::cerr << "No skin in glTF file: " << file << std::endl;
+        return skeleton;
+    }
+
+    // TODO: only the first skin is loaded. glTF allows multiple skins per
+    // file, but nothing on Mesh/SkinnedMesh records which skin a mesh was
+    // bound to, so there's currently no way to pick a different one.
+    const json& skin = JSON["skins"][0];
+    const json& joints = skin["joints"]; // array of node indices, in skeleton order
+    const size_t boneCount = joints.size();
+
+    skeleton.bones.resize(boneCount);
+    skeleton.nodeIndices.resize(boneCount);
+
+    // inverseBindMatrices is optional per spec (absent means identity for
+    // every joint) - an accessor of 4x4 floats, one matrix per joint, same
+    // order as `joints`.
+    std::vector<glm::mat4> inverseBindMatrices;
+    if (skin.contains("inverseBindMatrices"))
+    {
+        std::vector<float> flat = getFloats(JSON["accessors"][(unsigned int)skin["inverseBindMatrices"]]);
+        inverseBindMatrices.reserve(boneCount);
+        for (size_t i = 0; i < boneCount; i++)
+            inverseBindMatrices.push_back(glm::make_mat4(&flat[i * 16]));
+    }
+
+    // Node index -> bone index, so each joint's parent *node* can be turned
+    // into a parent *bone* index below.
+    std::unordered_map<uint32_t, uint32_t> nodeToBone;
+    for (size_t i = 0; i < boneCount; i++)
+        nodeToBone[(uint32_t)joints[i]] = (uint32_t)i;
+
+    // One pass over every node's children, recording each child's parent -
+    // O(node count) total, rather than re-scanning all nodes per joint.
+    std::unordered_map<uint32_t, uint32_t> nodeParent;
+    for (unsigned int n = 0; n < JSON["nodes"].size(); n++)
+    {
+        const json& candidate = JSON["nodes"][n];
+        if (candidate.find("children") == candidate.end())
+            continue;
+        for (const auto& child : candidate["children"])
+            nodeParent[(uint32_t)child] = n;
+    }
+
+    for (size_t i = 0; i < boneCount; i++)
+    {
+        const uint32_t nodeIndex = joints[i];
+        const json& node = JSON["nodes"][nodeIndex];
+
+        Bone& bone = skeleton.bones[i];
+        bone.name = node.value("name", std::string("bone_") + std::to_string(i));
+        bone.inverseBind = i < inverseBindMatrices.size() ? inverseBindMatrices[i] : glm::mat4(1.0f);
+
+        NodeTRS trs = GetNodeLocalTRS(node);
+        bone.restTranslation = trs.translation;
+        bone.restRotation    = trs.rotation;
+        bone.restScale       = trs.scale;
+
+        // -1 (root) unless this joint's parent node is itself a joint.
+        bone.parent = -1;
+        auto parentNodeIt = nodeParent.find(nodeIndex);
+        if (parentNodeIt != nodeParent.end())
+        {
+            auto parentBoneIt = nodeToBone.find(parentNodeIt->second);
+            if (parentBoneIt != nodeToBone.end())
+                bone.parent = static_cast<int32_t>(parentBoneIt->second);
+        }
+
+        skeleton.nodeIndices[i] = nodeIndex;
+    }
+
+    skeleton.evalOrder = ComputeEvalOrder(skeleton);
+
+    return skeleton;
+}
+
+
+// ============================================================
+// Animation
+// ============================================================
+
+AnimationClip MeshLoader::LoadAnimationClip(unsigned int animationIndex, const Skeleton& skeleton)
+{
+    AnimationClip clip;
+
+    if (!JSON.contains("animations") || animationIndex >= JSON["animations"].size())
+    {
+        std::cerr << "Animation index " << animationIndex << " out of range in: " << file << std::endl;
+        return clip;
+    }
+
+    const json& animation = JSON["animations"][animationIndex];
+    clip.name = animation.value("name", std::string("animation_") + std::to_string(animationIndex));
+    clip.bones.resize(skeleton.bones.size());
+
+    // Node index -> bone index, same reasoning as LoadSkeleton: channels
+    // target node indices, but tracks are stored by bone index.
+    std::unordered_map<uint32_t, uint32_t> nodeToBone;
+    for (size_t i = 0; i < skeleton.nodeIndices.size(); i++)
+        nodeToBone[skeleton.nodeIndices[i]] = (uint32_t)i;
+
+    const json& samplers = animation["samplers"];
+
+    for (const auto& channel : animation["channels"])
+    {
+        const uint32_t targetNode = channel["target"]["node"];
+        const std::string path = channel["target"]["path"];
+
+        auto boneIt = nodeToBone.find(targetNode);
+        if (boneIt == nodeToBone.end())
+            continue; // targets a node that isn't one of this skeleton's joints
+
+        const uint32_t boneIndex = boneIt->second;
+        const json& sampler = samplers[(unsigned int)channel["sampler"]];
+
+        std::vector<float> times = getFloats(JSON["accessors"][(unsigned int)sampler["input"]]);
+
+        Interpolation interp = Interpolation::Linear;
+        const std::string interpStr = sampler.value("interpolation", std::string("LINEAR"));
+        if (interpStr == "STEP") interp = Interpolation::Step;
+        else if (interpStr == "CUBICSPLINE") interp = Interpolation::CubicSpline;
+        // Note: for CUBICSPLINE, the accessor's own declared count already
+        // covers the 3-values-per-key layout (in-tangent/value/out-tangent),
+        // so `values` naturally ends up 3x `times` below with no special
+        // casing needed here - Track<T>'s consumer is what needs to know
+        // to interpret it that way.
+
+        if (path == "translation" || path == "scale")
+        {
+            std::vector<float> flat = getFloats(JSON["accessors"][(unsigned int)sampler["output"]]);
+            std::vector<glm::vec3> values = groupFloatsVec3(flat);
+
+            Track<glm::vec3>& track = (path == "translation") ? clip.bones[boneIndex].translation : clip.bones[boneIndex].scale;
+            track.times = times;
+            track.values = values;
+            track.mode = interp;
+        }
+        else if (path == "rotation")
+        {
+            std::vector<float> flat = getFloats(JSON["accessors"][(unsigned int)sampler["output"]]);
+            std::vector<glm::quat> values;
+            values.reserve(flat.size() / 4);
+            for (size_t i = 0; i + 3 < flat.size(); i += 4)
+                // glTF quaternions are [x,y,z,w]; glm::quat's constructor is (w,x,y,z).
+                values.emplace_back(flat[i + 3], flat[i], flat[i + 1], flat[i + 2]);
+
+            Track<glm::quat>& track = clip.bones[boneIndex].rotation;
+            track.times = times;
+            track.values = values;
+            track.mode = interp;
+        }
+        else
+        {
+            // "weights" (morph targets) - not handled, this loader is
+            // skeletal-animation only.
+            continue;
+        }
+
+        if (!times.empty())
+            clip.duration = std::max(clip.duration, times.back());
+    }
+
+    return clip;
+}
+
+std::vector<AnimationClip> MeshLoader::LoadAnimationClips(const Skeleton& skeleton)
+{
+    std::vector<AnimationClip> clips;
+
+    if (!JSON.contains("animations"))
+        return clips;
+
+    clips.reserve(JSON["animations"].size());
+    for (unsigned int i = 0; i < JSON["animations"].size(); i++)
+        clips.push_back(LoadAnimationClip(i, skeleton));
+
+    return clips;
+}
+
+
+// ============================================================
 // Node traversal
 // ============================================================
+
+NodeTRS MeshLoader::GetNodeLocalTRS(const json& node)
+{
+    NodeTRS trs;
+
+    if (node.find("matrix") != node.end())
+    {
+        // Decompose the explicit matrix back into components - Bone::rest*
+        // needs them separately, not a composed matrix.
+        float matValues[16];
+        for (unsigned int i = 0; i < node["matrix"].size(); i++)
+            matValues[i] = node["matrix"][i];
+        glm::mat4 m = glm::make_mat4(matValues);
+
+        glm::vec3 skew;
+        glm::vec4 perspective;
+        glm::decompose(m, trs.scale, trs.rotation, trs.translation, skew, perspective);
+        // glm::decompose returns the conjugate of the rotation glm::mat4_cast
+        // expects back - a well-known GLM quirk. Worth a visual sanity check
+        // once there's a skinned mesh actually rendering.
+        trs.rotation = glm::conjugate(trs.rotation);
+
+        return trs;
+    }
+
+    if (node.find("translation") != node.end())
+    {
+        float t[3];
+        for (unsigned int i = 0; i < node["translation"].size(); i++)
+            t[i] = node["translation"][i];
+        trs.translation = glm::make_vec3(t);
+    }
+
+    if (node.find("rotation") != node.end())
+    {
+        // glTF stores quaternions as [x, y, z, w]; glm::make_quat wants [w, x, y, z].
+        float r[4] = { node["rotation"][3], node["rotation"][0], node["rotation"][1], node["rotation"][2] };
+        trs.rotation = glm::make_quat(r);
+    }
+
+    if (node.find("scale") != node.end())
+    {
+        float s[3];
+        for (unsigned int i = 0; i < node["scale"].size(); i++)
+            s[i] = node["scale"][i];
+        trs.scale = glm::make_vec3(s);
+    }
+
+    return trs;
+}
 
 glm::mat4 MeshLoader::GetNodeLocalMatrix(const json& node)
 {
@@ -100,35 +376,10 @@ glm::mat4 MeshLoader::GetNodeLocalMatrix(const json& node)
         return glm::make_mat4(matValues);
     }
 
-    glm::vec3 translation(0.0f);
-    if (node.find("translation") != node.end())
-    {
-        float t[3];
-        for (unsigned int i = 0; i < node["translation"].size(); i++)
-            t[i] = node["translation"][i];
-        translation = glm::make_vec3(t);
-    }
-
-    glm::quat rotation(1.0f, 0.0f, 0.0f, 0.0f);
-    if (node.find("rotation") != node.end())
-    {
-        // glTF stores quaternions as [x, y, z, w]; glm::make_quat wants [w, x, y, z].
-        float r[4] = { node["rotation"][3], node["rotation"][0], node["rotation"][1], node["rotation"][2] };
-        rotation = glm::make_quat(r);
-    }
-
-    glm::vec3 scale(1.0f);
-    if (node.find("scale") != node.end())
-    {
-        float s[3];
-        for (unsigned int i = 0; i < node["scale"].size(); i++)
-            s[i] = node["scale"][i];
-        scale = glm::make_vec3(s);
-    }
-
-    const glm::mat4 trans = glm::translate(glm::mat4(1.0f), translation);
-    const glm::mat4 rot   = glm::mat4_cast(rotation);
-    const glm::mat4 sca   = glm::scale(glm::mat4(1.0f), scale);
+    NodeTRS trs = GetNodeLocalTRS(node);
+    const glm::mat4 trans = glm::translate(glm::mat4(1.0f), trs.translation);
+    const glm::mat4 rot   = glm::mat4_cast(trs.rotation);
+    const glm::mat4 sca   = glm::scale(glm::mat4(1.0f), trs.scale);
 
     return trans * rot * sca;
 }

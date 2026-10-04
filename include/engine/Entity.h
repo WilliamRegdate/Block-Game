@@ -3,6 +3,7 @@
 
 #include "Transform.h"
 #include "Mesh.h"
+#include "AnimationPlayer.h"
 
 class Entity
 {
@@ -11,8 +12,7 @@ class Entity
         Transform transform;
         Mesh* mesh = nullptr;
         Material* material = nullptr;
-        
-    
+        AnimationPlayer animationPlayer;
 };
 
 #endif

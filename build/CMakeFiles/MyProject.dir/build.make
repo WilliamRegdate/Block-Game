@@ -266,6 +266,36 @@ CMakeFiles/MyProject.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/MyProject.dir/src/main.cpp.s"
 	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\willi\C++\Block Game\src\main.cpp" -o CMakeFiles\MyProject.dir\src\main.cpp.s
 
+CMakeFiles/MyProject.dir/src/Animation.cpp.obj: CMakeFiles/MyProject.dir/flags.make
+CMakeFiles/MyProject.dir/src/Animation.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
+CMakeFiles/MyProject.dir/src/Animation.cpp.obj: C:/Users/willi/C++/Block\ Game/src/Animation.cpp
+CMakeFiles/MyProject.dir/src/Animation.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\willi\C++\Block Game\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/MyProject.dir/src/Animation.cpp.obj"
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/src/Animation.cpp.obj -MF CMakeFiles\MyProject.dir\src\Animation.cpp.obj.d -o CMakeFiles\MyProject.dir\src\Animation.cpp.obj -c "C:\Users\willi\C++\Block Game\src\Animation.cpp"
+
+CMakeFiles/MyProject.dir/src/Animation.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/MyProject.dir/src/Animation.cpp.i"
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\willi\C++\Block Game\src\Animation.cpp" > CMakeFiles\MyProject.dir\src\Animation.cpp.i
+
+CMakeFiles/MyProject.dir/src/Animation.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/MyProject.dir/src/Animation.cpp.s"
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\willi\C++\Block Game\src\Animation.cpp" -o CMakeFiles\MyProject.dir\src\Animation.cpp.s
+
+CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj: CMakeFiles/MyProject.dir/flags.make
+CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
+CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj: C:/Users/willi/C++/Block\ Game/src/AnimationPlayer.cpp
+CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\willi\C++\Block Game\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj"
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj -MF CMakeFiles\MyProject.dir\src\AnimationPlayer.cpp.obj.d -o CMakeFiles\MyProject.dir\src\AnimationPlayer.cpp.obj -c "C:\Users\willi\C++\Block Game\src\AnimationPlayer.cpp"
+
+CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.i"
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\willi\C++\Block Game\src\AnimationPlayer.cpp" > CMakeFiles\MyProject.dir\src\AnimationPlayer.cpp.i
+
+CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.s"
+	C:\msys64\ucrt64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\willi\C++\Block Game\src\AnimationPlayer.cpp" -o CMakeFiles\MyProject.dir\src\AnimationPlayer.cpp.s
+
 # Object files for target MyProject
 MyProject_OBJECTS = \
 "CMakeFiles/MyProject.dir/src/Camera.cpp.obj" \
@@ -280,7 +310,9 @@ MyProject_OBJECTS = \
 "CMakeFiles/MyProject.dir/src/Shader.cpp.obj" \
 "CMakeFiles/MyProject.dir/src/stb.cpp.obj" \
 "CMakeFiles/MyProject.dir/src/Texture.cpp.obj" \
-"CMakeFiles/MyProject.dir/src/main.cpp.obj"
+"CMakeFiles/MyProject.dir/src/main.cpp.obj" \
+"CMakeFiles/MyProject.dir/src/Animation.cpp.obj" \
+"CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj"
 
 # External object files for target MyProject
 MyProject_EXTERNAL_OBJECTS =
@@ -298,12 +330,14 @@ C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/S
 C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/stb.cpp.obj
 C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/Texture.cpp.obj
 C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/main.cpp.obj
+C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/Animation.cpp.obj
+C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj
 C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/build.make
 C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: C:/Users/willi/C++/Block\ Game/lib/libglfw3.a
 C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/linkLibs.rsp
 C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/objects1.rsp
 C:/Users/willi/C++/Block\ Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="C:\Users\willi\C++\Block Game\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX executable \"C:\Users\willi\C++\Block Game\bin\MyProject.exe\""
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="C:\Users\willi\C++\Block Game\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_16) "Linking CXX executable \"C:\Users\willi\C++\Block Game\bin\MyProject.exe\""
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\MyProject.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

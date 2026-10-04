@@ -152,6 +152,54 @@ src/Allocator.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Allocator.cpp.s
 .PHONY : src/Allocator.cpp.s
 
+src/Animation.obj: src/Animation.cpp.obj
+.PHONY : src/Animation.obj
+
+# target to build an object file
+src/Animation.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Animation.cpp.obj
+.PHONY : src/Animation.cpp.obj
+
+src/Animation.i: src/Animation.cpp.i
+.PHONY : src/Animation.i
+
+# target to preprocess a source file
+src/Animation.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Animation.cpp.i
+.PHONY : src/Animation.cpp.i
+
+src/Animation.s: src/Animation.cpp.s
+.PHONY : src/Animation.s
+
+# target to generate assembly for a file
+src/Animation.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Animation.cpp.s
+.PHONY : src/Animation.cpp.s
+
+src/AnimationPlayer.obj: src/AnimationPlayer.cpp.obj
+.PHONY : src/AnimationPlayer.obj
+
+# target to build an object file
+src/AnimationPlayer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj
+.PHONY : src/AnimationPlayer.cpp.obj
+
+src/AnimationPlayer.i: src/AnimationPlayer.cpp.i
+.PHONY : src/AnimationPlayer.i
+
+# target to preprocess a source file
+src/AnimationPlayer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.i
+.PHONY : src/AnimationPlayer.cpp.i
+
+src/AnimationPlayer.s: src/AnimationPlayer.cpp.s
+.PHONY : src/AnimationPlayer.s
+
+# target to generate assembly for a file
+src/AnimationPlayer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.s
+.PHONY : src/AnimationPlayer.cpp.s
+
 src/Camera.obj: src/Camera.cpp.obj
 .PHONY : src/Camera.obj
 
@@ -452,6 +500,12 @@ help:
 	@echo ... src/Allocator.obj
 	@echo ... src/Allocator.i
 	@echo ... src/Allocator.s
+	@echo ... src/Animation.obj
+	@echo ... src/Animation.i
+	@echo ... src/Animation.s
+	@echo ... src/AnimationPlayer.obj
+	@echo ... src/AnimationPlayer.i
+	@echo ... src/AnimationPlayer.s
 	@echo ... src/Camera.obj
 	@echo ... src/Camera.i
 	@echo ... src/Camera.s
