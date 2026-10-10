@@ -13,6 +13,14 @@
 GPUBuffer::GPUBuffer(GLsizeiptr capacityBytes, GLenum target, GLenum usage)
     : m_target(target)
 {
+    // GL_COPY_WRITE_BUFFER rather than m_target: a neutral binding point
+    // reserved for generic data transfer, with no side effects on any other
+    // binding state. Binding via m_target directly would be fine for most
+    // targets, but GL_ELEMENT_ARRAY_BUFFER specifically IS part of VAO
+    // state - rebinding an EBO there while some VAO happens to be bound
+    // would silently reassociate that VAO's element buffer. Bind()/Unbind()
+    // below still use the real target for actual rendering use; only this
+    // constructor and Upload() (pure data transfer) use the neutral one.
     glGenBuffers(1, &ID);
     glBindBuffer(GL_COPY_WRITE_BUFFER, ID);
     glBufferData(GL_COPY_WRITE_BUFFER, capacityBytes, nullptr, usage);

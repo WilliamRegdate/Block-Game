@@ -1,0 +1,38 @@
+{
+    "entities": [
+        {
+            "id": "methaneMonster",
+            "materialID": "methaneMonster",
+            "meshID": "methaneMonster",
+            "animations": [
+                {}
+            ]
+        },
+        {
+            "id": "maxSternum",
+            "materialID": "maxSternum",
+            "meshID": "maxSternum",
+            "animations": [
+                {}
+            ]
+        },
+        {
+            "id": "chicken",
+            "materialID": "chicken",
+            "meshID": "chicken",
+            "animations": [
+                {}
+            ]
+        },
+        {
+            "id": "whiteChicken",
+            "meshID": "chicken",
+            "materialID": "whiteChicken"
+        },
+        {
+            "id": "BlackRock",
+            "meshID": "blackRock",
+            "materialID": "blackRock"
+        }
+    ]
+}

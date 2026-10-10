@@ -63,18 +63,42 @@ struct MeshHandle
     }
     bool operator!=(const MeshHandle& other) const { return !(*this == other); }
 };
-struct MaterialHandle
-{
-    BufferRange albedoLayer;     // in the material TextureArray; invalid if this material has no albedo map
-    BufferRange normalLayer;     // in the material TextureArray; invalid if this material has no normal map
-    BufferRange ormLayer;        // in the material TextureArray; invalid if this material has no orm map
-    BufferRange descriptorRange; // in the MaterialDescriptor SSBO; size is always 1
 
-    bool IsValid() const { return descriptorRange.IsValid(); }
-};
-struct AnimationHandle
+
+// ============================================================
+// Chunk constants
+// ============================================================
+// Chunk geometry is built from quads drawn as GL_TRIANGLES: 4 vertices per
+// quad, 6 indices per quad (0,1,2, 2,1,3 offset by 4 per quad).
+constexpr uint32_t CHUNK_VERTICES_PER_QUAD = 4;
+constexpr uint32_t CHUNK_INDICES_PER_QUAD  = 6;
+
+// Everything needed to find and upload one chunk's GPU data.
+//
+// Unlike MeshHandle, a chunk's mesh ranges are not fixed for its lifetime -
+// they are re-reserved whenever the chunk is remeshed and its quad count
+// changes. So the handle has two parts with different lifetimes:
+//   - instanceRange: reserved when the chunk is registered, held until it's
+//     removed. This is what IsValid() checks.
+//   - vertexRange / indexRange: reserved by the latest mesh upload. Invalid
+//     while the chunk has no mesh (not meshed yet, or an empty chunk).
+//
+// The chunk quad SSBO has no range of its own: it mirrors the chunk EBO's
+// address space, so quad slot N belongs to indices [N*6, N*6+6).
+// QuadStart() is that mapping. This only holds because every index
+// allocation in the chunk EBO is a whole number of quads.
+struct ChunkHandle
 {
-    BufferRange animationIndex; // where in the animation descriptor buffer this animation is
+    BufferRange instanceRange; // in the chunk InstanceData SSBO; size is always 1
+    BufferRange vertexRange;   // in the chunk VBO, in vertices (quadCount * 4)
+    BufferRange indexRange;    // in the chunk EBO, in indices (quadCount * 6, start is a multiple of 6)
+
+    bool IsValid() const { return instanceRange.IsValid(); }
+    bool HasMesh() const { return indexRange.IsValid(); }
+
+    // Only meaningful when HasMesh().
+    uint32_t QuadStart() const { return indexRange.start / CHUNK_INDICES_PER_QUAD; }
+    uint32_t QuadCount() const { return indexRange.size  / CHUNK_INDICES_PER_QUAD; }
 };
 
 
@@ -98,6 +122,27 @@ struct SkinnedVertex
     glm::vec4  boneWeights;
 };
 
+// 8 bytes. Upload with glVertexAttribIPointer (integer attributes) -
+// the normalized-float path would mangle the packed bit fields.
+//
+//   normalLight  bits 0-5 : normal, 2 bits per axis (0 -> 0, 1 -> +1, 2 -> -1),
+//                           normalized in the shader (gives 45 degree slopes).
+//                           An all-zero normal decodes to a zero vector - never emit it.
+//                bits 6-7 : light strength, low 2 bits
+//   uvLight      bits 0-5 : uv, 3 bits x then 3 bits y (0..7)
+//                bit  6   : spare
+//                bit  7   : light strength, high bit (strength is 3 bits total)
+//   position     chunk-local, 0..255 per axis
+//   color        vertex tint (light colour), rgb
+struct ChunkVertex
+{
+    uint8_t normalLight;
+    uint8_t uvLight;
+    glm::u8vec3 position; // 256 possible values
+    glm::u8vec3 color; // vertex tint
+};
+static_assert(sizeof(ChunkVertex) == 8, "ChunkVertex must stay 8 bytes - the shader unpacks it by layout");
+
 
 // ============================================================
 // GPU-resident lookup data
@@ -112,30 +157,22 @@ struct SkinnedVertex
 
 struct AABB
 {
-    glm::vec4 boundsMin;
-    glm::vec4 boundsMax;
+    glm::vec3 boundsMin;
+    glm::vec3 boundsMax;
 };
 
 struct MeshDescriptor
 {
-    uint32_t firstIndex;
-    uint32_t indexCount;
-    int32_t  baseVertex;
-    uint32_t materialID;
-    uint32_t skeletonID; // TODO: not sure if these are needed change
-    uint32_t isAnimated; // and this one
-    uint32_t _pad0;
-    uint32_t _pad1;
-    glm::vec4 boundsMin;   // xyz used
-    glm::vec4 boundsMax;   // xyz used
+    uint32_t firstIndex = 0;
+    uint32_t indexCount = 0;
+    int32_t  baseVertex = 0;
+    uint32_t materialID = 0;
+    uint32_t skeletonID = 0;   // only meaningful if isAnimated
+    uint32_t isAnimated = 0;   // bool kept as uint32 for std430
+    glm::vec3 boundsMin;
+    glm::vec3 boundsMax;
 };
 
-// Renamed from `Material` (then briefly `MaterialGPU`) - that name belongs
-// to the CPU-side asset class in Material.h, which owns actual Texture
-// objects. This is only the flat GPU-mirror of one (indices into the
-// material TextureArray, no ownership), so it gets a distinct name rather
-// than colliding when both headers end up in the same translation unit (as
-// they do via Mesh.h).
 
 
 constexpr uint32_t MATERIAL_HAS_ALBEDO = 1u << 0;
@@ -144,22 +181,49 @@ constexpr uint32_t MATERIAL_HAS_ORM    = 1u << 2;
 
 struct MaterialDescriptor
 {
-    uint32_t  albedoTexIndex = 0;
+    uint32_t  albedoTexIndex = 0; // layer in the material TextureArray - meaningless unless flags says it's present
     uint32_t  normalTexIndex = 0;
     uint32_t  ormTexIndex    = 0;
-    uint32_t  flags          = 0; // MATERIAL_HAS_* bits; a clear bit means "don't sample that map"
+    uint32_t  flags          = 0; // MATERIAL_HAS_* bits - which maps are actually present
     glm::vec4 tint{ 1.0f };
 };
 
+
 struct AnimationDescriptor
 {
-    uint32_t firstIndex; // first index of the animation
-    uint32_t indexCount;  // amount of indices in the animation
-    float duration; // duration of the animation clip in seconds
+    uint32_t poseStartIndex = 0; // first mat4 of this animation's baked poses, in bonePoseSSBO
+    uint32_t frameCount     = 0; // sampled frames in this clip
+    uint32_t boneCount      = 0; // bones per frame - poseStartIndex + frame*boneCount + bone indexes one matrix
+    float    duration       = 0.0f; // seconds, matches BakedAnimationClip::duration
 };
+
+// Not included here - only a pointer to it is needed for TextureArray's
+// declaration below, and Material.h doesn't need anything from RenderTypes.h.
+class Material;
+
 // Everything needed to find a material's GPU data: its three texture-array
 // layers (any of which may be absent - IsValid() on the individual
 // BufferRange tells you) and its slot in the MaterialDescriptor SSBO.
+struct MaterialHandle
+{
+    BufferRange albedoLayer;     // in the material TextureArray; invalid if this material has no albedo map
+    BufferRange normalLayer;     // in the material TextureArray; invalid if this material has no normal map
+    BufferRange ormLayer;        // in the material TextureArray; invalid if this material has no orm map
+    BufferRange descriptorRange; // in the MaterialDescriptor SSBO; size is always 1
+
+    bool IsValid() const { return descriptorRange.IsValid(); }
+};
+
+// Everything needed to find an animation's GPU data: its range of baked
+// pose matrices in bonePoseSSBO, and its slot in the AnimationDescriptor
+// SSBO. Mirrors MeshHandle/MaterialHandle's shape.
+struct AnimationHandle
+{
+    BufferRange poseRange;       // in bonePoseSSBO, counted in mat4s (frameCount * boneCount of them)
+    BufferRange descriptorRange; // in the AnimationDescriptor SSBO; size is always 1
+
+    bool IsValid() const { return descriptorRange.IsValid(); }
+};
 
 
 // One entry per live entity slot. Never reordered or compacted -
@@ -171,9 +235,29 @@ struct InstanceData
     glm::mat4 transform{ 1.0f };
     uint32_t  meshID      = 0;   // -> MeshDescriptor
     uint32_t  materialID  = 0;   // default from MeshDescriptor, may be overridden
-    uint32_t  animOffset  = 0;   // -> baked pose buffer; unused if mesh is static
-    uint32_t  animationID = 0;
+    float  animTime  = 0;   // -> progress into animation
+    uint32_t  animIndex = 0;   // -> AnimationDescriptor index
 };
+
+// One entry per live chunk slot, in the chunk instance SSBO. The shader finds
+// its entry through gl_BaseInstance (the indirect command's baseInstance is
+// the chunk's slot), then finds a quad's texture at
+//     firstIndex / 6 + ((gl_VertexID - gl_BaseVertex) >> 2)
+// in the chunk quad SSBO.
+//
+// CPU size is padded to 32 bytes on purpose: in std430 a vec3 forces 16-byte
+// struct alignment, so the GLSL array stride is 32 even though the fields
+// only add up to 24. Declare the GLSL struct as
+//     vec3 position; uint firstIndex; uint indexCount; uint _pad;
+// and the strides match.
+struct ChunkInstanceData
+{
+    glm::vec3 position = glm::vec3(0);
+    uint32_t firstIndex = 0;   // in indices, always a multiple of 6 (or 0 when indexCount is 0)
+    uint32_t indexCount = 0;   // 0 means the chunk draws nothing
+    uint32_t _pad[3]    = { 0, 0, 0 }; // pads to 32 bytes to match the std430 stride
+};
+static_assert(sizeof(ChunkInstanceData) == 32, "ChunkInstanceData must match the std430 array stride (32)");
 
 // Matches OpenGL's DrawElementsIndirectCommand layout exactly -
 // field order and sizes must not change.

@@ -102,21 +102,42 @@ Mesh* MeshLoader::Load(const char* filePath)
     if (skinned)
     {
         std::vector<SkinnedVertex> vertices;
-        traverseNode(0, vertices, indices);
+        const unsigned int sceneIndex = JSON["scene"];
+        const json& sceneNodes = JSON["scenes"][sceneIndex]["nodes"];
+
+        for (const auto& node : sceneNodes)
+            traverseNode(static_cast<unsigned int>(node), vertices, indices);
+
         auto* skinnedMesh = new SkinnedMesh(vertices, indices);
-        skinnedMesh->skeleton = LoadSkeleton(); // reads the same JSON Load() just parsed
+
+        // The skeleton is only needed to bake, so it stays a local.
+        const Skeleton skeleton = LoadSkeleton();
+        if (!skeleton.bones.empty())
+        {
+            for (const AnimationClip& clip : LoadAnimationClips(skeleton))
+                skinnedMesh->animations.push_back(BakeAnimationClip(skeleton, clip, animationSampleRate)); // 8fps
+        }
+
         mesh = skinnedMesh;
     }
     else
     {
         std::vector<StaticVertex> vertices;
-        traverseNode(0, vertices, indices);
+        const unsigned int sceneIndex = JSON["scene"];
+        const json& sceneNodes = JSON["scenes"][sceneIndex]["nodes"];
+
+        for (const auto& node : sceneNodes)
+        {
+            traverseNode(
+                static_cast<unsigned int>(node),
+                vertices,
+                indices
+            );
+        }
         mesh = new StaticMesh(vertices, indices);
     }
 
     mesh->ID = HashPath(filePath);
-    // TODO: no material loading yet - Material.h has no load path, so this
-    // stays unset until that exists.
 
     return mesh;
 }
@@ -225,6 +246,7 @@ AnimationClip MeshLoader::LoadAnimationClip(unsigned int animationIndex, const S
 
     const json& animation = JSON["animations"][animationIndex];
     clip.name = animation.value("name", std::string("animation_") + std::to_string(animationIndex));
+    clip.ID = HashPath((file + clip.name).c_str());
     clip.bones.resize(skeleton.bones.size());
 
     // Node index -> bone index, same reasoning as LoadSkeleton: channels
@@ -565,7 +587,10 @@ std::vector<float> MeshLoader::getFloats(json accessor)
     else if (type == "VEC2")   numPerVert = 2;
     else if (type == "VEC3")   numPerVert = 3;
     else if (type == "VEC4")   numPerVert = 4;
-    else throw std::invalid_argument("Type is invalid (not SCALAR, VEC2, VEC3, or VEC4)");
+    else if (type == "MAT4")   numPerVert = 16;
+    else
+        throw std::invalid_argument("Type is invalid (not SCALAR, VEC2, VEC3, VEC4, or MAT4): " + type);
+
 
     const unsigned int beginningOfData = byteOffset + accByteOffset;
     const unsigned int floatCount = count * numPerVert;

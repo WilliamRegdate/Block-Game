@@ -4,6 +4,7 @@
 #include<glad/glad.h>
 #include<glm/glm.hpp>
 #include<memory>
+#include<vector>
 #include<cstdint>
 #include<cstddef>
 
@@ -14,18 +15,22 @@
 #include "Shader.h"
 #include "Camera.h"
 
-// ------------------------------------------------------------
-// Forward declarations - these don't exist yet. This header only
-// needs to know they're types; nothing here requires their full
-// definition.
-// ------------------------------------------------------------
-class DirtyTracker;
 
+// Edge length of a chunk in blocks.
+// TODO: CHUNK - take this from the world/chunk config once it exists. It also bounds
+// ChunkVertex::position (chunk-local, 0..CHUNK_SIZE, which fits a byte up to 255).
+constexpr int CHUNK_SIZE = 32;
 
-struct ChunkHandle; 
-struct ChunkMeshData; 
-
-using MeshAssetID = uint64_t;   // interned/hashed identifier, assumed to come from your asset system
+// What the renderer needs to draw one chunk: its meshed quads.
+//   vertices      4 per quad, in quad order (quad i owns vertices 4i..4i+3)
+//   quadTextures  1 per quad - see the chunk-material TODO in Allocator.cpp for what the value means
+// TODO: CHUNK - swap for the chunk mesher's real output type once it exists; the renderer
+// only needs these two arrays.
+struct ChunkMeshData
+{
+    std::vector<ChunkVertex> vertices;
+    std::vector<uint32_t>    quadTextures;
+};
 
 
 class Renderer
@@ -39,15 +44,22 @@ class Renderer
 
         void SetCamera(Camera* camera) { m_camera = camera; }
 
-        
+
         bool         AddEntity(Entity& entity);
         void         UpdateEntity(Entity& entity);
         void         RemoveEntity(Entity& entity);
 
         // ---------------- Chunks ----------------
-        void        AddChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData);
-        void        UpdateChunk(ChunkHandle handle, const ChunkMeshData& meshData);
-        void        RemoveChunk(ChunkHandle handle);
+        // Chunks are identified by their chunk coordinate (the renderer packs it into the
+        // allocator's chunk ID), not by a handle - callers already have the coordinate, and a
+        // chunk's GPU ranges change on every remesh so they make a poor identity.
+        //
+        // AddChunk registers the chunk and uploads its mesh. Returns false if the coordinate is
+        // already added or there's no GPU space; nothing is left registered on failure.
+        bool        AddChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData);
+        // Replaces the chunk's mesh (a remesh). On failure the chunk keeps its old mesh.
+        bool        UpdateChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData);
+        void        RemoveChunk(const glm::ivec3& chunkCoord);
 
         // ---------------- Per-frame ----------------
         void Render();
@@ -60,33 +72,51 @@ class Renderer
         void DrawAnimated();        // bind animated pipeline, issue multidraw indirect
         void DrawChunks();          //bind the chunk pipeline, issue multidraw indirect
 
-        void UploadCameraMatrix();
+        void UploadCameraMatrix(Shader& shader);
 
-        void BuildStaticDrawLists();
+        void BuildDrawLists();
+        void BuildChunkDrawList();  // one command per chunk that has a mesh; only does work when m_chunkListDirty
 
     private:
         // ---------------- Bookkeeping ----------------
-        
+
         std::unique_ptr<Shader>        m_staticShader; // shader program for the static entity draws
+        std::unique_ptr<Shader>        m_animatedShader; // shader program for skinned entity draws
+        std::unique_ptr<Shader>        m_chunkShader; // shader program for chunk draws
 
         std::unique_ptr<EntityManager> m_entityManager;
         std::unique_ptr<Allocator>     m_allocator;
-        // TODO(dirty): std::unique_ptr<DirtyTracker> m_dirtyTracker;
-        // Left out for now: unique_ptr can't be destroyed while DirtyTracker is
-        // an incomplete type, so the member would break compilation.
 
         std::unique_ptr<VAO>           m_staticVAO;
         std::unique_ptr<IndirectBuffer> m_staticIndirect;      // DrawIndexedIndirectCommand[maxMeshTypes], indexed by mesh descriptor slot
         std::unique_ptr<SSBO>          m_staticVisibleIndices; // uint32 instance slots, maxEntities long
         uint32_t                       m_staticDrawCount = 0;  // commands to issue; set by whatever fills the buffers
 
+        std::unique_ptr<VAO>           m_animatedVAO;
+        std::unique_ptr<IndirectBuffer> m_animatedIndirect;      // DrawIndexedIndirectCommand[maxMeshTypes], indexed by mesh descriptor slot
+        std::unique_ptr<SSBO>          m_animatedVisibleIndices; // uint32 instance slots, maxEntities long
+        uint32_t                       m_animatedDrawCount = 0;  // commands to issue; set by whatever fills the buffers
+
+        std::unique_ptr<VAO>           m_chunkVAO;
+        std::unique_ptr<IndirectBuffer> m_chunkIndirect;      // DrawIndexedIndirectCommand[chunkCapacity], one per drawn chunk, packed from index 0
+        std::unique_ptr<SSBO>          m_chunkVisibleIndices; // uint32 chunk instance slots, chunkCapacity long; entry i belongs to command i
+        uint32_t                       m_chunkDrawCount = 0;  // commands to issue; set by BuildChunkDrawList
+
         Camera* m_camera = nullptr;
 
         std::vector<DrawIndexedIndirectCommand> m_staticCommands;  // CPU copy, maxMeshTypes long
         std::vector<uint32_t>                   m_staticCursor;    // scratch, maxMeshTypes long
         std::vector<uint32_t>                   m_staticVisible;   // CPU copy, maxEntities long
-        bool                                    m_staticListsDirty = true;
 
+        std::vector<DrawIndexedIndirectCommand> m_animatedCommands;  // CPU copy, maxMeshTypes long
+        std::vector<uint32_t>                   m_animatedCursor;    // scratch, maxMeshTypes long
+        std::vector<uint32_t>                   m_animatedVisible;   // CPU copy, maxEntities long
+
+        std::vector<DrawIndexedIndirectCommand> m_chunkCommands;  // CPU copy, chunkCapacity long
+        std::vector<uint32_t>                   m_chunkVisible;   // CPU copy, chunkCapacity long
+
+        bool                                    m_listsDirty = true;
+        bool                                    m_chunkListDirty = true; // set by Add/Update/RemoveChunk
 
         struct DirtyInstance
         {

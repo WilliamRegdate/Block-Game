@@ -1,6 +1,24 @@
 #include <algorithm>
 #include "Renderer.h"
 
+namespace
+{
+    // Packs a chunk coordinate into the 64-bit key the Allocator/EntityManager use for chunks:
+    // 21 bits per axis, each biased so negative coordinates work. Covers +/- 1,048,576 chunks
+    // per axis, which is plenty for a world with no vertical limit.
+    // TODO: CHUNK - the world/Chunk class will need the same key; move this next to it once it exists.
+    constexpr int64_t  CHUNK_ID_BIAS = 1 << 20;
+    constexpr uint64_t CHUNK_ID_MASK = (1ull << 21) - 1;
+
+    uint64_t ChunkIDFromCoord(const glm::ivec3& c)
+    {
+        const uint64_t x = static_cast<uint64_t>(static_cast<int64_t>(c.x) + CHUNK_ID_BIAS) & CHUNK_ID_MASK;
+        const uint64_t y = static_cast<uint64_t>(static_cast<int64_t>(c.y) + CHUNK_ID_BIAS) & CHUNK_ID_MASK;
+        const uint64_t z = static_cast<uint64_t>(static_cast<int64_t>(c.z) + CHUNK_ID_BIAS) & CHUNK_ID_MASK;
+        return x | (y << 21) | (z << 42);
+    }
+}
+
 Renderer::Renderer(Camera* camera)
     : m_camera(camera)
 {
@@ -28,23 +46,48 @@ void Renderer::Init()
     config.materialTextureHeight = 128;
     config.materialTextureFormat = GL_RGBA8;
 
+    config.chunkCapacity  = 65536;
+
+    // Chunk geometry: 8-byte vertices, 4 per quad, so 128 MiB = 16M vertices = 4M quads.
+    // The index buffer has to hold 6 indices per quad (4M * 6 * 4 bytes = 96 MiB). The quad
+    // SSBO is sized from the index buffer, so keep these two in this ratio or one runs out first.
+    config.chunkVertexCapacityBytes = 128 * 1024 * 1024;
+    config.chunkIndexCapacityBytes  =  96 * 1024 * 1024;
+
+    // TODO: CHUNK - revisit once chunk materials exist. 256 materials reserve 768 layers of
+    // 16x16 (the config default size) for albedo/normal/orm.
+    config.maxChunkMaterials = 256;
+
+    config.maxAnimations = 256;
+
     // Manager first: the Allocator keeps a pointer to it.
     m_entityManager = std::make_unique<EntityManager>();
     m_allocator     = std::make_unique<Allocator>(config, m_entityManager.get());
 
     // setup shaders
     m_staticShader = std::make_unique<Shader>("../resources/shaders/static.vert", "../resources/shaders/static.frag");
+    m_animatedShader = std::make_unique<Shader>("../resources/shaders/skinned.vert", "../resources/shaders/skinned.frag");
+    m_chunkShader = std::make_unique<Shader>("../resources/shaders/chunk.vert", "../resources/shaders/chunk.frag");
 
     m_staticIndirect       = std::make_unique<IndirectBuffer>(config.maxMeshTypes * sizeof(DrawIndexedIndirectCommand));
     m_staticVisibleIndices = std::make_unique<SSBO>(config.maxEntities * sizeof(uint32_t));
     m_staticVAO            = std::make_unique<VAO>();
 
-    VBO& vbo = m_allocator->StaticVBO();
-    const GLsizeiptr stride = sizeof(StaticVertex);
-    m_staticVAO->LinkAttrib(vbo, 0, 3, GL_FLOAT, stride, (void*)offsetof(StaticVertex, position));
-    m_staticVAO->LinkAttrib(vbo, 1, 3, GL_FLOAT, stride, (void*)offsetof(StaticVertex, normal));
-    m_staticVAO->LinkAttrib(vbo, 2, 2, GL_FLOAT, stride, (void*)offsetof(StaticVertex, uv));
-    m_staticVAO->LinkAttrib(*m_staticVisibleIndices, 3, 1, GL_UNSIGNED_INT, sizeof(uint32_t), (void*)0, 1);
+    m_animatedIndirect     = std::make_unique<IndirectBuffer>(config.maxMeshTypes * sizeof(DrawIndexedIndirectCommand));
+    m_animatedVisibleIndices = std::make_unique<SSBO>(config.maxEntities * sizeof(uint32_t));
+    m_animatedVAO            = std::make_unique<VAO>();
+
+    m_chunkIndirect     = std::make_unique<IndirectBuffer>(config.chunkCapacity * sizeof(DrawIndexedIndirectCommand));
+    m_chunkVisibleIndices = std::make_unique<SSBO>(config.chunkCapacity * sizeof(uint32_t));
+    m_chunkVAO            = std::make_unique<VAO>();
+
+    VBO& staticVbo = m_allocator->StaticVBO();
+    GLsizeiptr staticStride = sizeof(StaticVertex);
+
+    m_staticVAO->LinkAttrib(staticVbo, 0, 3, GL_FLOAT,staticStride, (void*)offsetof(StaticVertex, position));
+    m_staticVAO->LinkAttrib(staticVbo, 1, 3, GL_FLOAT,staticStride, (void*)offsetof(StaticVertex, normal));
+    m_staticVAO->LinkAttrib(staticVbo, 2, 2, GL_FLOAT,staticStride, (void*)offsetof(StaticVertex, uv));
+    m_staticVAO->LinkAttrib(*m_staticVisibleIndices, 3, 1, GL_UNSIGNED_INT,sizeof(uint32_t), (void*)0, 1);
 
     // The element buffer binding is VAO state, and LinkAttrib doesn't set it.
     m_staticVAO->Bind();
@@ -54,6 +97,48 @@ void Renderer::Init()
     m_staticCommands.assign(config.maxMeshTypes, DrawIndexedIndirectCommand{});
     m_staticCursor.assign(config.maxMeshTypes, 0);
     m_staticVisible.assign(config.maxEntities, 0);
+
+    VBO& animatedVbo = m_allocator->AnimatedVBO();
+    GLsizeiptr animatedStride = sizeof(SkinnedVertex);
+
+    m_animatedVAO->LinkAttrib(animatedVbo, 0, 3, GL_FLOAT,animatedStride, (void*)offsetof(SkinnedVertex, position));
+    m_animatedVAO->LinkAttrib(animatedVbo, 1, 3, GL_FLOAT,animatedStride, (void*)offsetof(SkinnedVertex, normal));
+    m_animatedVAO->LinkAttrib(animatedVbo, 2, 2, GL_FLOAT,animatedStride, (void*)offsetof(SkinnedVertex, uv));
+    m_animatedVAO->LinkAttrib(animatedVbo, 3, 4, GL_UNSIGNED_INT,animatedStride, (void*)offsetof(SkinnedVertex, boneIndices));
+    m_animatedVAO->LinkAttrib(animatedVbo, 4, 4, GL_FLOAT,animatedStride, (void*)offsetof(SkinnedVertex, boneWeights));
+    m_animatedVAO->LinkAttrib(*m_animatedVisibleIndices, 5, 1, GL_UNSIGNED_INT,sizeof(uint32_t), (void*)0, 1);
+
+    m_animatedVAO->Bind();
+    m_allocator->AnimatedEBO().Bind();
+    m_animatedVAO->Unbind();
+
+    m_animatedCommands.assign(config.maxMeshTypes, DrawIndexedIndirectCommand{});
+    m_animatedCursor.assign(config.maxMeshTypes, 0);
+    m_animatedVisible.assign(config.maxEntities, 0);
+
+
+    // Chunk vertex attributes. ChunkVertex is 8 packed bytes, so every attribute is read as
+    // unsigned BYTES (a GL_UNSIGNED_INT read here would pull 4 bytes per component from the
+    // wrong offsets). The shader declares them as uint / uint / uvec3 / uvec3, so LinkAttrib
+    // must use glVertexAttribIPointer for integer types - the float path would convert them.
+    VBO& chunkVbo = m_allocator->ChunkVBO();
+    GLsizeiptr chunkStride = sizeof(ChunkVertex);
+
+    m_chunkVAO->LinkAttrib(chunkVbo, 0, 1, GL_UNSIGNED_BYTE,chunkStride, (void*)offsetof(ChunkVertex, normalLight));
+    m_chunkVAO->LinkAttrib(chunkVbo, 1, 1, GL_UNSIGNED_BYTE,chunkStride, (void*)offsetof(ChunkVertex, uvLight));
+    m_chunkVAO->LinkAttrib(chunkVbo, 2, 3, GL_UNSIGNED_BYTE,chunkStride, (void*)offsetof(ChunkVertex, position));
+    m_chunkVAO->LinkAttrib(chunkVbo, 3, 3, GL_UNSIGNED_BYTE,chunkStride, (void*)offsetof(ChunkVertex, color));
+    // Per-instance: the chunk's slot in the chunk instance SSBO. Each command draws one
+    // instance, and its baseInstance indexes this list.
+    m_chunkVAO->LinkAttrib(*m_chunkVisibleIndices, 4, 1, GL_UNSIGNED_INT,sizeof(uint32_t), (void*)0, 1);
+
+    m_chunkVAO->Bind();
+    m_allocator->ChunkEBO().Bind();
+    m_chunkVAO->Unbind();
+
+    m_chunkCommands.assign(config.chunkCapacity, DrawIndexedIndirectCommand{});
+    m_chunkVisible.assign(config.chunkCapacity, 0);
+
 }
 
 void Renderer::Shutdown()
@@ -65,6 +150,15 @@ void Renderer::Shutdown()
     if (m_staticIndirect)       m_staticIndirect->Delete();
     if (m_staticVisibleIndices) m_staticVisibleIndices->Delete();
 
+    if (m_animatedVAO)            m_animatedVAO->Delete();
+    if (m_animatedIndirect)       m_animatedIndirect->Delete();
+    if (m_animatedVisibleIndices) m_animatedVisibleIndices->Delete();
+
+    if (m_chunkVAO)            m_chunkVAO->Delete();
+    if (m_chunkIndirect)       m_chunkIndirect->Delete();
+    if (m_chunkVisibleIndices) m_chunkVisibleIndices->Delete();
+
+
     // Allocator before manager, since the allocator points at the manager.
     m_allocator.reset();
     m_entityManager.reset();
@@ -72,6 +166,10 @@ void Renderer::Shutdown()
     //free shaders
     if (m_staticShader)
         m_staticShader->Delete();
+    if (m_animatedShader)
+        m_animatedShader->Delete();
+    if (m_chunkShader)
+        m_chunkShader->Delete();
 }
 
 // ============================================================
@@ -86,6 +184,12 @@ bool Renderer::AddEntity(Entity& entity)
     const bool meshIsNew = (m_entityManager->GetMesh(entity.mesh->ID) == nullptr);
     const bool materialIsNew = (entity.material != nullptr) &&
                                (m_entityManager->GetMaterial(entity.material->ID) == nullptr);
+    std::vector<bool> areAnimationsNew;
+    std::vector<BakedAnimationClip*> animations = entity.animationPlayer.GetClips();
+    for (unsigned int i = 0; i < animations.size(); i++)
+    {
+        areAnimationsNew.push_back(m_entityManager->GetAnimation(animations[i]->ID) == nullptr);
+    }
 
     EntityTracker tracker = m_allocator->Allocate(entity);
     if (!tracker.handle.IsValid())
@@ -94,6 +198,11 @@ bool Renderer::AddEntity(Entity& entity)
     bool ok = true;
     if (meshIsNew)     ok = ok && m_allocator->UploadMeshData(*entity.mesh);
     if (materialIsNew) ok = ok && m_allocator->UploadMaterialData(*entity.material);
+    for (unsigned int i = 0; i < animations.size(); i++)
+    {
+        if (areAnimationsNew[i]) ok = ok && m_allocator->UploadAnimationData(*animations[i]);
+    }
+
     ok = ok && m_allocator->UploadEntityData(entity);
 
     if (!ok)
@@ -103,7 +212,7 @@ bool Renderer::AddEntity(Entity& entity)
         m_allocator->Deallocate(entity);
         return false;
     }
-    m_staticListsDirty = true;
+    m_listsDirty = true;
     return true;
 }
 
@@ -111,10 +220,6 @@ void Renderer::UpdateEntity(Entity& entity)
 {
     if (!m_allocator)
         return;
-
-    // Just record it; FlushDirty builds and uploads everything once per frame.
-    // Not setting m_staticListsDirty: moving an entity doesn't change which
-    // instance slots belong to which mesh, so the draw lists stay valid.
     m_dirtyEntities.push_back(&entity);
 }
 
@@ -122,29 +227,85 @@ void Renderer::RemoveEntity(Entity& entity)
 {
     if (!m_allocator)
         return;
-
-    // Deallocate also frees the mesh/material once their last user is gone.
-    // TODO(dirty): clear any pending dirty flag for this entity.
-    m_staticListsDirty = true;
+    m_listsDirty = true;
     m_allocator->Deallocate(entity);
 }
 
 // ============================================================
-// Per-frame (all unimplemented)
+// Chunks
+// ============================================================
+// Chunks differ from entities in that their mesh is rebuilt, not just moved: every remesh
+// can change the quad count, and with it the chunk's ranges in the VBO/EBO. So each of these
+// marks the chunk draw list dirty (the commands hold those ranges), and the list is rebuilt
+// once at the start of the next Render rather than per call.
+//
+// These must be called on the GL thread (they upload). Meshing itself can happen elsewhere.
+// TODO: CHUNK - queue meshed results from worker threads and apply them here once the mesher exists.
+
+bool Renderer::AddChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData)
+{
+    if (!m_allocator)
+        return false;
+
+    const uint64_t id = ChunkIDFromCoord(chunkCoord);
+    const glm::vec3 worldPosition = glm::vec3(chunkCoord) * static_cast<float>(CHUNK_SIZE);
+
+    ChunkTracker tracker = m_allocator->AllocateChunk(id, worldPosition);
+    if (!tracker.handle.IsValid())
+        return false; // already added, or out of chunk instance slots
+
+    if (!m_allocator->UploadChunkMesh(id, meshData.vertices, meshData.quadTextures))
+    {
+        // No space for the mesh (or the arrays disagree on quad count). Don't leave an
+        // empty registered chunk behind that the caller thinks failed.
+        m_allocator->DeallocateChunk(id);
+        return false;
+    }
+
+    m_chunkListDirty = true;
+    return true;
+}
+
+bool Renderer::UpdateChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData)
+{
+    if (!m_allocator)
+        return false;
+
+    // On failure the Allocator keeps the chunk's previous mesh, so the draw list stays valid.
+    if (!m_allocator->UploadChunkMesh(ChunkIDFromCoord(chunkCoord), meshData.vertices, meshData.quadTextures))
+        return false;
+
+    m_chunkListDirty = true;
+    return true;
+}
+
+void Renderer::RemoveChunk(const glm::ivec3& chunkCoord)
+{
+    if (!m_allocator)
+        return;
+
+    m_chunkListDirty = true;
+    m_allocator->DeallocateChunk(ChunkIDFromCoord(chunkCoord));
+}
+
+// ============================================================
+// Per-frame
 // ============================================================
 
 void Renderer::Render()
 {
     m_camera->updateMatrix(90, 0.01f, 5000.0f);
-    FlushDirty();// CullPass(); DrawAnimated(); DrawChunks();
+    FlushDirty();// CullPass();
     DrawStatic();
+    DrawAnimated();
+    DrawChunks();
 }
-void Renderer::UploadCameraMatrix()
+void Renderer::UploadCameraMatrix(Shader& shader)
 {
-    if (m_camera == nullptr || !m_staticShader)
+    if (m_camera == nullptr)
         return;
- 
-    m_staticShader->SetMat4("viewProjection", m_camera->cameraMatrix);
+
+    shader.SetMat4("viewProjection", m_camera->cameraMatrix);
 }
 
 void Renderer::CullPass()    { /* TODO(cull) */ }
@@ -158,7 +319,7 @@ void Renderer::DrawStatic()
     m_allocator->GenerateMaterialMipmaps();
 
     m_staticShader->Activate();
-    UploadCameraMatrix();                         // needs the program active
+    UploadCameraMatrix(*m_staticShader);                         // needs the program active
 
     // Shared by every draw - bound once, not per mesh/material.
     m_allocator->StaticInstanceSSBO().BindBase(0);      // layout(std430, binding = 0) in the vert shader
@@ -178,25 +339,90 @@ void Renderer::DrawStatic()
     m_staticVAO->Unbind();
 }
 
-void Renderer::DrawAnimated(){ /* TODO(draw) */ }
-void Renderer::DrawChunks()  { /* TODO(chunks) */ }
-
-void Renderer::BuildStaticDrawLists()
+void Renderer::DrawAnimated()
 {
-    if (!m_staticListsDirty || !m_entityManager)
+    if (!m_animatedShader || !m_allocator || !m_animatedVAO || m_animatedDrawCount == 0)
         return;
-    m_staticListsDirty = false;
+
+    // Cheap flag check; only does work if a material was uploaded since last draw.
+    m_allocator->GenerateMaterialMipmaps();
+
+    m_animatedShader->Activate();
+    UploadCameraMatrix(*m_animatedShader);
+
+    // Shared by every draw - bound once, not per mesh/material.
+    m_allocator->AnimatedInstanceSSBO().BindBase(0);      // layout(std430, binding = 0) in the vert shader
+    m_allocator->MaterialDescriptorSSBO().BindBase(1);    // layout(std430, binding = 1) in the frag shader
+    m_allocator->AnimationDescriptorSSBO().BindBase(2);   // layout(std430, binding = 2) in the vert shader
+    m_allocator->BonePoseSSBO().BindBase(3);              // layout(std430, binding = 3) in the vert shader
+
+    m_allocator->MaterialTextures().Bind(0);            // layout(binding = 0) sampler2DArray
+
+    m_animatedVAO->Bind();
+    m_animatedIndirect->Bind();
+
+    // One command per mesh type. Each command's baseInstance offsets into the
+    // visible-index buffer via the divisor-1 attribute, so the shader never sees it.
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr,
+                                static_cast<GLsizei>(m_animatedDrawCount),
+                                0); // stride 0 = tightly packed (DrawIndexedIndirectCommand is 20 bytes)
+
+    m_animatedIndirect->Unbind();
+    m_animatedVAO->Unbind();
+}
+
+
+void Renderer::DrawChunks()
+{
+    if (!m_chunkShader || !m_allocator || !m_chunkVAO || m_chunkDrawCount == 0)
+        return;
+
+    // TODO: CHUNK - generate mipmaps for ChunkTextureArray here once chunk materials are
+    // uploaded (GenerateMaterialMipmaps only covers the entity material array), and decide
+    // whether pixel-art block textures want mipmaps at all.
+
+    m_chunkShader->Activate();
+    UploadCameraMatrix(*m_chunkShader);                         // needs the program active
+
+    m_allocator->ChunkInstanceSSBO().BindBase(0);       // layout(std430, binding = 0) in the vert shader
+    m_allocator->ChunkQuadTextureSSBO().BindBase(1);    // layout(std430, binding = 1) in the vert shader
+    m_allocator->ChunkTextureArray().Bind(0);           // layout(binding = 0) sampler2DArray
+
+    m_chunkVAO->Bind();          // chunk VBO + EBO + visible-index attribute
+    m_chunkIndirect->Bind();     // GL_DRAW_INDIRECT_BUFFER is global state, not VAO state
+
+    // One command per chunk, one instance each. Command i's baseInstance is i, so the divisor-1
+    // attribute reads m_chunkVisible[i]: that chunk's slot in the chunk instance SSBO.
+    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr,
+                                static_cast<GLsizei>(m_chunkDrawCount),
+                                0); // stride 0 = tightly packed (DrawIndexedIndirectCommand is 20 bytes)
+
+    m_chunkIndirect->Unbind();
+    m_chunkVAO->Unbind();
+}
+
+void Renderer::BuildDrawLists()
+{
+    if (!m_listsDirty || !m_entityManager)
+        return;
+    m_listsDirty = false;
 
     std::fill(m_staticCommands.begin(), m_staticCommands.end(), DrawIndexedIndirectCommand{});
+    std::fill(m_animatedCommands.begin(), m_animatedCommands.end(), DrawIndexedIndirectCommand{});
 
-    // Pass 1: one command per mesh slot, counting its instances.
+    // Pass 1: one command per mesh slot, counting its instances - static and
+    // animated entities route into their own command/cursor arrays based on
+    // handle.isSkinned, in the same walk rather than two separate full
+    // iterations over every entity.
     m_entityManager->ForEachEntity([&](const EntityTracker& t)
     {
-        if (!t.handle.IsValid() || t.handle.isSkinned || t.meshTracker == nullptr)
+        if (!t.handle.IsValid() || t.meshTracker == nullptr)
             return;
 
         const MeshHandle& mh = t.meshTracker->handle;
-        DrawIndexedIndirectCommand& cmd = m_staticCommands[mh.descriptorRange.start];
+        DrawIndexedIndirectCommand& cmd = t.handle.isSkinned
+            ? m_animatedCommands[mh.descriptorRange.start]
+            : m_staticCommands[mh.descriptorRange.start];
 
         if (cmd.instanceCount == 0) // first instance of this mesh: fill the geometry fields
         {
@@ -207,37 +433,105 @@ void Renderer::BuildStaticDrawLists()
         cmd.instanceCount++;
     });
 
-    // Prefix sum: each mesh gets a contiguous run in the visible-index buffer.
-    uint32_t total     = 0;
-    uint32_t drawCount = 0; // highest used slot + 1, so trailing empty slots aren't submitted
-    for (uint32_t i = 0; i < m_staticCommands.size(); ++i)
+    // Prefix sum: each mesh gets a contiguous run in its own pipeline's
+    // visible-index buffer. Static and animated stay independent ranges -
+    // they read from different InstanceData SSBOs, so there's no reason
+    // for their baseInstance space to overlap or share one counter.
+    auto prefixSum = [](std::vector<DrawIndexedIndirectCommand>& commands,
+                         std::vector<uint32_t>& cursor) -> std::pair<uint32_t, uint32_t>
     {
-        DrawIndexedIndirectCommand& cmd = m_staticCommands[i];
-        cmd.baseInstance = total;
-        m_staticCursor[i] = total;
-        total += cmd.instanceCount;
-        if (cmd.instanceCount > 0)
-            drawCount = i + 1;
-    }
+        uint32_t total     = 0;
+        uint32_t drawCount = 0; // highest used slot + 1, so trailing empty slots aren't submitted
+        for (uint32_t i = 0; i < commands.size(); ++i)
+        {
+            DrawIndexedIndirectCommand& cmd = commands[i];
+            cmd.baseInstance = total;
+            cursor[i] = total;
+            total += cmd.instanceCount;
+            if (cmd.instanceCount > 0)
+                drawCount = i + 1;
+        }
+        return { total, drawCount };
+    };
+
+    const auto [staticTotal, staticDrawCount]     = prefixSum(m_staticCommands, m_staticCursor);
+    const auto [animatedTotal, animatedDrawCount] = prefixSum(m_animatedCommands, m_animatedCursor);
 
     // Pass 2: write each entity's instance slot into its mesh's run.
     m_entityManager->ForEachEntity([&](const EntityTracker& t)
     {
-        if (!t.handle.IsValid() || t.handle.isSkinned || t.meshTracker == nullptr)
+        if (!t.handle.IsValid() || t.meshTracker == nullptr)
             return;
 
         const uint32_t slot = t.meshTracker->handle.descriptorRange.start;
-        m_staticVisible[m_staticCursor[slot]++] = t.handle.instanceRange.start;
+        if (t.handle.isSkinned)
+            m_animatedVisible[m_animatedCursor[slot]++] = t.handle.instanceRange.start;
+        else
+            m_staticVisible[m_staticCursor[slot]++] = t.handle.instanceRange.start;
     });
 
-    m_staticDrawCount = drawCount;
-    if (drawCount == 0)
-        return;
+    m_staticDrawCount   = staticDrawCount;
+    m_animatedDrawCount = animatedDrawCount;
 
-    m_staticIndirect->Upload(0, m_staticCommands.data(),
-                             static_cast<GLsizeiptr>(drawCount * sizeof(DrawIndexedIndirectCommand)));
-    m_staticVisibleIndices->Upload(0, m_staticVisible.data(),
-                                   static_cast<GLsizeiptr>(total * sizeof(uint32_t)));
+    if (staticDrawCount > 0)
+    {
+        m_staticIndirect->Upload(0, m_staticCommands.data(),
+                                 static_cast<GLsizeiptr>(staticDrawCount * sizeof(DrawIndexedIndirectCommand)));
+        m_staticVisibleIndices->Upload(0, m_staticVisible.data(),
+                                       static_cast<GLsizeiptr>(staticTotal * sizeof(uint32_t)));
+    }
+
+    if (animatedDrawCount > 0)
+    {
+        m_animatedIndirect->Upload(0, m_animatedCommands.data(),
+                                   static_cast<GLsizeiptr>(animatedDrawCount * sizeof(DrawIndexedIndirectCommand)));
+        m_animatedVisibleIndices->Upload(0, m_animatedVisible.data(),
+                                         static_cast<GLsizeiptr>(animatedTotal * sizeof(uint32_t)));
+    }
+}
+
+// Rebuilds the chunk commands: one per chunk that currently has a mesh, packed from index 0
+// with no gaps (chunks with no mesh - empty or not meshed yet - are skipped, not drawn).
+// Unlike entities there's no instancing to count, since every chunk is its own mesh, so there's
+// no prefix sum: command i simply draws instance i, and m_chunkVisible[i] says which chunk.
+//
+// TODO: CHUNK - this is where culling goes. CullPass would filter this list (frustum, then the
+// occlusion/face-connectivity work) instead of every chunk with a mesh being added.
+void Renderer::BuildChunkDrawList()
+{
+    if (!m_chunkListDirty || !m_entityManager)
+        return;
+    m_chunkListDirty = false;
+
+    uint32_t count = 0;
+    m_entityManager->ForEachChunk([&](const ChunkTracker& t)
+    {
+        const ChunkHandle& h = t.handle;
+        if (!h.IsValid() || !h.HasMesh())
+            return;
+        if (count >= m_chunkCommands.size())
+            return; // can't happen while chunkCapacity bounds the instance slots
+
+        DrawIndexedIndirectCommand& cmd = m_chunkCommands[count];
+        cmd.indexCount    = h.indexRange.size;
+        cmd.instanceCount = 1;
+        cmd.firstIndex    = h.indexRange.start;                          // chunk-local indices...
+        cmd.baseVertex    = static_cast<int32_t>(h.vertexRange.start);   // ...moved to this chunk's vertices
+        cmd.baseInstance  = count;                                       // position in m_chunkVisible, not the slot
+
+        m_chunkVisible[count] = h.instanceRange.start;
+        ++count;
+    });
+
+    m_chunkDrawCount = count;
+
+    if (count > 0)
+    {
+        m_chunkIndirect->Upload(0, m_chunkCommands.data(),
+                                static_cast<GLsizeiptr>(count * sizeof(DrawIndexedIndirectCommand)));
+        m_chunkVisibleIndices->Upload(0, m_chunkVisible.data(),
+                                      static_cast<GLsizeiptr>(count * sizeof(uint32_t)));
+    }
 }
 
 void Renderer::FlushDirty()
@@ -292,5 +586,6 @@ void Renderer::FlushDirty()
         }
     }
 
-    BuildStaticDrawLists(); // from earlier; only does work when the entity set changed
+    BuildDrawLists();
+    BuildChunkDrawList();
 }

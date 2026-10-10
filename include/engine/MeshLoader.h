@@ -65,6 +65,8 @@ class MeshLoader
         std::vector<AnimationClip> LoadAnimationClips(const Skeleton& skeleton);
 
     private:
+        // baked animation sample rate per second
+        const float animationSampleRate = 8;
         const char* file = nullptr;
         std::vector<unsigned char> data;
         json JSON;

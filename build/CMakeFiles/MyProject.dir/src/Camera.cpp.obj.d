@@ -1,278 +1,277 @@
 CMakeFiles/MyProject.dir/src/Camera.cpp.obj: \
- C:\Users\willi\C++\Block\ Game\src\Camera.cpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/Camera.h \
- C:/Users/willi/C__~1/BLOCKG~1/include/glad/glad.h \
- C:/Users/willi/C__~1/BLOCKG~1/include/KHR/khrplatform.h \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/13.2.0/include/stdint.h \
- C:/msys64/ucrt64/include/stdint.h C:/msys64/ucrt64/include/crtdefs.h \
- C:/msys64/ucrt64/include/corecrt.h C:/msys64/ucrt64/include/_mingw.h \
- C:/msys64/ucrt64/include/_mingw_mac.h \
- C:/msys64/ucrt64/include/_mingw_secapi.h \
- C:/msys64/ucrt64/include/vadefs.h \
- C:/msys64/ucrt64/include/sdks/_mingw_ddk.h \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/13.2.0/include/stddef.h \
- C:/msys64/ucrt64/include/stddef.h \
- C:/Users/willi/C__~1/BLOCKG~1/include/GLFW/glfw3.h \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/glm.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/_fixes.hpp \
- C:/msys64/ucrt64/include/c++/13.2.0/cmath \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/requires_hosted.h \
- C:/msys64/ucrt64/include/c++/13.2.0/x86_64-w64-mingw32/bits/c++config.h \
- C:/msys64/ucrt64/include/c++/13.2.0/x86_64-w64-mingw32/bits/os_defines.h \
- C:/msys64/ucrt64/include/c++/13.2.0/x86_64-w64-mingw32/bits/cpu_defines.h \
- C:/msys64/ucrt64/include/c++/13.2.0/pstl/pstl_config.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/cpp_type_traits.h \
- C:/msys64/ucrt64/include/c++/13.2.0/ext/type_traits.h \
- C:/msys64/ucrt64/include/math.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/std_abs.h \
- C:/msys64/ucrt64/include/stdlib.h \
- C:/msys64/ucrt64/include/corecrt_wstdlib.h \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/13.2.0/include/limits.h \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/13.2.0/include/syslimits.h \
- C:/msys64/ucrt64/include/limits.h \
- C:/msys64/ucrt64/include/sec_api/stdlib_s.h \
- C:/msys64/ucrt64/include/c++/13.2.0/stdlib.h \
- C:/msys64/ucrt64/include/malloc.h \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/13.2.0/include/mm_malloc.h \
- C:/msys64/ucrt64/include/errno.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/specfun.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/stl_algobase.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/functexcept.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/exception_defines.h \
- C:/msys64/ucrt64/include/c++/13.2.0/ext/numeric_traits.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/stl_pair.h \
- C:/msys64/ucrt64/include/c++/13.2.0/type_traits \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/move.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/utility.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/stl_iterator_base_types.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/stl_iterator_base_funcs.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/concept_check.h \
- C:/msys64/ucrt64/include/c++/13.2.0/debug/assertions.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/stl_iterator.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/ptr_traits.h \
- C:/msys64/ucrt64/include/c++/13.2.0/debug/debug.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bits/predefined_ops.h \
- C:/msys64/ucrt64/include/c++/13.2.0/bit \
- C:/msys64/ucrt64/include/c++/13.2.0/limits \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/gamma.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/special_function_util.h \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/bessel_function.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/beta_function.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/ell_integral.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/exp_integral.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/hypergeometric.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/legendre_function.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/modified_bessel_func.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/poly_hermite.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/poly_laguerre.tcc \
- C:/msys64/ucrt64/include/c++/13.2.0/tr1/riemann_zeta.tcc \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/setup.hpp \
- C:/msys64/ucrt64/include/c++/13.2.0/cassert \
- C:/msys64/ucrt64/include/assert.h \
- C:/msys64/ucrt64/include/c++/13.2.0/cstdlib \
- C:/msys64/ucrt64/include/c++/13.2.0/cstddef \
- C:/Users/willi/C++/Block\ Game/include/glm/simd/platform.h \
- C:/msys64/ucrt64/include/c++/13.2.0/cstdint \
- C:/msys64/ucrt64/include/c++/13.2.0/climits \
- C:/msys64/ucrt64/include/c++/13.2.0/cfloat \
- C:/msys64/ucrt64/lib/gcc/x86_64-w64-mingw32/13.2.0/include/float.h \
- C:/msys64/ucrt64/include/float.h \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/fwd.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/qualifier.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/setup.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/vec2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_bool2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_vec2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_vec2.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/compute_vector_relational.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/setup.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_bool2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_float2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_float2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_double2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_double2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_int2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_int2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_uint2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_uint2_precision.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/vec3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_bool3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_vec3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_vec3.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_bool3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_float3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_float3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_double3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_double3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_int3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_int3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_uint3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_uint3_precision.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/vec4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_bool4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_vec4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_vec4.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_bool4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_float4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_float4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_double4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_double4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/setup.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_int4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_int4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_uint4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_uint4_precision.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/mat2x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double2x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat2x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat2x2.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/matrix.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/setup.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/mat2x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double2x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat2x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat2x3.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double2x3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float2x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float2x3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/mat2x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double2x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat2x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat2x4.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double2x4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float2x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float2x4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/mat3x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double3x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat3x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat3x2.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double3x2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float3x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float3x2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/mat3x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double3x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat3x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat3x3.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double3x3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float3x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float3x3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/mat3x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double3x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat3x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat3x4.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double3x4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float3x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float3x4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/mat4x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double4x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat4x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat4x2.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double4x2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float4x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float4x2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/mat4x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double4x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat4x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat4x3.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double4x3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float4x3.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float4x3_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/mat4x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double4x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat4x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_mat4x4.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double4x4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float4x4.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float4x4_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/func_matrix.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/geometric.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/func_geometric.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/exponential.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_vec1.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_vec1.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/func_exponential.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/vector_relational.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/func_vector_relational.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/_vectorize.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/common.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/_fixes.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/func_common.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/compute_common.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_double2x2_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float2x2.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_float2x2_precision.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/trigonometric.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/func_trigonometric.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/packing.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/func_packing.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/type_half.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/type_half.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/integer.hpp \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/detail/func_integer.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/gtc/matrix_transform.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_projection.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/gtc/constants.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/scalar_constants.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/scalar_constants.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/gtc/constants.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_projection.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_clip_space.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_clip_space.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_transform.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/matrix_transform.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/gtc/matrix_transform.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/gtc/type_ptr.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/gtc/quaternion.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_relational.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_relational.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_float.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_common.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_geometric.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_geometric.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_common.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_float.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_quat.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_relational.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_relational.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/type_quat.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_float_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_double.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_double_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_trigonometric.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_trigonometric.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_transform.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_transform.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/gtc/quaternion.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/gtc/epsilon.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/setup.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/gtc/epsilon.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/gtc/vec1.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_bool1.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_bool1_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_float1.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_float1_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_double1.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_double1_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_int1.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_int1_precision.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_uint1.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/vector_uint1_precision.hpp \
- C:/msys64/ucrt64/include/c++/13.2.0/cstring \
- C:/msys64/ucrt64/include/string.h \
- C:/msys64/ucrt64/include/sec_api/string_s.h \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/gtc/type_ptr.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/gtx/rotate_vector.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/gtx/transform.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/gtx/transform.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/gtx/rotate_vector.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/gtx/vector_angle.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/gtx/quaternion.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_exponential.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/ext/quaternion_exponential.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/gtx/norm.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/gtx/component_wise.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/detail/setup.hpp \
- C:/Users/willi/C++/Block\ Game/include/glm/gtx/component_wise.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/gtx/norm.inl \
- C:/Users/willi/C++/Block\ Game/include/glm/gtx/quaternion.inl \
- C:/Users/willi/C__~1/BLOCKG~1/include/glm/gtx/vector_angle.inl
+ D:\apps\GitHub\Block-Game\src\Camera.cpp \
+ D:/apps/GitHub/Block-Game/include/Camera.h \
+ D:/apps/GitHub/Block-Game/include/glad/glad.h \
+ D:/apps/GitHub/Block-Game/include/KHR/khrplatform.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h \
+ C:/msys64/mingw64/include/stdint.h C:/msys64/mingw64/include/crtdefs.h \
+ C:/msys64/mingw64/include/corecrt.h C:/msys64/mingw64/include/_mingw.h \
+ C:/msys64/mingw64/include/_mingw_mac.h \
+ C:/msys64/mingw64/include/_mingw_secapi.h \
+ C:/msys64/mingw64/include/vadefs.h \
+ C:/msys64/mingw64/include/sdks/_mingw_ddk.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stddef.h \
+ C:/msys64/mingw64/include/stddef.h \
+ D:/apps/GitHub/Block-Game/include/GLFW/glfw3.h \
+ D:/apps/GitHub/Block-Game/include/glm/glm.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/_fixes.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/cmath \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/requires_hosted.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++config.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/os_defines.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/cpu_defines.h \
+ C:/msys64/mingw64/include/c++/14.1.0/pstl/pstl_config.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/cpp_type_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/type_traits.h \
+ C:/msys64/mingw64/include/math.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/std_abs.h \
+ C:/msys64/mingw64/include/stdlib.h \
+ C:/msys64/mingw64/include/corecrt_wstdlib.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/limits.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/syslimits.h \
+ C:/msys64/mingw64/include/limits.h \
+ C:/msys64/mingw64/include/sec_api/stdlib_s.h \
+ C:/msys64/mingw64/include/c++/14.1.0/stdlib.h \
+ C:/msys64/mingw64/include/malloc.h \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/mm_malloc.h \
+ C:/msys64/mingw64/include/errno.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/version.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/specfun.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algobase.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/functexcept.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/exception_defines.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ext/numeric_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_pair.h \
+ C:/msys64/mingw64/include/c++/14.1.0/type_traits \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/move.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/utility.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_types.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator_base_funcs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/concept_check.h \
+ C:/msys64/mingw64/include/c++/14.1.0/debug/assertions.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_iterator.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/ptr_traits.h \
+ C:/msys64/mingw64/include/c++/14.1.0/debug/debug.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/predefined_ops.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bit \
+ C:/msys64/mingw64/include/c++/14.1.0/concepts \
+ C:/msys64/mingw64/include/c++/14.1.0/limits \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/gamma.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/special_function_util.h \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/bessel_function.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/beta_function.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/ell_integral.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/exp_integral.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/hypergeometric.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/legendre_function.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/modified_bessel_func.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/poly_hermite.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/poly_laguerre.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/tr1/riemann_zeta.tcc \
+ D:/apps/GitHub/Block-Game/include/glm/detail/setup.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/cassert \
+ C:/msys64/mingw64/include/assert.h \
+ C:/msys64/mingw64/include/c++/14.1.0/cstdlib \
+ C:/msys64/mingw64/include/c++/14.1.0/cstddef \
+ D:/apps/GitHub/Block-Game/include/glm/simd/platform.h \
+ C:/msys64/mingw64/include/c++/14.1.0/cstdint \
+ C:/msys64/mingw64/include/c++/14.1.0/climits \
+ C:/msys64/mingw64/include/c++/14.1.0/cfloat \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/float.h \
+ C:/msys64/mingw64/include/float.h \
+ D:/apps/GitHub/Block-Game/include/glm/fwd.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/qualifier.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/setup.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/vec2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_bool2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_vec2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_vec2.inl \
+ D:/apps/GitHub/Block-Game/include/glm/detail/compute_vector_relational.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_bool2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_float2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_float2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_double2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_double2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_int2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_int2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_uint2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_uint2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/vec3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_bool3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_vec3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_vec3.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_bool3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_float3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_float3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_double3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_double3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_int3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_int3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_uint3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_uint3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/vec4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_bool4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_vec4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_vec4.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_bool4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_float4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_float4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_double4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_double4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/setup.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_int4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_int4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_uint4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_uint4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat2x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double2x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat2x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat2x2.inl \
+ D:/apps/GitHub/Block-Game/include/glm/matrix.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat2x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double2x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat2x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat2x3.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double2x3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float2x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float2x3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat2x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double2x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat2x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat2x4.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double2x4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float2x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float2x4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat3x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double3x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat3x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat3x2.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double3x2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float3x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float3x2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat3x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double3x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat3x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat3x3.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double3x3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float3x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float3x3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat3x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double3x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat3x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat3x4.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double3x4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float3x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float3x4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat4x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double4x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat4x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat4x2.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double4x2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float4x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float4x2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat4x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double4x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat4x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat4x3.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double4x3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float4x3.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float4x3_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/mat4x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double4x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat4x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_mat4x4.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double4x4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float4x4.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float4x4_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/func_matrix.inl \
+ D:/apps/GitHub/Block-Game/include/glm/geometric.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/func_geometric.inl \
+ D:/apps/GitHub/Block-Game/include/glm/exponential.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_vec1.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_vec1.inl \
+ D:/apps/GitHub/Block-Game/include/glm/detail/func_exponential.inl \
+ D:/apps/GitHub/Block-Game/include/glm/vector_relational.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/func_vector_relational.inl \
+ D:/apps/GitHub/Block-Game/include/glm/detail/_vectorize.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/common.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/func_common.inl \
+ D:/apps/GitHub/Block-Game/include/glm/detail/compute_common.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_double2x2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float2x2.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_float2x2_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/trigonometric.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/func_trigonometric.inl \
+ D:/apps/GitHub/Block-Game/include/glm/packing.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/func_packing.inl \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_half.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_half.inl \
+ D:/apps/GitHub/Block-Game/include/glm/integer.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/func_integer.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/matrix_transform.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_projection.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/constants.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/scalar_constants.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/scalar_constants.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/constants.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_projection.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_clip_space.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_clip_space.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_transform.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/matrix_transform.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/matrix_transform.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/type_ptr.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/quaternion.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_relational.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_relational.inl \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_float.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_common.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_geometric.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_geometric.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_common.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_float.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_quat.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_relational.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_relational.inl \
+ D:/apps/GitHub/Block-Game/include/glm/detail/type_quat.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_float_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_double.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_double_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_trigonometric.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_trigonometric.inl \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_transform.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_transform.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/quaternion.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/epsilon.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/setup.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/epsilon.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/vec1.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_bool1.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_bool1_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_float1.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_float1_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_double1.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_double1_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_int1.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_int1_precision.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_uint1.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/vector_uint1_precision.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/cstring \
+ C:/msys64/mingw64/include/string.h \
+ C:/msys64/mingw64/include/sec_api/string_s.h \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/type_ptr.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/transform.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/transform.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/quaternion.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_exponential.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/ext/quaternion_exponential.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/norm.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/component_wise.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/setup.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/component_wise.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/norm.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/quaternion.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.inl

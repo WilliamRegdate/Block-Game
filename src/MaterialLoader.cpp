@@ -37,6 +37,9 @@ uint32_t HashID(const std::string& id)
 // asset-root resolution ends up being (once ResourceContainer exists).
 std::string ResolveResourcePath(const std::string& path)
 {
+    const std::string prefix = "res://";
+    if (path.rfind(prefix, 0) == 0)
+        return path.substr(prefix.size());
     return path;
 }
 
@@ -90,6 +93,33 @@ Material MaterialLoader::loadMaterial(const json& entry)
         material.orm.emplace(ResolveResourcePath(entry["ormPath"]).c_str());
 
     return material;
+}
+Material MaterialLoader::LoadByID(const char* filePath, const char* ID)
+{
+    if (!fileExists(filePath))
+    {
+        std::cerr << "Materials file not found: " << filePath << std::endl;
+        return Material();
+    }
+
+    file = filePath;
+    JSON = json::parse(get_file_contents(filePath));
+
+    if (!JSON.contains("materials"))
+    {
+        std::cerr << "Materials file has no \"materials\" array: " << filePath << std::endl;
+        return Material();
+    }
+
+    for (const auto& entry : JSON["materials"])
+    {
+        // Compare the string id first so we only load textures for the match.
+        if (entry.value("id", std::string()) == ID)
+            return loadMaterial(entry);
+    }
+
+    std::cerr << "Material \"" << ID << "\" not found in: " << filePath << std::endl;
+    return Material();
 }
 
 bool MaterialLoader::fileExists(const std::string& fileName)

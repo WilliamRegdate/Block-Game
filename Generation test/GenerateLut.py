@@ -47,7 +47,7 @@ BIOME_COLORS = {
 
 
 def cold_biome(height, wetness):
-    if height < 0.43:
+    if height < 0.44:
         return "cold_ocean"
     if height > 0.55:
         return "snowy_mountains"
@@ -60,7 +60,7 @@ def cold_biome(height, wetness):
 
 
 def temperate_biome(height, wetness):
-    if height < 0.43:
+    if height < 0.44:
         return "ocean"
     if height > 0.65:
         return "snowy_mountains"
@@ -75,7 +75,7 @@ def temperate_biome(height, wetness):
 
 
 def hot_biome(height, wetness):
-    if height < 0.43:
+    if height < 0.44:
         return "warm_ocean"
     if height > 0.68:
         return "mountains"

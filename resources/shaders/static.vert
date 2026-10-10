@@ -1,30 +1,11 @@
 #version 430 core
 
-// ============================================================
-// Per-vertex attributes (from the shared static VBO)
-// ============================================================
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aUV;
 
-// ============================================================
-// Per-instance attribute (divisor = 1)
-// ============================================================
-// The real slot into instanceData below, for this instance. Sourced from
-// the culled visible-index buffer, not gl_InstanceID directly - binding it
-// as a divisor-1 vertex attribute means the driver applies each draw's
-// baseInstance automatically when fetching it, so this shader never
-// touches baseInstance itself. See VAO::LinkAttrib's comment in
-// RenderTypes.h for why.
 layout(location = 3) in uint aInstanceIndex;
 
-// ============================================================
-// SSBOs
-// ============================================================
-// Mirrors RenderTypes.h::InstanceData exactly - no vec3s in that struct,
-// so its std430 layout matches the CPU struct's raw bytes with no padding
-// surprises (unlike MeshDescriptor's AABB - see the note where that's
-// used, in the fragment shader's material lookup).
 struct InstanceData
 {
     mat4 transform;
@@ -38,14 +19,8 @@ layout(std430, binding = 0) readonly buffer InstanceDataBuffer
     InstanceData instanceData[];
 };
 
-// ============================================================
-// Uniforms
-// ============================================================
 uniform mat4 viewProjection;
 
-// ============================================================
-// Outputs to the fragment shader
-// ============================================================
 out vec3 vWorldNormal;
 out vec2 vUV;
 flat out uint vMaterialID;

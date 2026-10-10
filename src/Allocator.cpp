@@ -1,7 +1,9 @@
 #include "Allocator.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstdint>
+#include <cfloat>
 
 // Everything in this block is file-local: the free-list logic has no GL
 // dependency and can be tested on its own.
@@ -74,6 +76,16 @@ namespace
         }
     }
 
+    // How many whole quads the chunk EBO can hold. The EBO free list is seeded
+    // with exactly quads * 6 indices and every chunk allocation is a multiple of
+    // 6, so every firstIndex is a multiple of 6 and firstIndex / 6 is a valid
+    // slot in the quad SSBO. The quad SSBO is sized from this same number.
+    uint32_t ChunkQuadCapacity(const EntityRendererConfig& config)
+    {
+        const uint32_t indexCapacity = static_cast<uint32_t>(config.chunkIndexCapacityBytes / sizeof(uint32_t));
+        return indexCapacity / CHUNK_INDICES_PER_QUAD;
+    }
+
 } // namespace
 
 
@@ -96,7 +108,15 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
     bonePoseSSBO(config.poseBufferCapacityBytes),
     materialDescriptorSSBO(config.maxMaterials * sizeof(MaterialDescriptor)),
     materialTextureArray(config.materialTextureWidth, config.materialTextureHeight,
-                          static_cast<GLsizei>(config.maxMaterials) * 3, config.materialTextureFormat)
+                          static_cast<GLsizei>(config.maxMaterials) * 3, config.materialTextureFormat),
+    animationDescriptorSSBO(config.maxAnimations * sizeof(AnimationDescriptor)),
+    // Chunk meshes are rewritten on every remesh, so they're dynamic, not static.
+    chunkVBO(config.chunkVertexCapacityBytes, GL_DYNAMIC_DRAW),
+    chunkEBO(config.chunkIndexCapacityBytes, GL_DYNAMIC_DRAW),
+    chunkInstanceDataSSBO(static_cast<GLsizeiptr>(config.chunkCapacity * sizeof(ChunkInstanceData))),
+    chunkQuadTextureSSBO(static_cast<GLsizeiptr>(ChunkQuadCapacity(config) * sizeof(uint32_t))),
+    chunkTextureArray(config.chunkMaterialTextureWidth, config.chunkMaterialTextureHeight,
+                      static_cast<GLsizei>(config.maxChunkMaterials) * 3, config.chunkMaterialTextureFormat)
 {
     // Start every buffer as one big empty range.
     SeedSlots(staticVBO.emptySlots, static_cast<uint32_t>(config.staticVertexCapacityBytes / sizeof(StaticVertex)));
@@ -109,7 +129,7 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
     SeedSlots(skinnedMeshDescriptorSSBO.emptySlots, config.maxMeshTypes);
     SeedSlots(skinnedInstanceDataSSBO.emptySlots, config.maxEntities);
 
-    // Pose space is counted in bone matrices.
+
     SeedSlots(bonePoseSSBO.emptySlots, static_cast<uint32_t>(config.poseBufferCapacityBytes / sizeof(glm::mat4)));
 
     SeedSlots(materialDescriptorSSBO.emptySlots, config.maxMaterials);
@@ -117,6 +137,19 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
     // normal or orm map, since the shader just samples whichever index the
     // MaterialDescriptor gives it. One shared free list over all of them.
     SeedSlots(materialTextureArray.emptySlots, config.maxMaterials * 3);
+
+    SeedSlots(animationDescriptorSSBO.emptySlots, config.maxAnimations);
+
+    // ---- chunks ----
+    SeedSlots(chunkVBO.emptySlots, static_cast<uint32_t>(config.chunkVertexCapacityBytes / sizeof(ChunkVertex)));
+    // Seeded in whole quads (see ChunkQuadCapacity), so every index range handed out
+    // starts on a multiple of 6.
+    SeedSlots(chunkEBO.emptySlots, ChunkQuadCapacity(config) * CHUNK_INDICES_PER_QUAD);
+    SeedSlots(chunkInstanceDataSSBO.emptySlots, static_cast<uint32_t>(config.chunkCapacity));
+    // chunkQuadTextureSSBO is deliberately NOT seeded: it has no free list, it mirrors the EBO's.
+    // TODO: CHUNK - layers are seeded like the entity material array. Revisit when chunk
+    // materials exist (e.g. allocate albedo/normal/orm as one contiguous triplet instead).
+    SeedSlots(chunkTextureArray.emptySlots, config.maxChunkMaterials * 3);
 }
 
 
@@ -177,22 +210,77 @@ EntityTracker Allocator::Allocate(Entity& entity)
             {
                 if (meshIsNew)
                     DeallocateMesh(*meshTracker);
-                return tracker;
+                return tracker; //failed to add material
             }
-
+                
             if (!entityManager->AddMaterial(material, fresh))
             {
                 FreeMaterialRanges(fresh);
                 if (meshIsNew)
                     DeallocateMesh(*meshTracker);
-                return tracker;
+                return tracker; //failed to add  mesh to tracker
             }
 
             materialTracker = entityManager->GetMaterial(material.ID);
         }
     }
+    // 2. Find the animations, or register them if this is the first entity
+    // using the animation. no animation is also allowed; 
+    if (skinned)
+    {
+        std::vector<AnimationTracker*> grantedThisCall;
+        std::vector<BakedAnimationClip*> clips = entity.animationPlayer.GetClips();
 
-    // 3. One slot in the instance buffer for this entity.
+        auto rollbackAnimations = [&]()
+        {
+            for (AnimationTracker* granted : grantedThisCall)
+            {
+                granted->users--;
+                if (granted->users == 0)
+                    DeallocateAnimation(*granted);   // assumed name, mirrors DeallocateMesh/DeallocateMaterial -
+                                                    // adjust if Allocator.h declares it differently
+            }
+        };
+
+        for (BakedAnimationClip* clip : clips)
+        {
+            AnimationTracker* animationTracker = entityManager->GetAnimation(clip->ID);
+            const bool animationIsNew = (animationTracker == nullptr);
+
+            if (animationIsNew)
+            {
+                AnimationTracker fresh;
+
+                if (!AllocateAnimation(*clip, fresh))
+                {
+                    rollbackAnimations();
+                    if (meshIsNew)
+                        DeallocateMesh(*meshTracker);
+                    if (materialIsNew)
+                        DeallocateMaterial(*materialTracker);
+                    return tracker;
+                }
+
+                if (!entityManager->AddAnimation(*clip, fresh))
+                {
+                    FreeAnimationRanges(fresh);
+                    rollbackAnimations();
+                    if (meshIsNew)
+                        DeallocateMesh(*meshTracker);
+                    if (materialIsNew)
+                        DeallocateMaterial(*materialTracker);
+                    return tracker;
+                }
+
+                animationTracker = entityManager->GetAnimation(clip->ID);
+            }
+
+            animationTracker->users++;
+            grantedThisCall.push_back(animationTracker);
+        }
+    }
+
+    // 4. One slot in the instance buffer for this entity.
     BufferTracker<SSBO>& instances = skinned ? skinnedInstanceDataSSBO : staticInstanceDataSSBO;
 
     const uint32_t slot = AllocRange(instances.emptySlots, 1);
@@ -203,6 +291,19 @@ EntityTracker Allocator::Allocate(Entity& entity)
             DeallocateMaterial(*materialTracker);
         if (meshIsNew)
             DeallocateMesh(*meshTracker);
+
+        //dealloc/ remove users from animations
+        AnimationTracker* animationTracker;
+        std::vector<BakedAnimationClip*> clips = entity.animationPlayer.GetClips();
+        for (BakedAnimationClip* clip : clips)
+        {
+            animationTracker = entityManager->GetAnimation(clip->ID);
+            animationTracker->users--;
+            if(AnimationHasUser(*animationTracker))
+            {
+                DeallocateAnimation(*animationTracker);
+            }
+        }
         return tracker;
     }
 
@@ -215,6 +316,8 @@ EntityTracker Allocator::Allocate(Entity& entity)
     if (materialTracker != nullptr)
         materialTracker->users++;
 
+
+    
     if (!entityManager->AddEntity(entity, tracker))
     {
         // This exact Entity was already registered. Undo the slot and both
@@ -230,10 +333,24 @@ EntityTracker Allocator::Allocate(Entity& entity)
             materialTracker->users--;
             if (materialIsNew && !MaterialHasUser(*materialTracker))
                 DeallocateMaterial(*materialTracker);
+
+            //dealloc or remove users from animations
+            AnimationTracker* animationTracker;
+            std::vector<BakedAnimationClip*> clips = entity.animationPlayer.GetClips();
+            for (BakedAnimationClip* clip : clips)
+            {
+                animationTracker = entityManager->GetAnimation(clip->ID);
+                animationTracker->users--;
+                if(AnimationHasUser(*animationTracker))
+                {
+                    DeallocateAnimation(*animationTracker);
+                }
+            }
         }
 
         return EntityTracker{};
     }
+
 
     return tracker;
 }
@@ -276,11 +393,6 @@ bool Allocator::AllocateMesh(Mesh& mesh, MeshTracker& out)
         FreeRange(ebo.emptySlots, indexStart, indexCount);
         return false;
     }
-
-    // TODO(pose): if the mesh is skinned, reserve space in bonePoseSSBO for
-    // its baked bone poses (boneCount * frameCount mat4s, counted in mat4s
-    // to match how the pose buffer's free list was seeded). Free everything
-    // taken above if this fails, and store the range on out.handle.
 
     out.handle.isSkinned      = skinned;
     out.handle.vertexRange     = BufferRange{ vertexStart, vertexCount };
@@ -345,6 +457,78 @@ bool Allocator::AllocateMaterial(Material& material, MaterialTracker& out)
     return true;
 }
 
+bool Allocator::AllocateAnimation(const BakedAnimationClip& clip, AnimationTracker& out)
+{
+    if (clip.boneCount == 0 || clip.frameCount == 0)
+        return false;
+    if (clip.poses.size() != static_cast<size_t>(clip.frameCount) * clip.boneCount)
+        return false; // boneCount doesn't match what this clip was actually baked against
+
+    const uint32_t poseCount = clip.frameCount * clip.boneCount;
+
+    const uint32_t poseStart = AllocRange(bonePoseSSBO.emptySlots, poseCount);
+    if (poseStart == INVALID_RANGE)
+        return false;
+
+    const uint32_t descriptorSlot = AllocRange(animationDescriptorSSBO.emptySlots, 1);
+    if (descriptorSlot == INVALID_RANGE)
+    {
+        FreeRange(bonePoseSSBO.emptySlots, poseStart, poseCount);
+        return false;
+    }
+
+    out.handle.poseRange       = BufferRange{ poseStart, poseCount };
+    out.handle.descriptorRange = BufferRange{ descriptorSlot, 1 };
+    out.assetID = clip.ID;
+    out.users   = 0;
+
+    return true;
+}
+
+// bool Allocator::RegisterAnimation(BakedAnimationClip& clip)
+// {
+//     AnimationTracker* existing = entityManager->GetAnimation(clip.ID);
+//     if (existing != nullptr)
+//     {
+//         existing->users++;
+//         return true;
+//     }
+
+//     AnimationTracker fresh;
+//     if (!AllocateAnimation(clip,  fresh))
+//         return false;
+
+//     if (!entityManager->AddAnimation(clip, fresh))
+//     {
+//         FreeAnimationRanges(fresh);
+//         return false;
+//     }
+//     if (!UploadAnimationData(clip))
+//     {
+//         // Upload failed after registering - roll all the way back so a
+//         // broken-but-registered animation doesn't linger.
+//         entityManager->RemoveAnimation(clip.ID);
+//         FreeAnimationRanges(fresh);
+//         return false;
+//     }
+    
+
+//     AnimationTracker* tracker = entityManager->GetAnimation(clip.ID);
+//     tracker->users = 1;
+//     return true;
+// }
+
+// void Allocator::UnregisterAnimation(uint32_t animationID)
+// {
+//     AnimationTracker* tracker = entityManager->GetAnimation(animationID);
+//     if (tracker == nullptr)
+//         return;
+
+//     tracker->users--;
+//     if (!AnimationHasUser(*tracker))
+//         DeallocateAnimation(*tracker);
+// }
+
 
 // ============================================================
 // Deallocate
@@ -376,6 +560,19 @@ void Allocator::Deallocate(Entity& entity)
         material->users--;
         if (!MaterialHasUser(*material))
             DeallocateMaterial(*material);
+    }
+
+    //removes users or deallocates for each animation used
+    AnimationTracker* animationTracker;
+    std::vector<BakedAnimationClip*> clips = entity.animationPlayer.GetClips();
+    for (BakedAnimationClip* clip : clips)
+    {
+        animationTracker = entityManager->GetAnimation(clip->ID);
+        animationTracker->users--;
+        if(AnimationHasUser(*animationTracker))
+        {
+            DeallocateAnimation(*animationTracker);
+        }
     }
 }
 
@@ -415,8 +612,6 @@ void Allocator::FreeMeshRanges(MeshTracker& mesh)
     FreeRange(vbo.emptySlots, mesh.handle.vertexRange.start, mesh.handle.vertexRange.size);
     FreeRange(ebo.emptySlots, mesh.handle.indexRange.start,  mesh.handle.indexRange.size);
     FreeRange(descriptors.emptySlots, mesh.handle.descriptorRange.start, mesh.handle.descriptorRange.size);
-
-    // TODO(pose): if skinned, free the mesh's range in bonePoseSSBO here.
 }
 
 // Frees the material's texture-array layers and descriptor slot and
@@ -439,6 +634,22 @@ void Allocator::FreeMaterialRanges(MaterialTracker& material)
         FreeRange(materialTextureArray.emptySlots, material.handle.ormLayer.start, 1);
 
     FreeRange(materialDescriptorSSBO.emptySlots, material.handle.descriptorRange.start, material.handle.descriptorRange.size);
+}
+
+// Frees the animation's pose range and descriptor slot and unregisters it.
+// `animation` must not be used after this call. Mirrors DeallocateMesh.
+void Allocator::DeallocateAnimation(AnimationTracker& animation)
+{
+    FreeAnimationRanges(animation);
+    entityManager->RemoveAnimation(animation.assetID);
+}
+
+// Just the buffer-side free for an animation's ranges - no entityManager
+// call. Same reasoning as FreeMeshRanges/FreeMaterialRanges.
+void Allocator::FreeAnimationRanges(AnimationTracker& animation)
+{
+    FreeRange(bonePoseSSBO.emptySlots, animation.handle.poseRange.start, animation.handle.poseRange.size);
+    FreeRange(animationDescriptorSSBO.emptySlots, animation.handle.descriptorRange.start, animation.handle.descriptorRange.size);
 }
 
 bool Allocator::UploadMeshData(Mesh& mesh)
@@ -464,9 +675,10 @@ bool Allocator::UploadMeshData(Mesh& mesh)
     descriptor.indexCount = h.indexRange.size;
     descriptor.baseVertex = static_cast<int32_t>(h.vertexRange.start);
     descriptor.materialID = 0; // meshes don't know their material; InstanceData supplies it
-    descriptor.skeletonID = 0; // TODO(pose): bonePoseSSBO range once that's reserved
+    descriptor.skeletonID = 0; // TODO: no skeleton registry yet - SkinnedMesh::skeleton isn't tracked
+                                // by ID anywhere, only the one animation currently playing is (via
+                                // InstanceData.animationID, set in BuildInstanceData below)
     descriptor.isAnimated = skinned ? 1u : 0u;
-
     if (skinned)
     {
         SkinnedMesh& m = static_cast<SkinnedMesh&>(mesh);
@@ -506,6 +718,42 @@ bool Allocator::UploadMeshData(Mesh& mesh)
     return true;
 }
 
+// Uploads clip's baked poses into bonePoseSSBO and an AnimationDescriptor
+// into animationDescriptorSSBO, at whatever ranges AllocateAnimation
+// already reserved (tracker.handle). Mirrors UploadMeshData's shape.
+bool Allocator::UploadAnimationData(BakedAnimationClip& clip)
+{
+    AnimationTracker* tracker = entityManager->GetAnimation(clip.ID);
+
+    if (tracker == nullptr || !tracker->handle.IsValid())
+        return false;
+
+    // Same guard as UploadMeshData: the reserved range was sized from the
+    // clip at AllocateAnimation time - if it's changed size since, writing
+    // would spill into a neighbour's range.
+    if (clip.poses.size() != tracker->handle.poseRange.size)
+        return false;
+
+    bonePoseSSBO.buffer.Upload(
+        static_cast<GLintptr>(tracker->handle.poseRange.start) * sizeof(glm::mat4),
+        clip.poses.data(),
+        static_cast<GLsizeiptr>(clip.poses.size() * sizeof(glm::mat4)));
+
+    const uint32_t boneCount = tracker->handle.poseRange.size / clip.frameCount;
+
+    AnimationDescriptor descriptor;
+    descriptor.poseStartIndex = tracker->handle.poseRange.start;
+    descriptor.frameCount     = clip.frameCount;
+    descriptor.boneCount      = boneCount;
+    descriptor.duration       = clip.duration;
+
+    animationDescriptorSSBO.buffer.Upload(
+        static_cast<GLintptr>(tracker->handle.descriptorRange.start) * sizeof(AnimationDescriptor),
+        &descriptor, sizeof(AnimationDescriptor));
+
+    return true;
+}
+
 bool Allocator::BuildInstanceData(Entity& entity, InstanceData& out, EntityHandle& handle)
 {
     EntityTracker* tracker = entityManager->GetEntity(entity);
@@ -519,7 +767,24 @@ bool Allocator::BuildInstanceData(Entity& entity, InstanceData& out, EntityHandl
     out.materialID = tracker->materialTracker != nullptr
                          ? tracker->materialTracker->handle.descriptorRange.start
                          : 0;
-    out.animOffset = 0; // TODO(pose)
+
+    out.animTime  = 0;
+    out.animIndex = 0;
+
+    if (handle.isSkinned)
+    {
+        BakedAnimationClip* current = entity.animationPlayer.GetCurrentClip();
+        if (current != nullptr)
+        {
+            AnimationTracker* animTracker = entityManager->GetAnimation(current->ID);
+            if (animTracker != nullptr && animTracker->handle.IsValid() && current->frameCount > 0)
+            {
+                out.animTime  = entity.animationPlayer.progress;
+                out.animIndex = animTracker->handle.descriptorRange.start;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -541,6 +806,248 @@ bool Allocator::UploadEntityData(Entity& entity)
     return true;
 }
 
+
+// ============================================================
+// Chunks
+// ============================================================
+// Differences from the static/skinned mesh path, and why:
+//
+//  * Two-step lifecycle. A Mesh is allocated once at a fixed size. A chunk's
+//    mesh changes size every remesh, so AllocateChunk only registers the chunk
+//    and takes its instance slot; UploadChunkMesh (re)reserves mesh space.
+//
+//  * No MeshDescriptor and no user counts. A chunk's geometry is never shared,
+//    and the per-chunk record the shader needs is ChunkInstanceData itself
+//    (position, firstIndex, indexCount).
+//
+//  * Indices are generated, not stored by the caller: every chunk uses the same
+//    0,1,2, 2,1,3 pattern, kept chunk-local so baseVertex places them in the VBO.
+//
+//  * The quad texture SSBO has no allocator. The EBO is the only allocator for
+//    indices, always in whole quads, and the quad for index range [i, i+6) lives
+//    at slot i / 6. UploadChunkMesh is the "upload rule" that keeps them in step.
+//
+//  * Everything here must run on the GL thread. Meshing itself can happen
+//    anywhere, only the upload can't. TODO: CHUNK - hand meshed results from worker
+//    threads to the GL thread (queue), once the chunk mesher exists.
+
+ChunkTracker Allocator::AllocateChunk(uint64_t chunkID, const glm::vec3& worldPosition)
+{
+    // Value-initialised: invalid handle, which is what the caller gets back on failure.
+    ChunkTracker tracker{};
+
+    if (entityManager->GetChunk(chunkID) != nullptr)
+        return tracker; // this chunk is already registered
+
+    const uint32_t slot = AllocRange(chunkInstanceDataSSBO.emptySlots, 1);
+    if (slot == INVALID_RANGE)
+        return tracker; // out of chunk instance slots
+
+    tracker.chunkID                  = chunkID;
+    tracker.worldPosition            = worldPosition;
+    tracker.handle.instanceRange     = BufferRange{ slot, 1 };
+
+    if (!entityManager->AddChunk(chunkID, tracker))
+    {
+        FreeRange(chunkInstanceDataSSBO.emptySlots, slot, 1);
+        return ChunkTracker{};
+    }
+
+    // Write an empty instance (indexCount 0) so this slot is never left holding
+    // whatever the previous owner of the slot had.
+    UploadChunkInstanceData(chunkID);
+
+    return tracker;
+}
+
+void Allocator::DeallocateChunk(uint64_t chunkID)
+{
+    ChunkTracker* tracker = entityManager->GetChunk(chunkID);
+    if (tracker == nullptr || !tracker->handle.IsValid())
+        return;
+
+    FreeChunkMeshRanges(tracker->handle);
+
+    // Zero the GPU slot first so a stale indirect command that still points at it
+    // draws nothing instead of the old chunk.
+    const ChunkInstanceData empty{};
+    chunkInstanceDataSSBO.buffer.Upload(
+        static_cast<GLintptr>(tracker->handle.instanceRange.start) * sizeof(ChunkInstanceData),
+        &empty, sizeof(ChunkInstanceData));
+
+    FreeRange(chunkInstanceDataSSBO.emptySlots,
+              tracker->handle.instanceRange.start, tracker->handle.instanceRange.size);
+
+    entityManager->RemoveChunk(chunkID); // erases the ChunkTracker, `tracker` dangles after this
+}
+
+// Frees just the vertex and index ranges and marks them invalid in the handle.
+// The quad SSBO needs nothing: it has no free list, its slots go free with the EBO range.
+void Allocator::FreeChunkMeshRanges(ChunkHandle& handle)
+{
+    if (handle.vertexRange.IsValid())
+        FreeRange(chunkVBO.emptySlots, handle.vertexRange.start, handle.vertexRange.size);
+    if (handle.indexRange.IsValid())
+        FreeRange(chunkEBO.emptySlots, handle.indexRange.start, handle.indexRange.size);
+
+    handle.vertexRange = BufferRange{};
+    handle.indexRange  = BufferRange{};
+}
+
+bool Allocator::UploadChunkMesh(uint64_t chunkID,
+                                const std::vector<ChunkVertex>& vertices,
+                                const std::vector<uint32_t>& quadTextures)
+{
+    ChunkTracker* tracker = entityManager->GetChunk(chunkID);
+    if (tracker == nullptr || !tracker->handle.IsValid())
+        return false;
+
+    const size_t quadCountSize = quadTextures.size();
+
+    // Every quad owns exactly 4 consecutive vertices - the shader finds a quad's
+    // texture from (vertex / 4), so a mismatch here would silently shift every
+    // texture after it.
+    if (vertices.size() != quadCountSize * CHUNK_VERTICES_PER_QUAD)
+        return false;
+
+    ChunkHandle& h = tracker->handle;
+
+    // Empty chunk (all air, or fully hidden): free the mesh space, draw nothing.
+    if (quadCountSize == 0)
+    {
+        FreeChunkMeshRanges(h);
+        return UploadChunkInstanceData(chunkID);
+    }
+
+    const uint32_t quadCount   = static_cast<uint32_t>(quadCountSize);
+    const uint32_t vertexCount = quadCount * CHUNK_VERTICES_PER_QUAD;
+    const uint32_t indexCount  = quadCount * CHUNK_INDICES_PER_QUAD;
+
+    // Same size as the last mesh: overwrite in place. Otherwise reserve new space
+    // BEFORE releasing the old, so if there's no room the chunk keeps its old mesh
+    // instead of ending up with none. This needs enough headroom for one extra copy
+    // of the chunk, momentarily.
+    // TODO: CHUNK - over-allocate by a few quads (and track capacity separately from
+    // count) so small edits don't reallocate every time. Also consider defragmentation
+    // - first-fit with variable-size ranges fragments as chunks are remeshed.
+    const bool reuseRanges = h.HasMesh() && h.indexRange.size == indexCount;
+    if (!reuseRanges)
+    {
+        const uint32_t vertexStart = AllocRange(chunkVBO.emptySlots, vertexCount);
+        if (vertexStart == INVALID_RANGE)
+            return false;
+
+        const uint32_t indexStart = AllocRange(chunkEBO.emptySlots, indexCount);
+        if (indexStart == INVALID_RANGE)
+        {
+            FreeRange(chunkVBO.emptySlots, vertexStart, vertexCount);
+            return false;
+        }
+
+        FreeChunkMeshRanges(h); // releases the old ranges, if any
+        h.vertexRange = BufferRange{ vertexStart, vertexCount };
+        h.indexRange  = BufferRange{ indexStart,  indexCount };
+    }
+
+    // The quad SSBO mirrors the EBO, which only works if every index range starts
+    // on a quad boundary. The EBO is seeded and allocated in whole quads, so this
+    // can only fire if that invariant gets broken somewhere.
+    assert(h.indexRange.start % CHUNK_INDICES_PER_QUAD == 0);
+
+    // Chunk-local index pattern: 0,1,2, 2,1,3, 4,5,6, 6,5,7, ...
+    // A chunk with N quads uses the first N*6 entries.
+    if (chunkIndexPattern.size() < indexCount)
+    {
+        const size_t oldQuads = chunkIndexPattern.size() / CHUNK_INDICES_PER_QUAD;
+        chunkIndexPattern.resize(indexCount);
+        for (uint32_t q = static_cast<uint32_t>(oldQuads); q < quadCount; ++q)
+        {
+            const uint32_t v = q * CHUNK_VERTICES_PER_QUAD;
+            uint32_t* i = &chunkIndexPattern[q * CHUNK_INDICES_PER_QUAD];
+            i[0] = v;     i[1] = v + 1; i[2] = v + 2;
+            i[3] = v + 2; i[4] = v + 1; i[5] = v + 3;
+        }
+    }
+
+    chunkVBO.buffer.Upload(static_cast<GLintptr>(h.vertexRange.start) * sizeof(ChunkVertex),
+                           vertices.data(),
+                           static_cast<GLsizeiptr>(vertexCount * sizeof(ChunkVertex)));
+
+    chunkEBO.buffer.Upload(static_cast<GLintptr>(h.indexRange.start) * sizeof(uint32_t),
+                           chunkIndexPattern.data(),
+                           static_cast<GLsizeiptr>(indexCount * sizeof(uint32_t)));
+
+    // Quad slot = firstIndex / 6. Written every time, even when the ranges were
+    // reused, because the textures can change without the quad count changing.
+    chunkQuadTextureSSBO.buffer.Upload(static_cast<GLintptr>(h.QuadStart()) * sizeof(uint32_t),
+                                       quadTextures.data(),
+                                       static_cast<GLsizeiptr>(quadCount * sizeof(uint32_t)));
+
+    return UploadChunkInstanceData(chunkID);
+}
+
+bool Allocator::UploadChunkInstanceData(uint64_t chunkID)
+{
+    ChunkTracker* tracker = entityManager->GetChunk(chunkID);
+    if (tracker == nullptr || !tracker->handle.IsValid())
+        return false;
+
+    const ChunkHandle& h = tracker->handle;
+
+    ChunkInstanceData data;
+    data.position   = tracker->worldPosition;
+    data.firstIndex = h.HasMesh() ? h.indexRange.start : 0;
+    data.indexCount = h.HasMesh() ? h.indexRange.size  : 0;
+
+    chunkInstanceDataSSBO.buffer.Upload(
+        static_cast<GLintptr>(h.instanceRange.start) * sizeof(ChunkInstanceData),
+        &data, sizeof(ChunkInstanceData));
+    return true;
+}
+
+bool Allocator::BuildChunkDrawCommand(uint64_t chunkID, DrawIndexedIndirectCommand& out)
+{
+    ChunkTracker* tracker = entityManager->GetChunk(chunkID);
+    if (tracker == nullptr || !tracker->handle.IsValid() || !tracker->handle.HasMesh())
+        return false;
+
+    const ChunkHandle& h = tracker->handle;
+
+    // Indices are chunk-local, so baseVertex moves them to this chunk's vertices.
+    // baseInstance is the instance slot: the vertex shader reads gl_BaseInstance
+    // to find this chunk's ChunkInstanceData (and from there, its quad textures).
+    out.indexCount    = h.indexRange.size;
+    out.instanceCount = 1;
+    out.firstIndex    = h.indexRange.start;
+    out.baseVertex    = static_cast<int32_t>(h.vertexRange.start);
+    out.baseInstance  = h.instanceRange.start;
+    return true;
+}
+
+// TODO: CHUNK - chunk materials / texture layers. Nothing exists yet for chunks that
+// mirrors AllocateMaterial / UploadMaterialData / FreeMaterialRanges. Needs a decision
+// on, at least:
+//   - what a "chunk material" is (class + ID) and its tracker in EntityManager
+//   - what a quad's uint32 in chunkQuadTextureSSBO means: a layer directly, or an index
+//     into a chunk material table (so one material can pick top/side/bottom layers).
+//     The vertex shader currently assumes a table; with no table, vLayer = the value.
+//   - how albedo/normal/orm layers relate: independent layers like entity materials, or
+//     one contiguous triplet (base, base+1, base+2) so a quad only needs the base layer
+//   - upload path into chunkTextureArray (TextureArray::UploadMaterial takes a Material*,
+//     so chunk materials either reuse Material or need their own upload)
+//   - mipmap generation for chunkTextureArray, and whether pixel-art textures want it at
+//     all (GenerateMaterialMipmaps only covers materialTextureArray)
+
+// TODO: CHUNK - culling. Nothing builds the per-frame IndirectBuffer for chunks yet.
+// BuildChunkDrawCommand gives one command per chunk with a mesh; a cull pass (CPU
+// frustum test, or the occlusion/face-connectivity work) needs to filter and write them.
+// Chunk bounds also aren't computed anywhere: ComputeBounds above reads v.position as
+// a vec3, which doesn't compile for ChunkVertex's u8vec3, and chunk-local bounds are
+// better derived from the chunk size anyway.
+
+// TODO: CHUNK - once Chunk exists, add overloads of AllocateChunk / DeallocateChunk /
+// UploadChunkMesh taking Chunk& that forward to the ID-based versions above.
+
 void Allocator::Shutdown()
 {
     staticVBO.buffer.Delete();
@@ -556,6 +1063,14 @@ void Allocator::Shutdown()
 
     materialDescriptorSSBO.buffer.Delete();
     materialTextureArray.buffer.Delete();
+
+    animationDescriptorSSBO.buffer.Delete();
+
+    chunkVBO.buffer.Delete();
+    chunkEBO.buffer.Delete();
+    chunkInstanceDataSSBO.buffer.Delete();
+    chunkQuadTextureSSBO.buffer.Delete();
+    chunkTextureArray.buffer.Delete();
 }
 
 bool Allocator::UploadMaterialData(Material& material)
@@ -608,6 +1123,11 @@ bool Allocator::MeshHasUser(MeshTracker& mesh)
 bool Allocator::MaterialHasUser(MaterialTracker& material)
 {
     return material.users > 0;
+}
+
+bool Allocator::AnimationHasUser(AnimationTracker& animation)
+{
+    return animation.users > 0;
 }
 
 void Allocator::GenerateMaterialMipmaps()

@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "Animation.h"
 
 bool EntityManager::AddEntity(Entity& entity, EntityTracker& tracker)
 {
@@ -53,4 +54,38 @@ MaterialTracker* EntityManager::GetMaterial(uint32_t assetID)
 {
     auto it = m_materials.find(assetID);
     return it != m_materials.end() ? &it->second : nullptr;
+}
+
+bool EntityManager::AddAnimation(BakedAnimationClip& clip, AnimationTracker& tracker)
+{
+    auto result = m_animations.emplace(clip.ID, tracker);
+    return result.second; // false if this asset ID is already registered
+}
+
+void EntityManager::RemoveAnimation(uint32_t assetID)
+{
+    m_animations.erase(assetID);
+}
+
+AnimationTracker* EntityManager::GetAnimation(uint32_t assetID)
+{
+    auto it = m_animations.find(assetID);
+    return it != m_animations.end() ? &it->second : nullptr;
+}
+
+bool EntityManager::AddChunk(int64_t chunkID, ChunkTracker& tracker)
+{
+    auto result = m_chunks.emplace(chunkID, tracker);
+    return result.second; // false if this chunk is already registered
+}
+
+void EntityManager::RemoveChunk(int64_t chunkID)
+{
+    m_chunks.erase(chunkID);
+}
+
+ChunkTracker* EntityManager::GetChunk(int64_t chunkID)
+{
+    auto it = m_chunks.find(chunkID);
+    return it != m_chunks.end() ? &it->second : nullptr;
 }

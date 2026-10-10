@@ -21,11 +21,30 @@ add_executable(MyProject
     src/Shader.cpp
     src/stb.cpp
     src/Texture.cpp
-    
-    src/main.cpp
     src/Animation.cpp
     src/AnimationPlayer.cpp
+
+    src/editor/EntityEditor.cpp
+    src/editor/ResourceEditor.cpp
+
+    src/main
+    # src/editor/editor.cpp
+
+    src/ResourceController.cpp
+    
 )
+
+set(IMGUI_DIR ${CMAKE_SOURCE_DIR}/external/imgui)
+
+   target_sources(MyProject PRIVATE
+       ${IMGUI_DIR}/imgui.cpp
+       ${IMGUI_DIR}/imgui_draw.cpp
+       ${IMGUI_DIR}/imgui_tables.cpp
+       ${IMGUI_DIR}/imgui_widgets.cpp
+       ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+       ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+   )
+   target_include_directories(MyProject PRIVATE ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 
 file(GLOB_RECURSE INCLUDE_PATHS
     LIST_DIRECTORIES true
@@ -49,3 +68,14 @@ target_include_directories(MyProject PRIVATE
 target_link_libraries(MyProject PRIVATE
     ${CMAKE_SOURCE_DIR}/lib/libglfw3.a
 )
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_link_options(MyProject PRIVATE -static-libgcc -static-libstdc++)
+
+    # MinGW only: also fold in libwinpthread so no DLLs are needed at all
+    if(MINGW)
+        target_link_options(MyProject PRIVATE -static)
+    endif()
+endif()
+
+target_compile_options(MyProject PRIVATE -Wall -Wextra -Wuninitialized -Wmaybe-uninitialized -O2)

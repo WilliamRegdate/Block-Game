@@ -24,28 +24,22 @@ struct BoneTracks
 
 struct AnimationClip
 {
+    uint32_t    ID = 0; 
     std::string             name;
     float                   duration = 0.0f;   // max of all track end times
     std::vector<BoneTracks> bones;             // indexed by bone index; empty tracks mean "use rest pose"
 };
+
 struct BakedAnimationClip
 {
+    uint32_t    ID = 0; 
     std::string name;
-    float duration = 0.0f;
+    float       duration = 0.0f;
+    uint32_t    frameCount = 0; // poses.size() == frameCount * boneCount
+    uint32_t    boneCount = 0;
     std::vector<glm::mat4x4> poses;
 };
 
-// Samples `clip` at a fixed rate and bakes every bone's final skinning
-// matrix (model-space transform * inverse bind matrix) into `poses`,
-// frame-major: poses[frame * boneCount + boneIndex]. One frame is produced
-// at t=0, then every 1/sampleRate seconds up to and including clip.duration
-// (the final sample is clamped exactly to clip.duration, not left to drift
-// from float accumulation).
-//
-// Walks bones via Skeleton::evalOrder, not Skeleton::bones' own index
-// order - bones follows glTF's skin.joints order, which isn't guaranteed
-// to put parents before children, so evalOrder is what the hierarchy walk
-// actually relies on.
 BakedAnimationClip BakeAnimationClip(const Skeleton& skeleton, const AnimationClip& clip, float sampleRate);
 
 #endif

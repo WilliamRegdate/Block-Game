@@ -1,12 +1,26 @@
 {
-  "materials": [
-    {
-      "id": "methaneMonster",
-      "albedoPath": "../resources/textures/methaneMonster.png"
-    },
-    {
-      "id": "maxSternum",
-      "albedoPath": "../resources/textures/maxSternum_baseColor.png"
-    }
-  ]
+    "materials": [
+        {
+            "id": "methaneMonster",
+            "albedoPath": "../resources/textures/methaneMonster.png"
+        },
+        {
+            "id": "maxSternum",
+            "albedoPath": "../resources/textures/maxSternum_baseColor.png",
+            "ormPath": "../resources/textures/max_roughness_1s.png"
+        },
+        {
+            "id": "chicken",
+            "albedoPath": "../resources/textures/chicken.png"
+        },
+        {
+            "id": "whiteChicken",
+            "albedoPath": "../resources/textures/chicken_white.png"
+        },
+        {
+            "id": "blackRock",
+            "albedoPath": "../resources/textures/Player_BaseColor.png",
+            "ormPath": "../resources/textures/Player_MetallicRoughness.png.png"
+        }
+    ]
 }

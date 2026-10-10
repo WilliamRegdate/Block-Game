@@ -19,11 +19,11 @@ const unsigned int width  = 1920;
 const unsigned int height = 1080;
 
 // ---- Benchmark settings ----
-constexpr int   ENTITY_COUNT = 300;
-constexpr float GRID_SPACING = 3.0f;   // distance between grid cell centres; raise if models are bigger than this
-constexpr float MAX_DRIFT    = 0.35f * GRID_SPACING; // how far an entity can wander from its cell, so none overlap
-constexpr float DRIFT_STEP   = 0.05f;  // max random-walk step per axis per frame
-constexpr float SPIN_STEP    = 0.05f;  // max random rotation change per axis per frame (radians)
+constexpr int   ENTITY_COUNT = 10000;
+constexpr float GRID_SPACING = 9.0f;
+constexpr float MAX_DRIFT    = 0.35f * GRID_SPACING; // max wander from home cell, so neighbours never overlap
+constexpr float DRIFT_STEP   = 0.05f;                // max random-walk step per axis per frame
+constexpr float SPIN_STEP    = 0.05f;                // max random rotation change per axis per frame (radians)
 
 struct Actor
 {
@@ -34,6 +34,7 @@ struct Actor
 };
 
 // The only place that touches Transform's fields - adapt here if your Transform differs.
+// Assumes position is a glm::vec3 and rotation is a glm::quat.
 static void SetPose(Transform& t, const glm::vec3& position, const glm::vec3& eulerRadians)
 {
     t.position = position;
@@ -72,23 +73,25 @@ int main()
             meshLoader.Load("../resources/models/methaneMonster/model.gltf"),
             meshLoader.Load("../resources/models/maxSternum/model.gltf"),
         };
-        if (meshes[0] == nullptr || meshes[1] == nullptr || materials.empty())
+        if (meshes[0] == nullptr || meshes[1] == nullptr || materials.size() < 2)
         {
             std::cout << "Failed to load meshes or materials" << std::endl;
             glfwTerminate();
             return -1;
         }
 
-        // Camera pulled back to see the whole grid (7 x 7 x 7 cells * spacing). Adjust if clipped.
-        Camera camera = Camera(width, height, glm::vec3(0, 0, 25));
+        // Pulled back to see the whole grid (~90 units across). If the back of the grid
+        // is clipped, raise the camera's far plane.
+        Camera camera = Camera(width, height, glm::vec3(0, 0, 160));
         Renderer renderer = Renderer(&camera);
 
         std::mt19937 rng(12345); // fixed seed so benchmark runs are comparable
         std::uniform_int_distribution<int>    pickMesh(0, 1);
         std::uniform_real_distribution<float> jitter(-1.0f, 1.0f);
 
-        // ---- Build 300 entities on a centred 3D grid ----
-        const int n = static_cast<int>(std::ceil(std::cbrt(static_cast<float>(ENTITY_COUNT)))); // 7
+        // ---- Build the entities on a centred 3D grid ----
+        int n = 1;
+        while (n * n * n < ENTITY_COUNT) ++n; // 10 for 1000
         const float centre = (n - 1) * 0.5f;
 
         std::vector<Actor> actors;
@@ -105,11 +108,13 @@ int main()
                                (y - centre) * GRID_SPACING,
                                (z - centre) * GRID_SPACING);
 
-            a.entity = std::make_unique<Entity>();
-            a.entity->ID       = static_cast<decltype(a.entity->ID)>(i + 1);
-            a.entity->mesh     = meshes[pickMesh(rng)];
-            a.entity->material = &materials.at(0);
-            SetPose(a.entity->transform, a.home, a.euler);
+            const int meshIndex = pickMesh(rng);               // 0 = methaneMonster, 1 = maxSternum
+
+			a.entity = std::make_unique<Entity>();
+			a.entity->ID       = static_cast<decltype(a.entity->ID)>(i + 1);
+			a.entity->mesh     = meshes[meshIndex];
+			a.entity->material = &materials.at(meshIndex);     // methaneMonster -> material 0, maxSternum -> material 1
+			SetPose(a.entity->transform, a.home, a.euler);
 
             if (!renderer.AddEntity(*a.entity))
             {
@@ -125,6 +130,16 @@ int main()
         // ---- Frame timing ----
         double lastReport = glfwGetTime();
         int    frames     = 0;
+		
+		GLuint q; glGenQueries(1, &q);   // once, before the loop
+
+		glBeginQuery(GL_TIME_ELAPSED, q);
+		renderer.Render();
+		glEndQuery(GL_TIME_ELAPSED);
+
+		GLuint64 ns = 0;
+		glGetQueryObjectui64v(q, GL_QUERY_RESULT, &ns); // stalls the CPU, fine for diagnosis
+		std::cout << "GPU: " << ns / 1.0e6 << " ms\n";
 
         while (!glfwWindowShouldClose(window))
         {

@@ -3,10 +3,9 @@
 
 
 Camera::Camera(int width, int height, glm::vec3 position)
+    : position(position), width(width), height(height)
 {
-    Camera::width = width;
-    Camera::height = height;
-    position = position;
+
 }
 void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 {
@@ -18,7 +17,6 @@ void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 	view = glm::lookAt(position, position + orientation, up);
 	// Adds perspective to the scene
 	projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
-	//projection = glm::ortho(position.x-200, position.x+200, position.y-200, position.y+200, farPlane *5, nearPlane/5);
 	// Sets new camera matrix
 	cameraMatrix = projection * view;
 }
@@ -95,10 +93,10 @@ void Camera::Inputs(GLFWwindow* window)
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		{
-			speed = 0.2f;
+			speed = baseSpeed * 3;
 		}
 		else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
 		{
-			speed = 0.1f;
+			speed = baseSpeed;
 		}
 }
