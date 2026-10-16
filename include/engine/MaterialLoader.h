@@ -12,7 +12,6 @@ using json = nlohmann::json;
 class MaterialLoader
 {
     public:
-        MaterialLoader();
         std::vector<Material> Load(const char* file);
         Material LoadByID(const char* file, const char* ID);
 

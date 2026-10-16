@@ -464,6 +464,20 @@ CMakeFiles/MyProject.dir/src/ResourceController.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_numeric_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/any \
  D:/apps/GitHub/Block-Game/include/engine/MaterialLoader.h \
+ D:/apps/GitHub/Block-Game/include/engine/BlockLoader.h \
+ D:/apps/GitHub/Block-Game/include/engine/Block.h \
+ D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
+ D:/apps/GitHub/Block-Game/include/engine/Allocator.h \
+ D:/apps/GitHub/Block-Game/include/engine/EntityManager.h \
+ D:/apps/GitHub/Block-Game/include/engine/Shader.h \
+ D:/apps/GitHub/Block-Game/include/Camera.h \
+ D:/apps/GitHub/Block-Game/include/GLFW/glfw3.h \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/transform.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/transform.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.inl \
  C:/msys64/mingw64/include/c++/14.1.0/iostream \
  D:/apps/GitHub/Block-Game/include/engine/ResourceJson.h \
  C:/msys64/mingw64/include/c++/14.1.0/fstream \

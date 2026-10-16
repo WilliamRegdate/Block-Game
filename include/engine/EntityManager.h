@@ -4,6 +4,7 @@
 #include<cstdint>
 #include<unordered_map>
 #include<utility>
+#include <string>
 
 #include "RenderTypes.h"
 
@@ -79,6 +80,11 @@ struct ChunkTracker
     ChunkHandle handle;             // where this chunk's data lives on the GPU
     uint64_t    chunkID = 0;        // the key EntityManager finds this chunk by
 };
+struct ChunkTextureTracker
+{
+    BufferRange layer;        // the single texture-array layer this texture occupies
+    std::string path;         // the key EntityManager finds this texture by
+};
 
 
 class EntityManager
@@ -129,18 +135,17 @@ class EntityManager
         // Returns nullptr if this asset ID has no tracker registered.
         AnimationTracker* GetAnimation(uint32_t assetID);
 
-        // ---- Chunks ----
-        // TODO: CHUNK - the Chunk class doesn't exist yet, so these take the
-        // chunk's key directly instead of a Chunk& like AddMesh/AddMaterial.
-        // Once Chunk exists, switch to AddChunk(Chunk&, ChunkTracker&) keyed
-        // by chunk.ID (or by chunk coordinates - decide the key then).
-        //
-        // Stores `tracker` keyed by chunkID. Returns false if this chunk is
-        // already registered.
         bool AddChunk(int64_t chunkID, ChunkTracker& tracker);
         void RemoveChunk(int64_t chunkID);
         // Returns nullptr if this chunk has no tracker registered.
         ChunkTracker* GetChunk(int64_t chunkID);
+
+         // ---- Chunk textures ----
+        // Stores `tracker` keyed by path. Returns false if already registered.
+        bool AddChunkTexture(const std::string& path, ChunkTextureTracker& tracker);
+        void RemoveChunkTexture(const std::string& path);
+        // Returns nullptr if this path has no tracker registered.
+        ChunkTextureTracker* GetChunkTexture(const std::string& path);
 
         // Calls func(const ChunkTracker&) once per registered chunk.
         // Read-only for the same reason as ForEachEntity.
@@ -164,7 +169,10 @@ class EntityManager
         std::unordered_map<uint32_t, MeshTracker>      m_meshes;     // keyed by Mesh::ID
         std::unordered_map<uint32_t, MaterialTracker>  m_materials;  // keyed by Material::ID
         std::unordered_map<uint32_t, AnimationTracker> m_animations; // keyed by BakedAnimationClip::ID
+
+
         std::unordered_map<int64_t, ChunkTracker>     m_chunks;     // keyed by chunk ID
+        std::unordered_map<std::string, ChunkTextureTracker> m_chunkTextures; //keyed by filepath
 };
 
 #endif

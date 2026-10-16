@@ -1,0 +1,13 @@
+{
+    "id": 4,
+    "name": "water",
+    "textureIDs": [
+         "water"
+        ],
+    "x_plus": 0,
+    "x_minus": 0,
+    "y_plus": 0,
+    "y_minus": 0,
+    "z_plus": 0,
+    "z_minus": 0
+}

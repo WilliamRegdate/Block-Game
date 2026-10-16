@@ -82,7 +82,7 @@ int main()
 
         // Pulled back to see the whole grid (~90 units across). If the back of the grid
         // is clipped, raise the camera's far plane.
-        Camera camera = Camera(width, height, glm::vec3(0, 0, 160));
+        Camera camera = Camera(width, height, glm::vec3(0, 0, 0));
         Renderer renderer = Renderer(&camera);
 
         std::mt19937 rng(12345); // fixed seed so benchmark runs are comparable

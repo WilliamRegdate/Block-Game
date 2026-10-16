@@ -466,8 +466,8 @@ CMakeFiles/MyProject.dir/src/BenchmarkAnimated.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/glm/gtx/component_wise.inl \
  D:/apps/GitHub/Block-Game/include/glm/gtx/norm.inl \
  D:/apps/GitHub/Block-Game/include/glm/gtx/quaternion.inl \
- D:/apps/GitHub/Block-Game/include/engine/RenderTypes.h \
  D:/apps/GitHub/Block-Game/include/engine/Animation.h \
+ D:/apps/GitHub/Block-Game/include/engine/RenderTypes.h \
  D:/apps/GitHub/Block-Game/include/engine/MaterialLoader.h \
  D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
  D:/apps/GitHub/Block-Game/include/engine/Entity.h \

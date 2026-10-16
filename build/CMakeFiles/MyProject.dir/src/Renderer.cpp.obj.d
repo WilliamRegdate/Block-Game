@@ -279,6 +279,13 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/atomic_lockfree_defines.h \
  C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
+ C:/msys64/mingw64/include/c++/14.1.0/vector \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_vector.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/stl_bvector.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/range_access.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/memory_resource.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/uses_allocator_args.h \
  D:/apps/GitHub/Block-Game/include/engine/Entity.h \
  D:/apps/GitHub/Block-Game/include/engine/Transform.h \
  D:/apps/GitHub/Block-Game/include/glm/gtc/quaternion.hpp \
@@ -333,7 +340,6 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/ctype.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/ostream_insert.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/cxxabi_forced.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/range_access.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.h \
  C:/msys64/mingw64/include/c++/14.1.0/string_view \
  C:/msys64/mingw64/include/c++/14.1.0/bits/string_view.tcc \
@@ -342,8 +348,6 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/cerrno \
  C:/msys64/mingw64/include/c++/14.1.0/bits/charconv.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/basic_string.tcc \
- C:/msys64/mingw64/include/c++/14.1.0/bits/memory_resource.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/uses_allocator_args.h \
  C:/msys64/mingw64/include/c++/14.1.0/optional \
  C:/msys64/mingw64/include/c++/14.1.0/bits/enable_special_members.h \
  D:/apps/GitHub/Block-Game/include/engine/Skeleton.h \
@@ -356,10 +360,6 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/glm/gtx/component_wise.inl \
  D:/apps/GitHub/Block-Game/include/glm/gtx/norm.inl \
  D:/apps/GitHub/Block-Game/include/glm/gtx/quaternion.inl \
- C:/msys64/mingw64/include/c++/14.1.0/vector \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_vector.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/stl_bvector.h \
- C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc \
  D:/apps/GitHub/Block-Game/include/engine/Animation.h \
  D:/apps/GitHub/Block-Game/include/engine/RenderTypes.h \
  C:/msys64/mingw64/include/c++/14.1.0/list \
@@ -400,4 +400,5 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/glm/gtx/transform.inl \
  D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.inl \
  D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.hpp \
- D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.inl
+ D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.inl \
+ D:/apps/GitHub/Block-Game/include/engine/ChunkHelpers.h

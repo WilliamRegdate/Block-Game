@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <bit>
 #include <cassert>
+#include <array>
 #include <utility>
 
 uint32_t Chunk::GetIndex(uint32_t x, uint32_t y, uint32_t z) const
@@ -74,12 +75,12 @@ void Chunk::Repack(uint8_t newBits)
     }
 }
 
-Chunk::Chunk(uint64_t coords, Voxel initialVoxel)
-    : coordinates(coords), palette{initialVoxel}
+Chunk::Chunk(Voxel initialVoxel)
+    : palette{initialVoxel}
 {
 }
 
-Voxel Chunk::GetVoxel(uint32_t x, uint32_t y, uint32_t z) const
+const Voxel& Chunk::GetVoxel(uint32_t x, uint32_t y, uint32_t z) const
 {
     return palette[GetPaletteIndex(GetIndex(x, y, z))];
 }
@@ -113,4 +114,44 @@ void Chunk::SetVoxel(uint32_t x, uint32_t y, uint32_t z, Voxel voxel)
 
     if (bitsPerVoxel != 0)
         SetPaletteIndex(index, paletteIndex);
+}
+
+namespace
+{
+    constexpr int ROTATION_COUNT = 12;
+
+    // Facing direction for each rotation index
+    constexpr glm::vec3 FORWARDS[ROTATION_COUNT] = {
+        { 0, 0, 1}, { 1, 0, 0}, { 0, 0,-1}, {-1, 0, 0}, // 0-3
+        { 0, 0, 1}, { 1, 0, 0}, { 0, 0,-1}, {-1, 0, 0}, // 4-7 (upside down)
+        { 0, 0, 1}, { 1, 0, 0}, { 0, 0,-1}, {-1, 0, 0}, // 8-11 (rolled)
+    };
+
+    // Up direction for each rotation index
+    constexpr glm::vec3 UPS[ROTATION_COUNT] = {
+        { 0, 1, 0}, { 0, 1, 0}, { 0, 1, 0}, { 0, 1, 0},
+        { 0,-1, 0}, { 0,-1, 0}, { 0,-1, 0}, { 0,-1, 0},
+        {-1, 0, 0}, { 0, 0,-1}, { 1, 0, 0}, { 0, 0, 1},
+    };
+
+    std::array<glm::mat3, ROTATION_COUNT> BuildRotationMatrices()
+    {
+        std::array<glm::mat3, ROTATION_COUNT> m;
+        for (int i = 0; i < ROTATION_COUNT; ++i)
+        {
+            const glm::vec3 right = glm::cross(UPS[i], FORWARDS[i]);
+            // columns: X axis -> right, Y axis -> up, Z axis -> forward
+            m[i] = glm::mat3(right, UPS[i], FORWARDS[i]);
+        }
+        return m;
+    }
+
+    // Built once during static initialisation
+    const std::array<glm::mat3, ROTATION_COUNT> ROTATION_MATRICES = BuildRotationMatrices();
+}
+
+const glm::mat3& Voxel::GetRotationMat() const
+{
+    const uint8_t rotation = GetRotation();
+    return ROTATION_MATRICES[rotation < ROTATION_COUNT ? rotation : 0];
 }

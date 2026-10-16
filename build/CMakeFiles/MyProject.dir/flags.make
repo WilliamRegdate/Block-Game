@@ -7,11 +7,11 @@ C_DEFINES =
 
 C_INCLUDES = @CMakeFiles/MyProject.dir/includes_C.rsp
 
-C_FLAGS = -O2 -g -DNDEBUG -Wall -Wextra -Wuninitialized -Wmaybe-uninitialized -O2
+C_FLAGS = -g
 
 CXX_DEFINES = 
 
 CXX_INCLUDES = @CMakeFiles/MyProject.dir/includes_CXX.rsp
 
-CXX_FLAGS = -O2 -g -DNDEBUG -std=gnu++17 -Wall -Wextra -Wuninitialized -Wmaybe-uninitialized -O2
+CXX_FLAGS = -g -std=gnu++17
 

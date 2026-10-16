@@ -1,23 +1,6 @@
 #include <algorithm>
 #include "Renderer.h"
-
-namespace
-{
-    // Packs a chunk coordinate into the 64-bit key the Allocator/EntityManager use for chunks:
-    // 21 bits per axis, each biased so negative coordinates work. Covers +/- 1,048,576 chunks
-    // per axis, which is plenty for a world with no vertical limit.
-    // TODO: CHUNK - the world/Chunk class will need the same key; move this next to it once it exists.
-    constexpr int64_t  CHUNK_ID_BIAS = 1 << 20;
-    constexpr uint64_t CHUNK_ID_MASK = (1ull << 21) - 1;
-
-    uint64_t ChunkIDFromCoord(const glm::ivec3& c)
-    {
-        const uint64_t x = static_cast<uint64_t>(static_cast<int64_t>(c.x) + CHUNK_ID_BIAS) & CHUNK_ID_MASK;
-        const uint64_t y = static_cast<uint64_t>(static_cast<int64_t>(c.y) + CHUNK_ID_BIAS) & CHUNK_ID_MASK;
-        const uint64_t z = static_cast<uint64_t>(static_cast<int64_t>(c.z) + CHUNK_ID_BIAS) & CHUNK_ID_MASK;
-        return x | (y << 21) | (z << 42);
-    }
-}
+#include "ChunkHelpers.h"
 
 Renderer::Renderer(Camera* camera)
     : m_camera(camera)
@@ -41,7 +24,7 @@ void Renderer::Init()
     config.poseBufferCapacityBytes    = 16 * 1024 * 1024;
     config.maxEntities  = 65536;
     config.maxMeshTypes = 1024;
-    config.maxMaterials = 32;
+    config.maxMaterials = 600;
     config.materialTextureWidth  = 128;
     config.materialTextureHeight = 128;
     config.materialTextureFormat = GL_RGBA8;
@@ -54,11 +37,10 @@ void Renderer::Init()
     config.chunkVertexCapacityBytes = 128 * 1024 * 1024;
     config.chunkIndexCapacityBytes  =  96 * 1024 * 1024;
 
-    // TODO: CHUNK - revisit once chunk materials exist. 256 materials reserve 768 layers of
-    // 16x16 (the config default size) for albedo/normal/orm.
+    //good enough for now
     config.maxChunkMaterials = 256;
 
-    config.maxAnimations = 256;
+    config.maxAnimations = 1024;
 
     // Manager first: the Allocator keeps a pointer to it.
     m_entityManager = std::make_unique<EntityManager>();
@@ -234,30 +216,20 @@ void Renderer::RemoveEntity(Entity& entity)
 // ============================================================
 // Chunks
 // ============================================================
-// Chunks differ from entities in that their mesh is rebuilt, not just moved: every remesh
-// can change the quad count, and with it the chunk's ranges in the VBO/EBO. So each of these
-// marks the chunk draw list dirty (the commands hold those ranges), and the list is rebuilt
-// once at the start of the next Render rather than per call.
-//
-// These must be called on the GL thread (they upload). Meshing itself can happen elsewhere.
-// TODO: CHUNK - queue meshed results from worker threads and apply them here once the mesher exists.
-
 bool Renderer::AddChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData)
 {
     if (!m_allocator)
         return false;
 
-    const uint64_t id = ChunkIDFromCoord(chunkCoord);
+    const uint64_t id = ChunkCoord::ToID(chunkCoord);
     const glm::vec3 worldPosition = glm::vec3(chunkCoord) * static_cast<float>(CHUNK_SIZE);
 
     ChunkTracker tracker = m_allocator->AllocateChunk(id, worldPosition);
     if (!tracker.handle.IsValid())
         return false; // already added, or out of chunk instance slots
 
-    if (!m_allocator->UploadChunkMesh(id, meshData.vertices, meshData.quadTextures))
+    if (!m_allocator->UploadChunkMesh(id, chunkCoord, meshData.vertices, meshData.indices, meshData.triangleTextures))
     {
-        // No space for the mesh (or the arrays disagree on quad count). Don't leave an
-        // empty registered chunk behind that the caller thinks failed.
         m_allocator->DeallocateChunk(id);
         return false;
     }
@@ -272,7 +244,7 @@ bool Renderer::UpdateChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& me
         return false;
 
     // On failure the Allocator keeps the chunk's previous mesh, so the draw list stays valid.
-    if (!m_allocator->UploadChunkMesh(ChunkIDFromCoord(chunkCoord), meshData.vertices, meshData.quadTextures))
+    if (!m_allocator->UploadChunkMesh(ChunkCoord::ToID(chunkCoord), chunkCoord, meshData.vertices, meshData.indices, meshData.triangleTextures))
         return false;
 
     m_chunkListDirty = true;
@@ -285,7 +257,19 @@ void Renderer::RemoveChunk(const glm::ivec3& chunkCoord)
         return;
 
     m_chunkListDirty = true;
-    m_allocator->DeallocateChunk(ChunkIDFromCoord(chunkCoord));
+    m_allocator->DeallocateChunk(ChunkCoord::ToID(chunkCoord));
+}
+
+bool Renderer::AddChunkTexture(Texture texture, uint32_t& layer)
+{
+    layer = Allocator::INVALID_CHUNK_TEXTURE; // what the caller sees if anything below fails
+    if (!m_allocator)
+    return false;
+    layer = m_allocator->AddChunkTexture(texture);
+    m_allocator->GenerateChunkTextureMipmaps();
+    if (layer == Allocator::INVALID_CHUNK_TEXTURE)
+        return false;
+    return true;
 }
 
 // ============================================================
@@ -344,7 +328,6 @@ void Renderer::DrawAnimated()
     if (!m_animatedShader || !m_allocator || !m_animatedVAO || m_animatedDrawCount == 0)
         return;
 
-    // Cheap flag check; only does work if a material was uploaded since last draw.
     m_allocator->GenerateMaterialMipmaps();
 
     m_animatedShader->Activate();
@@ -377,15 +360,13 @@ void Renderer::DrawChunks()
     if (!m_chunkShader || !m_allocator || !m_chunkVAO || m_chunkDrawCount == 0)
         return;
 
-    // TODO: CHUNK - generate mipmaps for ChunkTextureArray here once chunk materials are
-    // uploaded (GenerateMaterialMipmaps only covers the entity material array), and decide
-    // whether pixel-art block textures want mipmaps at all.
-
+    m_allocator->GenerateChunkTextureMipmaps();
     m_chunkShader->Activate();
     UploadCameraMatrix(*m_chunkShader);                         // needs the program active
 
     m_allocator->ChunkInstanceSSBO().BindBase(0);       // layout(std430, binding = 0) in the vert shader
-    m_allocator->ChunkQuadTextureSSBO().BindBase(1);    // layout(std430, binding = 1) in the vert shader
+    m_allocator->ChunkTriTextureSSBO().BindBase(1);    // layout(std430, binding = 1) in the vert shader
+    //m_allocator->MaterialTextures().Bind(0);
     m_allocator->ChunkTextureArray().Bind(0);           // layout(binding = 0) sampler2DArray
 
     m_chunkVAO->Bind();          // chunk VBO + EBO + visible-index attribute

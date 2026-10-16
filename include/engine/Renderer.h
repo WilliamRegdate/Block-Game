@@ -29,7 +29,8 @@ constexpr int CHUNK_SIZE = 32;
 struct ChunkMeshData
 {
     std::vector<ChunkVertex> vertices;
-    std::vector<uint32_t>    quadTextures;
+    std::vector<uint32_t>    triangleTextures;
+    std::vector<uint32_t>    indices;
 };
 
 
@@ -60,6 +61,7 @@ class Renderer
         // Replaces the chunk's mesh (a remesh). On failure the chunk keeps its old mesh.
         bool        UpdateChunk(const glm::ivec3& chunkCoord, const ChunkMeshData& meshData);
         void        RemoveChunk(const glm::ivec3& chunkCoord);
+        bool        AddChunkTexture(Texture texture, uint32_t& layer); //layer of the texture is output
 
         // ---------------- Per-frame ----------------
         void Render();
@@ -70,7 +72,7 @@ class Renderer
         void CullPass();            // dispatch compute cull -> visible-index buffers
         void DrawStatic();          // bind static pipeline, issue multidraw indirect
         void DrawAnimated();        // bind animated pipeline, issue multidraw indirect
-        void DrawChunks();          //bind the chunk pipeline, issue multidraw indirect
+        void DrawChunks();          // bind the chunk pipeline, issue multidraw indirect
 
         void UploadCameraMatrix(Shader& shader);
 

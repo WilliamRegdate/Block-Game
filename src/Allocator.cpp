@@ -80,10 +80,10 @@ namespace
     // with exactly quads * 6 indices and every chunk allocation is a multiple of
     // 6, so every firstIndex is a multiple of 6 and firstIndex / 6 is a valid
     // slot in the quad SSBO. The quad SSBO is sized from this same number.
-    uint32_t ChunkQuadCapacity(const EntityRendererConfig& config)
+    uint32_t ChunkTriCapacity(const EntityRendererConfig& config)
     {
         const uint32_t indexCapacity = static_cast<uint32_t>(config.chunkIndexCapacityBytes / sizeof(uint32_t));
-        return indexCapacity / CHUNK_INDICES_PER_QUAD;
+        return indexCapacity / CHUNK_INDICES_PER_TRI;
     }
 
 } // namespace
@@ -114,9 +114,11 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
     chunkVBO(config.chunkVertexCapacityBytes, GL_DYNAMIC_DRAW),
     chunkEBO(config.chunkIndexCapacityBytes, GL_DYNAMIC_DRAW),
     chunkInstanceDataSSBO(static_cast<GLsizeiptr>(config.chunkCapacity * sizeof(ChunkInstanceData))),
-    chunkQuadTextureSSBO(static_cast<GLsizeiptr>(ChunkQuadCapacity(config) * sizeof(uint32_t))),
+    chunkTriTextureSSBO(static_cast<GLsizeiptr>(ChunkTriCapacity(config) * sizeof(uint32_t))),
     chunkTextureArray(config.chunkMaterialTextureWidth, config.chunkMaterialTextureHeight,
                       static_cast<GLsizei>(config.maxChunkMaterials) * 3, config.chunkMaterialTextureFormat)
+    
+                      
 {
     // Start every buffer as one big empty range.
     SeedSlots(staticVBO.emptySlots, static_cast<uint32_t>(config.staticVertexCapacityBytes / sizeof(StaticVertex)));
@@ -144,14 +146,13 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
     SeedSlots(chunkVBO.emptySlots, static_cast<uint32_t>(config.chunkVertexCapacityBytes / sizeof(ChunkVertex)));
     // Seeded in whole quads (see ChunkQuadCapacity), so every index range handed out
     // starts on a multiple of 6.
-    SeedSlots(chunkEBO.emptySlots, ChunkQuadCapacity(config) * CHUNK_INDICES_PER_QUAD);
+    SeedSlots(chunkEBO.emptySlots, ChunkTriCapacity(config) * CHUNK_INDICES_PER_TRI);
     SeedSlots(chunkInstanceDataSSBO.emptySlots, static_cast<uint32_t>(config.chunkCapacity));
     // chunkQuadTextureSSBO is deliberately NOT seeded: it has no free list, it mirrors the EBO's.
     // TODO: CHUNK - layers are seeded like the entity material array. Revisit when chunk
     // materials exist (e.g. allocate albedo/normal/orm as one contiguous triplet instead).
     SeedSlots(chunkTextureArray.emptySlots, config.maxChunkMaterials * 3);
 }
-
 
 // ============================================================
 // Allocate
@@ -485,51 +486,6 @@ bool Allocator::AllocateAnimation(const BakedAnimationClip& clip, AnimationTrack
     return true;
 }
 
-// bool Allocator::RegisterAnimation(BakedAnimationClip& clip)
-// {
-//     AnimationTracker* existing = entityManager->GetAnimation(clip.ID);
-//     if (existing != nullptr)
-//     {
-//         existing->users++;
-//         return true;
-//     }
-
-//     AnimationTracker fresh;
-//     if (!AllocateAnimation(clip,  fresh))
-//         return false;
-
-//     if (!entityManager->AddAnimation(clip, fresh))
-//     {
-//         FreeAnimationRanges(fresh);
-//         return false;
-//     }
-//     if (!UploadAnimationData(clip))
-//     {
-//         // Upload failed after registering - roll all the way back so a
-//         // broken-but-registered animation doesn't linger.
-//         entityManager->RemoveAnimation(clip.ID);
-//         FreeAnimationRanges(fresh);
-//         return false;
-//     }
-    
-
-//     AnimationTracker* tracker = entityManager->GetAnimation(clip.ID);
-//     tracker->users = 1;
-//     return true;
-// }
-
-// void Allocator::UnregisterAnimation(uint32_t animationID)
-// {
-//     AnimationTracker* tracker = entityManager->GetAnimation(animationID);
-//     if (tracker == nullptr)
-//         return;
-
-//     tracker->users--;
-//     if (!AnimationHasUser(*tracker))
-//         DeallocateAnimation(*tracker);
-// }
-
-
 // ============================================================
 // Deallocate
 // ============================================================
@@ -807,29 +763,60 @@ bool Allocator::UploadEntityData(Entity& entity)
 }
 
 
-// ============================================================
-// Chunks
-// ============================================================
-// Differences from the static/skinned mesh path, and why:
-//
-//  * Two-step lifecycle. A Mesh is allocated once at a fixed size. A chunk's
-//    mesh changes size every remesh, so AllocateChunk only registers the chunk
-//    and takes its instance slot; UploadChunkMesh (re)reserves mesh space.
-//
-//  * No MeshDescriptor and no user counts. A chunk's geometry is never shared,
-//    and the per-chunk record the shader needs is ChunkInstanceData itself
-//    (position, firstIndex, indexCount).
-//
-//  * Indices are generated, not stored by the caller: every chunk uses the same
-//    0,1,2, 2,1,3 pattern, kept chunk-local so baseVertex places them in the VBO.
-//
-//  * The quad texture SSBO has no allocator. The EBO is the only allocator for
-//    indices, always in whole quads, and the quad for index range [i, i+6) lives
-//    at slot i / 6. UploadChunkMesh is the "upload rule" that keeps them in step.
-//
-//  * Everything here must run on the GL thread. Meshing itself can happen
-//    anywhere, only the upload can't. TODO: CHUNK - hand meshed results from worker
-//    threads to the GL thread (queue), once the chunk mesher exists.
+uint32_t Allocator::AddChunkTexture(Texture& texture)
+{
+    // Already registered: hand back the same layer rather than spending another one.
+    if (ChunkTextureTracker* existing = entityManager->GetChunkTexture(texture.filepath))
+    return existing->layer.start;
+    
+    int width = 0, height = 0;
+    unsigned char* pixels = texture.GetImage(width, height);
+    if (pixels == nullptr)
+    return INVALID_CHUNK_TEXTURE;
+    
+    // Every layer in a texture array has the same dimensions.
+    if (width != 16 || height != 16)
+    {
+        Texture::FreeImage(pixels);
+        return INVALID_CHUNK_TEXTURE;
+    }
+    
+    const uint32_t layer = AllocRange(chunkTextureArray.emptySlots, 1);
+    if (layer == INVALID_RANGE)
+    {
+        Texture::FreeImage(pixels);
+        return INVALID_CHUNK_TEXTURE;
+    }
+    
+    ChunkTextureTracker tracker;
+    tracker.layer = BufferRange{ layer, 1 };
+    tracker.path  = texture.filepath;
+    
+    if (!entityManager->AddChunkTexture(texture.filepath, tracker))
+    {
+        FreeRange(chunkTextureArray.emptySlots, layer, 1);
+        Texture::FreeImage(pixels);
+        return INVALID_CHUNK_TEXTURE;
+    }
+    
+    // ASSUMPTION: adjust to TextureArray's real UploadLayer signature.
+    chunkTextureArray.buffer.UploadLayer(static_cast<GLint>(layer), pixels);
+    
+    chunkMipsDirty = true;
+    Texture::FreeImage(pixels);
+    return layer;
+}
+
+bool Allocator::RemoveChunkTexture(const std::string& path)
+{
+    ChunkTextureTracker* tracker = entityManager->GetChunkTexture(path);
+    if (tracker == nullptr)
+        return false;
+
+    FreeRange(chunkTextureArray.emptySlots, tracker->layer.start, 1);
+    entityManager->RemoveChunkTexture(path); // `tracker` dangles after this
+    return true;
+}
 
 ChunkTracker Allocator::AllocateChunk(uint64_t chunkID, const glm::vec3& worldPosition)
 {
@@ -844,7 +831,6 @@ ChunkTracker Allocator::AllocateChunk(uint64_t chunkID, const glm::vec3& worldPo
         return tracker; // out of chunk instance slots
 
     tracker.chunkID                  = chunkID;
-    tracker.worldPosition            = worldPosition;
     tracker.handle.instanceRange     = BufferRange{ slot, 1 };
 
     if (!entityManager->AddChunk(chunkID, tracker))
@@ -855,7 +841,7 @@ ChunkTracker Allocator::AllocateChunk(uint64_t chunkID, const glm::vec3& worldPo
 
     // Write an empty instance (indexCount 0) so this slot is never left holding
     // whatever the previous owner of the slot had.
-    UploadChunkInstanceData(chunkID);
+    UploadChunkInstanceData(worldPosition, chunkID);
 
     return tracker;
 }
@@ -895,42 +881,36 @@ void Allocator::FreeChunkMeshRanges(ChunkHandle& handle)
 }
 
 bool Allocator::UploadChunkMesh(uint64_t chunkID,
+                                const glm::vec3& worldPosition,
                                 const std::vector<ChunkVertex>& vertices,
-                                const std::vector<uint32_t>& quadTextures)
+                                const std::vector<uint32_t>& indices,
+                                const std::vector<uint32_t>& triangleTextures)
 {
     ChunkTracker* tracker = entityManager->GetChunk(chunkID);
     if (tracker == nullptr || !tracker->handle.IsValid())
         return false;
 
-    const size_t quadCountSize = quadTextures.size();
-
-    // Every quad owns exactly 4 consecutive vertices - the shader finds a quad's
-    // texture from (vertex / 4), so a mismatch here would silently shift every
-    // texture after it.
-    if (vertices.size() != quadCountSize * CHUNK_VERTICES_PER_QUAD)
-        return false;
-
     ChunkHandle& h = tracker->handle;
 
-    // Empty chunk (all air, or fully hidden): free the mesh space, draw nothing.
-    if (quadCountSize == 0)
+    if (indices.empty())
     {
         FreeChunkMeshRanges(h);
-        return UploadChunkInstanceData(chunkID);
+        return UploadChunkInstanceData(worldPosition, chunkID);
     }
 
-    const uint32_t quadCount   = static_cast<uint32_t>(quadCountSize);
-    const uint32_t vertexCount = quadCount * CHUNK_VERTICES_PER_QUAD;
-    const uint32_t indexCount  = quadCount * CHUNK_INDICES_PER_QUAD;
+    const uint32_t vertexCount = static_cast<uint32_t>(vertices.size());
+    const uint32_t indexCount  = static_cast<uint32_t>(indices.size());
+    const uint32_t triCount    = indexCount / CHUNK_INDICES_PER_TRI;
 
-    // Same size as the last mesh: overwrite in place. Otherwise reserve new space
-    // BEFORE releasing the old, so if there's no room the chunk keeps its old mesh
-    // instead of ending up with none. This needs enough headroom for one extra copy
-    // of the chunk, momentarily.
-    // TODO: CHUNK - over-allocate by a few quads (and track capacity separately from
-    // count) so small edits don't reallocate every time. Also consider defragmentation
-    // - first-fit with variable-size ranges fragments as chunks are remeshed.
-    const bool reuseRanges = h.HasMesh() && h.indexRange.size == indexCount;
+    // These replace the old vertices.size() check. They guard what actually matters:
+    if (indexCount % CHUNK_INDICES_PER_TRI != 0) return false;   // whole triangles only
+    if (triangleTextures.size() != triCount)     return false;   // one texture per triangle
+    // (optional, debug only) every index must point inside this chunk's vertices:
+    // assert(*std::max_element(indices.begin(), indices.end()) < vertexCount);
+
+    const bool reuseRanges = h.HasMesh()
+                          && h.indexRange.size  == indexCount
+                          && h.vertexRange.size == vertexCount;   // vertex count now varies independently
     if (!reuseRanges)
     {
         const uint32_t vertexStart = AllocRange(chunkVBO.emptySlots, vertexCount);
@@ -944,63 +924,50 @@ bool Allocator::UploadChunkMesh(uint64_t chunkID,
             return false;
         }
 
-        FreeChunkMeshRanges(h); // releases the old ranges, if any
+        FreeChunkMeshRanges(h);
         h.vertexRange = BufferRange{ vertexStart, vertexCount };
         h.indexRange  = BufferRange{ indexStart,  indexCount };
     }
 
-    // The quad SSBO mirrors the EBO, which only works if every index range starts
-    // on a quad boundary. The EBO is seeded and allocated in whole quads, so this
-    // can only fire if that invariant gets broken somewhere.
-    assert(h.indexRange.start % CHUNK_INDICES_PER_QUAD == 0);
-
-    // Chunk-local index pattern: 0,1,2, 2,1,3, 4,5,6, 6,5,7, ...
-    // A chunk with N quads uses the first N*6 entries.
-    if (chunkIndexPattern.size() < indexCount)
-    {
-        const size_t oldQuads = chunkIndexPattern.size() / CHUNK_INDICES_PER_QUAD;
-        chunkIndexPattern.resize(indexCount);
-        for (uint32_t q = static_cast<uint32_t>(oldQuads); q < quadCount; ++q)
-        {
-            const uint32_t v = q * CHUNK_VERTICES_PER_QUAD;
-            uint32_t* i = &chunkIndexPattern[q * CHUNK_INDICES_PER_QUAD];
-            i[0] = v;     i[1] = v + 1; i[2] = v + 2;
-            i[3] = v + 2; i[4] = v + 1; i[5] = v + 3;
-        }
-    }
+    assert(h.indexRange.start % CHUNK_INDICES_PER_TRI == 0);
 
     chunkVBO.buffer.Upload(static_cast<GLintptr>(h.vertexRange.start) * sizeof(ChunkVertex),
-                           vertices.data(),
-                           static_cast<GLsizeiptr>(vertexCount * sizeof(ChunkVertex)));
+                           vertices.data(), vertexCount * sizeof(ChunkVertex));
 
     chunkEBO.buffer.Upload(static_cast<GLintptr>(h.indexRange.start) * sizeof(uint32_t),
-                           chunkIndexPattern.data(),
-                           static_cast<GLsizeiptr>(indexCount * sizeof(uint32_t)));
+                           indices.data(), indexCount * sizeof(uint32_t));
 
-    // Quad slot = firstIndex / 6. Written every time, even when the ranges were
-    // reused, because the textures can change without the quad count changing.
-    chunkQuadTextureSSBO.buffer.Upload(static_cast<GLintptr>(h.QuadStart()) * sizeof(uint32_t),
-                                       quadTextures.data(),
-                                       static_cast<GLsizeiptr>(quadCount * sizeof(uint32_t)));
+    chunkTriTextureSSBO.buffer.Upload(
+        static_cast<GLintptr>(h.indexRange.start / CHUNK_INDICES_PER_TRI) * sizeof(uint32_t),
+        triangleTextures.data(), triCount * sizeof(uint32_t));
 
-    return UploadChunkInstanceData(chunkID);
+    return UploadChunkInstanceData(worldPosition, chunkID);
 }
 
-bool Allocator::UploadChunkInstanceData(uint64_t chunkID)
+bool Allocator::BuildChunkInstanceData(const glm::ivec3& chunkPosition, uint64_t chunkID, ChunkInstanceData& out, ChunkHandle& handle)
 {
     ChunkTracker* tracker = entityManager->GetChunk(chunkID);
     if (tracker == nullptr || !tracker->handle.IsValid())
         return false;
 
-    const ChunkHandle& h = tracker->handle;
+    handle = tracker->handle;
 
+    out = ChunkInstanceData{};   // zeroes the padding too
+    out.position   = chunkPosition;
+    out.firstIndex = handle.HasMesh() ? handle.indexRange.start : 0;
+    out.indexCount = handle.HasMesh() ? handle.indexRange.size  : 0;
+    return true;
+}
+
+bool Allocator::UploadChunkInstanceData(const glm::ivec3& chunkPosition, uint64_t chunkID)
+{
     ChunkInstanceData data;
-    data.position   = tracker->worldPosition;
-    data.firstIndex = h.HasMesh() ? h.indexRange.start : 0;
-    data.indexCount = h.HasMesh() ? h.indexRange.size  : 0;
+    ChunkHandle handle;
+    if (!BuildChunkInstanceData(chunkPosition ,chunkID, data, handle))
+        return false;
 
     chunkInstanceDataSSBO.buffer.Upload(
-        static_cast<GLintptr>(h.instanceRange.start) * sizeof(ChunkInstanceData),
+        static_cast<GLintptr>(handle.instanceRange.start) * sizeof(ChunkInstanceData),
         &data, sizeof(ChunkInstanceData));
     return true;
 }
@@ -1024,29 +991,7 @@ bool Allocator::BuildChunkDrawCommand(uint64_t chunkID, DrawIndexedIndirectComma
     return true;
 }
 
-// TODO: CHUNK - chunk materials / texture layers. Nothing exists yet for chunks that
-// mirrors AllocateMaterial / UploadMaterialData / FreeMaterialRanges. Needs a decision
-// on, at least:
-//   - what a "chunk material" is (class + ID) and its tracker in EntityManager
-//   - what a quad's uint32 in chunkQuadTextureSSBO means: a layer directly, or an index
-//     into a chunk material table (so one material can pick top/side/bottom layers).
-//     The vertex shader currently assumes a table; with no table, vLayer = the value.
-//   - how albedo/normal/orm layers relate: independent layers like entity materials, or
-//     one contiguous triplet (base, base+1, base+2) so a quad only needs the base layer
-//   - upload path into chunkTextureArray (TextureArray::UploadMaterial takes a Material*,
-//     so chunk materials either reuse Material or need their own upload)
-//   - mipmap generation for chunkTextureArray, and whether pixel-art textures want it at
-//     all (GenerateMaterialMipmaps only covers materialTextureArray)
 
-// TODO: CHUNK - culling. Nothing builds the per-frame IndirectBuffer for chunks yet.
-// BuildChunkDrawCommand gives one command per chunk with a mesh; a cull pass (CPU
-// frustum test, or the occlusion/face-connectivity work) needs to filter and write them.
-// Chunk bounds also aren't computed anywhere: ComputeBounds above reads v.position as
-// a vec3, which doesn't compile for ChunkVertex's u8vec3, and chunk-local bounds are
-// better derived from the chunk size anyway.
-
-// TODO: CHUNK - once Chunk exists, add overloads of AllocateChunk / DeallocateChunk /
-// UploadChunkMesh taking Chunk& that forward to the ID-based versions above.
 
 void Allocator::Shutdown()
 {
@@ -1069,7 +1014,7 @@ void Allocator::Shutdown()
     chunkVBO.buffer.Delete();
     chunkEBO.buffer.Delete();
     chunkInstanceDataSSBO.buffer.Delete();
-    chunkQuadTextureSSBO.buffer.Delete();
+    chunkTriTextureSSBO.buffer.Delete();
     chunkTextureArray.buffer.Delete();
 }
 
@@ -1136,4 +1081,11 @@ void Allocator::GenerateMaterialMipmaps()
         return;
     materialTextureArray.buffer.GenerateMipmaps();
     materialMipsDirty = false;
+}
+void Allocator::GenerateChunkTextureMipmaps()
+{
+    if (!chunkMipsDirty)
+        return;
+    chunkTextureArray.buffer.GenerateMipmaps();
+    chunkMipsDirty = false;
 }

@@ -467,7 +467,20 @@ CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_numeric_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/any \
  D:/apps/GitHub/Block-Game/include/engine/MaterialLoader.h \
+ D:/apps/GitHub/Block-Game/include/engine/BlockLoader.h \
+ D:/apps/GitHub/Block-Game/include/engine/Block.h \
+ D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
+ D:/apps/GitHub/Block-Game/include/engine/Allocator.h \
+ D:/apps/GitHub/Block-Game/include/engine/EntityManager.h \
+ D:/apps/GitHub/Block-Game/include/engine/Shader.h \
+ D:/apps/GitHub/Block-Game/include/Camera.h \
  D:/apps/GitHub/Block-Game/include/GLFW/glfw3.h \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/transform.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/transform.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.inl \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.inl \
  D:/apps/GitHub/Block-Game/external/imgui/imgui.h \
  D:/apps/GitHub/Block-Game/external/imgui/imconfig.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdarg.h \
@@ -476,14 +489,4 @@ CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj: \
  D:/apps/GitHub/Block-Game/external/imgui/backends/imgui_impl_glfw.h \
  D:/apps/GitHub/Block-Game/external/imgui/backends/imgui_impl_opengl3.h \
  D:/apps/GitHub/Block-Game/include/engine/Mesh.h \
- D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
- D:/apps/GitHub/Block-Game/include/engine/Allocator.h \
- D:/apps/GitHub/Block-Game/include/engine/EntityManager.h \
- D:/apps/GitHub/Block-Game/include/engine/Shader.h \
- D:/apps/GitHub/Block-Game/include/Camera.h \
- D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.hpp \
- D:/apps/GitHub/Block-Game/include/glm/gtx/transform.hpp \
- D:/apps/GitHub/Block-Game/include/glm/gtx/transform.inl \
- D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.inl \
- D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.hpp \
- D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.inl
+ D:/apps/GitHub/Block-Game/include/engine/Renderer.h

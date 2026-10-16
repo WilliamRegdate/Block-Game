@@ -24,6 +24,7 @@ struct MaterialBlueprint
 class ResourceEditor : public ResourceController
 {
     public:
+        ResourceEditor(Renderer& renderer);
         // ---- entities.json ----
         std::vector<std::string> ListEntityIDs();
         // Replaces the entry with the same "id", or appends a new one. Other

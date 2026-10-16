@@ -87,6 +87,11 @@ namespace
 // entities.json
 // ============================================================
 
+ResourceEditor::ResourceEditor(Renderer &renderer)
+    : ResourceController(renderer)
+{
+}
+
 std::vector<std::string> ResourceEditor::ListEntityIDs()
 {
     std::vector<std::string> ids;

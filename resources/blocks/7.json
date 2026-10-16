@@ -1,0 +1,13 @@
+{
+    "id": 7,
+    "name": "grass",
+    "textureIDs": [
+         "grass"
+        ],
+    "x_plus": 0,
+    "x_minus": 0,
+    "y_plus": 0,
+    "y_minus": 0,
+    "z_plus": 0,
+    "z_minus": 0
+}

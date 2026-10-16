@@ -344,6 +344,30 @@ src/AnimationPlayer.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.s
 .PHONY : src/AnimationPlayer.cpp.s
 
+src/BlockLoader.obj: src/BlockLoader.cpp.obj
+.PHONY : src/BlockLoader.obj
+
+# target to build an object file
+src/BlockLoader.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/BlockLoader.cpp.obj
+.PHONY : src/BlockLoader.cpp.obj
+
+src/BlockLoader.i: src/BlockLoader.cpp.i
+.PHONY : src/BlockLoader.i
+
+# target to preprocess a source file
+src/BlockLoader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/BlockLoader.cpp.i
+.PHONY : src/BlockLoader.cpp.i
+
+src/BlockLoader.s: src/BlockLoader.cpp.s
+.PHONY : src/BlockLoader.s
+
+# target to generate assembly for a file
+src/BlockLoader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/BlockLoader.cpp.s
+.PHONY : src/BlockLoader.cpp.s
+
 src/Camera.obj: src/Camera.cpp.obj
 .PHONY : src/Camera.obj
 
@@ -367,6 +391,54 @@ src/Camera.s: src/Camera.cpp.s
 src/Camera.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Camera.cpp.s
 .PHONY : src/Camera.cpp.s
+
+src/Chunk.obj: src/Chunk.cpp.obj
+.PHONY : src/Chunk.obj
+
+# target to build an object file
+src/Chunk.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Chunk.cpp.obj
+.PHONY : src/Chunk.cpp.obj
+
+src/Chunk.i: src/Chunk.cpp.i
+.PHONY : src/Chunk.i
+
+# target to preprocess a source file
+src/Chunk.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Chunk.cpp.i
+.PHONY : src/Chunk.cpp.i
+
+src/Chunk.s: src/Chunk.cpp.s
+.PHONY : src/Chunk.s
+
+# target to generate assembly for a file
+src/Chunk.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Chunk.cpp.s
+.PHONY : src/Chunk.cpp.s
+
+src/ChunkMesher.obj: src/ChunkMesher.cpp.obj
+.PHONY : src/ChunkMesher.obj
+
+# target to build an object file
+src/ChunkMesher.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj
+.PHONY : src/ChunkMesher.cpp.obj
+
+src/ChunkMesher.i: src/ChunkMesher.cpp.i
+.PHONY : src/ChunkMesher.i
+
+# target to preprocess a source file
+src/ChunkMesher.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.i
+.PHONY : src/ChunkMesher.cpp.i
+
+src/ChunkMesher.s: src/ChunkMesher.cpp.s
+.PHONY : src/ChunkMesher.s
+
+# target to generate assembly for a file
+src/ChunkMesher.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.s
+.PHONY : src/ChunkMesher.cpp.s
 
 src/EntityManager.obj: src/EntityManager.cpp.obj
 .PHONY : src/EntityManager.obj
@@ -584,6 +656,78 @@ src/Texture.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Texture.cpp.s
 .PHONY : src/Texture.cpp.s
 
+src/VoxelTypes.obj: src/VoxelTypes.cpp.obj
+.PHONY : src/VoxelTypes.obj
+
+# target to build an object file
+src/VoxelTypes.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/VoxelTypes.cpp.obj
+.PHONY : src/VoxelTypes.cpp.obj
+
+src/VoxelTypes.i: src/VoxelTypes.cpp.i
+.PHONY : src/VoxelTypes.i
+
+# target to preprocess a source file
+src/VoxelTypes.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/VoxelTypes.cpp.i
+.PHONY : src/VoxelTypes.cpp.i
+
+src/VoxelTypes.s: src/VoxelTypes.cpp.s
+.PHONY : src/VoxelTypes.s
+
+# target to generate assembly for a file
+src/VoxelTypes.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/VoxelTypes.cpp.s
+.PHONY : src/VoxelTypes.cpp.s
+
+src/WorldGenerator.obj: src/WorldGenerator.cpp.obj
+.PHONY : src/WorldGenerator.obj
+
+# target to build an object file
+src/WorldGenerator.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/WorldGenerator.cpp.obj
+.PHONY : src/WorldGenerator.cpp.obj
+
+src/WorldGenerator.i: src/WorldGenerator.cpp.i
+.PHONY : src/WorldGenerator.i
+
+# target to preprocess a source file
+src/WorldGenerator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/WorldGenerator.cpp.i
+.PHONY : src/WorldGenerator.cpp.i
+
+src/WorldGenerator.s: src/WorldGenerator.cpp.s
+.PHONY : src/WorldGenerator.s
+
+# target to generate assembly for a file
+src/WorldGenerator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/WorldGenerator.cpp.s
+.PHONY : src/WorldGenerator.cpp.s
+
+src/WorldManager.obj: src/WorldManager.cpp.obj
+.PHONY : src/WorldManager.obj
+
+# target to build an object file
+src/WorldManager.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/WorldManager.cpp.obj
+.PHONY : src/WorldManager.cpp.obj
+
+src/WorldManager.i: src/WorldManager.cpp.i
+.PHONY : src/WorldManager.i
+
+# target to preprocess a source file
+src/WorldManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/WorldManager.cpp.i
+.PHONY : src/WorldManager.cpp.i
+
+src/WorldManager.s: src/WorldManager.cpp.s
+.PHONY : src/WorldManager.s
+
+# target to generate assembly for a file
+src/WorldManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/WorldManager.cpp.s
+.PHONY : src/WorldManager.cpp.s
+
 src/editor/EntityEditor.obj: src/editor/EntityEditor.cpp.obj
 .PHONY : src/editor/EntityEditor.obj
 
@@ -656,30 +800,6 @@ src/glad.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/glad.c.s
 .PHONY : src/glad.c.s
 
-src/main.obj: src/main.cpp.obj
-.PHONY : src/main.obj
-
-# target to build an object file
-src/main.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/main.cpp.obj
-.PHONY : src/main.cpp.obj
-
-src/main.i: src/main.cpp.i
-.PHONY : src/main.i
-
-# target to preprocess a source file
-src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/main.cpp.i
-.PHONY : src/main.cpp.i
-
-src/main.s: src/main.cpp.s
-.PHONY : src/main.s
-
-# target to generate assembly for a file
-src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/main.cpp.s
-.PHONY : src/main.cpp.s
-
 src/stb.obj: src/stb.cpp.obj
 .PHONY : src/stb.obj
 
@@ -703,6 +823,30 @@ src/stb.s: src/stb.cpp.s
 src/stb.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/stb.cpp.s
 .PHONY : src/stb.cpp.s
+
+src/tests/multiChunkTest.obj: src/tests/multiChunkTest.cpp.obj
+.PHONY : src/tests/multiChunkTest.obj
+
+# target to build an object file
+src/tests/multiChunkTest.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj
+.PHONY : src/tests/multiChunkTest.cpp.obj
+
+src/tests/multiChunkTest.i: src/tests/multiChunkTest.cpp.i
+.PHONY : src/tests/multiChunkTest.i
+
+# target to preprocess a source file
+src/tests/multiChunkTest.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.i
+.PHONY : src/tests/multiChunkTest.cpp.i
+
+src/tests/multiChunkTest.s: src/tests/multiChunkTest.cpp.s
+.PHONY : src/tests/multiChunkTest.s
+
+# target to generate assembly for a file
+src/tests/multiChunkTest.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.s
+.PHONY : src/tests/multiChunkTest.cpp.s
 
 # Help Target
 help:
@@ -740,9 +884,18 @@ help:
 	@echo ... src/AnimationPlayer.obj
 	@echo ... src/AnimationPlayer.i
 	@echo ... src/AnimationPlayer.s
+	@echo ... src/BlockLoader.obj
+	@echo ... src/BlockLoader.i
+	@echo ... src/BlockLoader.s
 	@echo ... src/Camera.obj
 	@echo ... src/Camera.i
 	@echo ... src/Camera.s
+	@echo ... src/Chunk.obj
+	@echo ... src/Chunk.i
+	@echo ... src/Chunk.s
+	@echo ... src/ChunkMesher.obj
+	@echo ... src/ChunkMesher.i
+	@echo ... src/ChunkMesher.s
 	@echo ... src/EntityManager.obj
 	@echo ... src/EntityManager.i
 	@echo ... src/EntityManager.s
@@ -770,6 +923,15 @@ help:
 	@echo ... src/Texture.obj
 	@echo ... src/Texture.i
 	@echo ... src/Texture.s
+	@echo ... src/VoxelTypes.obj
+	@echo ... src/VoxelTypes.i
+	@echo ... src/VoxelTypes.s
+	@echo ... src/WorldGenerator.obj
+	@echo ... src/WorldGenerator.i
+	@echo ... src/WorldGenerator.s
+	@echo ... src/WorldManager.obj
+	@echo ... src/WorldManager.i
+	@echo ... src/WorldManager.s
 	@echo ... src/editor/EntityEditor.obj
 	@echo ... src/editor/EntityEditor.i
 	@echo ... src/editor/EntityEditor.s
@@ -779,12 +941,12 @@ help:
 	@echo ... src/glad.obj
 	@echo ... src/glad.i
 	@echo ... src/glad.s
-	@echo ... src/main.obj
-	@echo ... src/main.i
-	@echo ... src/main.s
 	@echo ... src/stb.obj
 	@echo ... src/stb.i
 	@echo ... src/stb.s
+	@echo ... src/tests/multiChunkTest.obj
+	@echo ... src/tests/multiChunkTest.i
+	@echo ... src/tests/multiChunkTest.s
 .PHONY : help
 
 

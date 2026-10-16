@@ -21,7 +21,7 @@ void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 	cameraMatrix = projection * view;
 }
 
-void Camera::Inputs(GLFWwindow* window)
+void Camera::Inputs(GLFWwindow* window, float delta)
 {
 
 	// Hides mouse cursor
@@ -68,32 +68,32 @@ void Camera::Inputs(GLFWwindow* window)
         // Handles key inputs
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		{
-			position += speed  * front ;
+			position += speed  * front * delta;
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		{
-			position += speed * -glm::normalize(glm::cross(front, up));
+			position += speed * -glm::normalize(glm::cross(front, up)) * delta;
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		{
-			position += speed * -front;
+			position += speed * -front * delta;
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		{
-			position += speed * glm::normalize(glm::cross(front, up));
+			position += speed * glm::normalize(glm::cross(front, up)) * delta;
 		}
 		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS )
 		{
 			//body.velocity.y = 0.0f;
-			position += speed * up;// * 20.0f;
+			position += speed * up * delta;// * 20.0f;
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 		{
-			position += speed * -up;
+			position += speed * -up * delta;
 		}
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		{
-			speed = baseSpeed * 3;
+			speed = baseSpeed * 25;
 		}
 		else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
 		{

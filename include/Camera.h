@@ -12,7 +12,7 @@
 class Camera
 {
     public:
-		const float baseSpeed = 0.002f; 
+		const float baseSpeed = 10.0f; 
 		float speed = baseSpeed; 
         glm::vec3 position;
 	    glm::vec3 orientation = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -35,7 +35,7 @@ class Camera
 	    // Updates the camera matrix
 	    void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
 	    // Handles camera inputs
-	    void Inputs(GLFWwindow* window);
+	    void Inputs(GLFWwindow* window, float delta);
 };
 
 

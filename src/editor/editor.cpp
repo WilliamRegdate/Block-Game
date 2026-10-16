@@ -41,9 +41,9 @@ int main()
     glViewport(0, 0, width, height);
 
 
-    ResourceEditor resourceController;
     Camera camera = Camera(width, height, glm::vec3(0, 1, -4));
     Renderer renderer = Renderer(&camera);
+    ResourceEditor resourceController = ResourceEditor(renderer);
 
     // Entity editor (F1). Created after the renderer, destroyed before the window.
     auto editor = std::make_unique<EntityEditor>(window, resourceController, renderer);
@@ -82,7 +82,7 @@ int main()
         // so the camera must not re-centre it every frame.
         editor->Update(delta);
         if (!editor->IsActive())
-            camera.Inputs(window);
+            camera.Inputs(window, delta);
 
         renderer.Render();
         editor->Render();   // draws on top of the scene, before the buffer swap

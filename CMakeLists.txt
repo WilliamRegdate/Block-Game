@@ -23,14 +23,23 @@ add_executable(MyProject
     src/Texture.cpp
     src/Animation.cpp
     src/AnimationPlayer.cpp
+    src/Chunk.cpp
+    src/ChunkMesher.cpp
+    src/VoxelTypes.cpp
+    src/WorldGenerator.cpp
+    src/ResourceController.cpp
+    src/WorldManager.cpp
+    src/BlockLoader.cpp
 
     src/editor/EntityEditor.cpp
     src/editor/ResourceEditor.cpp
 
-    src/main
-    # src/editor/editor.cpp
+    #src/main.cpp
+    #src/BenchmarkAnimated.cpp
+    #src/editor/editor.cpp
+    # src/tests/singleChunkTest.cpp
+    src/tests/multiChunkTest.cpp
 
-    src/ResourceController.cpp
     
 )
 
@@ -77,5 +86,3 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang
         target_link_options(MyProject PRIVATE -static)
     endif()
 endif()
-
-target_compile_options(MyProject PRIVATE -Wall -Wextra -Wuninitialized -Wmaybe-uninitialized -O2)

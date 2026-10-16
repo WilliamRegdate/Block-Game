@@ -17,6 +17,11 @@ namespace
     }
 }
 
+ResourceController::ResourceController(Renderer &renderer)
+    : renderer(renderer)
+{
+}
+
 ResourceController::~ResourceController()
 {
     for (auto& mesh : meshContainer)
@@ -47,7 +52,7 @@ Entity ResourceController::CreateEntity(const EntityBlueprint& blueprint, bool& 
     Entity entity;
 
     //load/ find model
-    const std::string meshFile = MeshFilePath(blueprint.meshID);
+    const std::string meshFile = resourcePath + modeldir + blueprint.meshID + "/model.gltf";
     Mesh* mesh = GetMesh(Hash(meshFile.c_str()));
     if (mesh == nullptr)
     {
@@ -128,11 +133,6 @@ bool ResourceController::GetBlueprint(const std::string& ID, EntityBlueprint& ou
 // Containers
 // ============================================================
 
-std::string ResourceController::MeshFilePath(const std::string& meshID) const
-{
-    return resourcePath + modeldir + meshID + "/model.gltf";
-}
-
 Mesh* ResourceController::GetMesh(uint32_t ID)
 {
     auto it = meshContainer.find(ID);
@@ -142,6 +142,53 @@ Material* ResourceController::GetMaterial(uint32_t ID)
 {
     auto it = materialContainer.find(ID);
     return it != materialContainer.end() ? &it->second : nullptr;
+}
+
+BlockType* ResourceController::GetOrLoadBlockType(uint32_t ID)
+{
+    auto it = blockTypeContainer.find(ID);
+    if (it != blockTypeContainer.end())
+    {
+        //does exist dont need anything else
+        return &it->second;
+    } 
+    //try to load block
+    std::vector<std::string> textures;
+    BlockType block = blockLoader.Load((resourcePath + blockPath + std::to_string(ID) + ".json").c_str(), textures);
+
+    //check if textures exist already
+    //if not store them
+    for (size_t i = 0; i < textures.size(); i++)
+    {
+        uint32_t layer = GetChunkTexture(textures[i]);
+        if (layer == UINT32_MAX)
+        {
+            renderer.AddChunkTexture((resourcePath + blockTexturePath + textures[i] + ".png").c_str(), layer);
+            AddChunkTexture(textures[i], layer);
+            
+        }
+        //set the layers of this block
+        if (block.tex_x_plus == i)
+            block.tex_x_plus = layer;
+        if (block.tex_x_minus == i)
+            block.tex_x_minus = layer;
+        if (block.tex_y_plus == i)
+            block.tex_y_plus = layer;
+        if (block.tex_y_minus == i)
+            block.tex_y_minus = layer;
+        if (block.tex_z_plus == i)
+            block.tex_z_plus = layer;
+        if (block.tex_z_minus == i)
+            block.tex_z_minus = layer;
+    }
+    AddBlockType(block);
+
+    return nullptr;
+}
+uint32_t ResourceController::GetChunkTexture(std::string name)
+{
+    auto it = chunkTextureContainer.find(Hash(name.c_str()));
+    return it != chunkTextureContainer.end() ? it->second : UINT32_MAX;
 }
 
 bool ResourceController::AddMesh(Mesh* mesh)
@@ -154,5 +201,17 @@ bool ResourceController::AddMaterial(Material material)
 {
     if (!material.ID) return false;
     auto pair = materialContainer.emplace(material.ID, material);
+    return pair.second;
+}
+
+bool ResourceController::AddBlockType(BlockType type)
+{
+    auto pair = blockTypeContainer.emplace(type.id, type);
+    return pair.second;
+}
+
+bool ResourceController::AddChunkTexture(std::string name, uint32_t layer)
+{
+    auto pair = chunkTextureContainer.emplace(Hash(name.c_str()), layer);
     return pair.second;
 }

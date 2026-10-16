@@ -7,6 +7,8 @@
 #include "Entity.h"
 #include "MeshLoader.h"
 #include "MaterialLoader.h"
+#include "BlockLoader.h"
+#include "Renderer.h"
 
 // One entry of entities.json. Only ids are stored, so swapping a mesh or
 // material is just changing a string.
@@ -27,6 +29,7 @@ struct EntityBlueprint
 class ResourceController
 {
     public:
+        explicit ResourceController(Renderer& renderer);
         // virtual: ResourceEditor derives from this
         virtual ~ResourceController();
 
@@ -46,6 +49,10 @@ class ResourceController
         Mesh* GetMesh(uint32_t ID);
         Material* GetMaterial(uint32_t ID);
 
+        
+        BlockType* GetOrLoadBlockType(uint32_t ID);
+        uint32_t GetChunkTexture(std::string name);
+
     protected:
 
         // protected so the derived editing class can find the same files
@@ -53,21 +60,32 @@ class ResourceController
         const std::string entityPath = "blueprints/entities.json";
         const std::string modeldir = "models/";
         const std::string materialPath = "materials/materials.json";
+        const std::string blockTexturePath = "textures/blocks/";
+        const std::string blockPath = "blocks/";
 
     private:
 
         MaterialLoader materialLoader;
         MeshLoader meshLoader;
+        BlockLoader blockLoader;
+
+        Renderer& renderer;
+
 
         //resource containers
         std::unordered_map<uint32_t, Mesh*> meshContainer;
         std::unordered_map<uint32_t, Material> materialContainer;
         std::unordered_map<uint32_t, BakedAnimationClip> animationContainer;
 
-        std::string MeshFilePath(const std::string& meshID) const;
+        std::unordered_map<uint32_t, uint32_t> chunkTextureContainer; // contains the texture layer for each texture
+        std::unordered_map<uint32_t, BlockType> blockTypeContainer; // contains info about block types
+
 
         bool AddMesh(Mesh* mesh);
         bool AddMaterial(Material material);
+
+        bool AddChunkTexture(std::string name, uint32_t layer);
+        bool AddBlockType(BlockType type);
 };
 
 #endif

@@ -32,8 +32,6 @@ struct EntityRendererConfig
     GLsizei materialTextureHeight = 0;
     GLenum  materialTextureFormat = GL_RGBA8;
 
-    // TODO: CHUNK - maxChunkMaterials * 3 layers are reserved (albedo/normal/orm).
-    // Revisit once the chunk material design is settled.
     uint32_t maxChunkMaterials = 0;
     GLsizei  chunkMaterialTextureWidth  = 16;
     GLsizei  chunkMaterialTextureHeight = 16;
@@ -69,7 +67,6 @@ class Allocator
 
         // entityManager is not owned. It must outlive the Allocator.
         Allocator(EntityRendererConfig config, EntityManager* entityManager);
-
         // Deletes every GL buffer/texture the allocator created. Safe to call twice.
         void Shutdown();
 
@@ -112,11 +109,13 @@ class Allocator
         // An empty mesh is valid and frees the chunk's mesh space.
         // On failure (no space) the chunk keeps whatever mesh it had before.
         bool UploadChunkMesh(uint64_t chunkID,
-                             const std::vector<ChunkVertex>& vertices,
-                             const std::vector<uint32_t>& quadTextures);
+                                const glm::vec3& worldPosition,
+                                const std::vector<ChunkVertex>& vertices,
+                                const std::vector<uint32_t>& indices,
+                                const std::vector<uint32_t>& triangleTextures);
 
         // Rewrites the chunk's ChunkInstanceData entry from its tracker.
-        bool UploadChunkInstanceData(uint64_t chunkID);
+        bool UploadChunkInstanceData(const glm::ivec3& chunkPosition, uint64_t chunkID);
 
         // Fills the indirect command that draws this chunk. Returns false if the
         // chunk is unknown or has no mesh (nothing to draw).
@@ -141,21 +140,20 @@ class Allocator
         VBO&          ChunkVBO()                { return chunkVBO.buffer; }
         EBO&          ChunkEBO()                { return chunkEBO.buffer; }
         SSBO&         ChunkInstanceSSBO()       { return chunkInstanceDataSSBO.buffer; }
-        SSBO&         ChunkQuadTextureSSBO()    { return chunkQuadTextureSSBO.buffer; }
+        SSBO&         ChunkTriTextureSSBO()     { return chunkTriTextureSSBO.buffer; }
         TextureArray& ChunkTextureArray()       { return chunkTextureArray.buffer;}
 
 
         bool BuildInstanceData(Entity& entity, InstanceData& out, EntityHandle& handle);
+        bool BuildChunkInstanceData(const glm::ivec3& chunkPosition, uint64_t chunkID, ChunkInstanceData& out, ChunkHandle& handle);
 
         // Writes `count` consecutive InstanceData starting at `firstSlot` in one call.
         void UploadInstanceRange(bool skinned, uint32_t firstSlot, const InstanceData* data, uint32_t count);
-
-
-        // bool RegisterAnimation(BakedAnimationClip& clip);
-
-        // // Drops one reference; frees the animation's pose range and
-        // // descriptor slot once nothing references it any more.
-        // void UnregisterAnimation(uint32_t animationID);
+        
+        static constexpr uint32_t INVALID_CHUNK_TEXTURE = 0xFFFFFFFFu;
+        void GenerateMaterialMipmaps();
+        void GenerateChunkTextureMipmaps();
+        uint32_t AddChunkTexture(Texture& texture);
 
     private:
         EntityManager* entityManager; // not owned, declared first: constructed first
@@ -185,7 +183,7 @@ class Allocator
         BufferTracker<SSBO> chunkInstanceDataSSBO; // stores per chunk data
         // One uint32 per quad. Has NO free list of its own: it mirrors chunkEBO's
         // address space, so a chunk's quads live at indexRange.start / 6.
-        BufferTracker<SSBO> chunkQuadTextureSSBO;
+        BufferTracker<SSBO> chunkTriTextureSSBO;
         BufferTracker<TextureArray> chunkTextureArray; // holds every  chunk material's albedo/normal/orm textures as layers
 
         // 0,1,2, 2,1,3, 4,5,6, 6,5,7, ... Every chunk's indices are chunk-local, so a
@@ -230,16 +228,13 @@ class Allocator
         // Used by remesh (when the size changes), by empty meshes, and by DeallocateChunk.
         void FreeChunkMeshRanges(ChunkHandle& handle);
 
-        // Uploads clip's baked poses and an AnimationDescriptor into space
-        // AllocateAnimation already reserved (tracker.handle). Separate
-        // from AllocateAnimation itself (unlike AllocateMaterial, which
-        // currently calls UploadMaterialData internally) so RegisterAnimation
-        // below calls it exactly once per new animation, not twice.
+        
 
-    public:
-        void GenerateMaterialMipmaps();
-    private:
+        // Frees the layer. Chunks whose meshes still use this index will sample
+        // whatever is uploaded there next, so only remove textures nothing references.
+        bool RemoveChunkTexture(const std::string& path);
         bool materialMipsDirty = false;
+        bool chunkMipsDirty = false;
 };
 
 #endif

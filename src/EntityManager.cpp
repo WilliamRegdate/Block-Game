@@ -89,3 +89,19 @@ ChunkTracker* EntityManager::GetChunk(int64_t chunkID)
     auto it = m_chunks.find(chunkID);
     return it != m_chunks.end() ? &it->second : nullptr;
 }
+bool EntityManager::AddChunkTexture(const std::string& path, ChunkTextureTracker& tracker)
+{
+    auto result = m_chunkTextures.emplace(path, tracker);
+    return result.second; // false if this path is already registered
+}
+
+void EntityManager::RemoveChunkTexture(const std::string& path)
+{
+    m_chunkTextures.erase(path);
+}
+
+ChunkTextureTracker* EntityManager::GetChunkTexture(const std::string& path)
+{
+    auto it = m_chunkTextures.find(path);
+    return it != m_chunkTextures.end() ? &it->second : nullptr;
+}

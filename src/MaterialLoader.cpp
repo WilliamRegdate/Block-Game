@@ -45,10 +45,6 @@ std::string ResolveResourcePath(const std::string& path)
 
 } // namespace
 
-
-MaterialLoader::MaterialLoader() {}
-
-
 std::vector<Material> MaterialLoader::Load(const char* filePath)
 {
     std::vector<Material> materials;

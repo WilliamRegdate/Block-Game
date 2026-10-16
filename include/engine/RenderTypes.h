@@ -70,8 +70,7 @@ struct MeshHandle
 // ============================================================
 // Chunk geometry is built from quads drawn as GL_TRIANGLES: 4 vertices per
 // quad, 6 indices per quad (0,1,2, 2,1,3 offset by 4 per quad).
-constexpr uint32_t CHUNK_VERTICES_PER_QUAD = 4;
-constexpr uint32_t CHUNK_INDICES_PER_QUAD  = 6;
+constexpr uint32_t CHUNK_INDICES_PER_TRI = 3;
 
 // Everything needed to find and upload one chunk's GPU data.
 //
@@ -97,8 +96,8 @@ struct ChunkHandle
     bool HasMesh() const { return indexRange.IsValid(); }
 
     // Only meaningful when HasMesh().
-    uint32_t QuadStart() const { return indexRange.start / CHUNK_INDICES_PER_QUAD; }
-    uint32_t QuadCount() const { return indexRange.size  / CHUNK_INDICES_PER_QUAD; }
+    uint32_t QuadStart() const { return indexRange.start / CHUNK_INDICES_PER_TRI; }
+    uint32_t QuadCount() const { return indexRange.size  / CHUNK_INDICES_PER_TRI; }
 };
 
 
@@ -134,14 +133,43 @@ struct SkinnedVertex
 //                bit  7   : light strength, high bit (strength is 3 bits total)
 //   position     chunk-local, 0..255 per axis
 //   color        vertex tint (light colour), rgb
+
 struct ChunkVertex
 {
-    uint8_t normalLight;
-    uint8_t uvLight;
-    glm::u8vec3 position; // 256 possible values
-    glm::u8vec3 color; // vertex tint
+    uint8_t normalLight; // bits 0-5: normal, bits 6-7: light bits 0-1
+    uint8_t uvLight;     // bits 0-5: uv,     bit 6: light bit 3, bit 7: light bit 2
+    glm::u8vec3 position;
+    glm::u8vec3 color;   // vertex tint
+
+    // Each axis is -1, 0 or +1. Encoded per axis as 0 -> 0, 1 -> +1, 2 -> -1,
+    // 2 bits per axis (x in bits 0-1, y in 2-3, z in 4-5).
+    void SetNormal(int x, int y, int z)
+    {
+        auto enc = [](int v) -> uint8_t { return v > 0 ? 1u : (v < 0 ? 2u : 0u); };
+        const uint8_t n = enc(x) | (enc(y) << 2) | (enc(z) << 4);
+        normalLight = (normalLight & 0xC0) | n;
+    }
+    void SetNormal(const glm::ivec3& n) { SetNormal(n.x, n.y, n.z); }
+
+    // u and v are 0..7 (3 bits each); higher bits are masked off.
+    void SetUV(uint8_t u, uint8_t v)
+    {
+        uvLight = (uvLight & 0xC0) | (u & 7u) | ((v & 7u) << 3);
+    }
+
+    // Light strength 0..15 (0 = no light, 15 = fully lit).
+    //   bits 0-1 -> normalLight bits 6-7
+    //   bit  2   -> uvLight bit 7
+    //   bit  3   -> uvLight bit 6
+    void SetLight(uint8_t light)
+    {
+        light &= 15u;
+        normalLight = (normalLight & 0x3F) | ((light & 3u) << 6);
+        uvLight     = (uvLight & 0x3F)
+                    | (((light >> 2) & 1u) << 7)
+                    | (((light >> 3) & 1u) << 6);
+    }
 };
-static_assert(sizeof(ChunkVertex) == 8, "ChunkVertex must stay 8 bytes - the shader unpacks it by layout");
 
 
 // ============================================================

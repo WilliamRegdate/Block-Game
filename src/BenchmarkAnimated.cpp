@@ -111,7 +111,7 @@ int main()
             return -1;
         }
 
-        Camera camera = Camera(width, height, glm::vec3(0, 0, 160));
+        Camera camera = Camera(width, height, glm::vec3(0, 0, 0));
         Renderer renderer = Renderer(&camera);
 
         std::mt19937 rng(12345);
