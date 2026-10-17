@@ -5,6 +5,7 @@ WorldManager::WorldManager(Renderer &renderer, ResourceController& manager)
 {
     //TODO: need more robust block type preloading tokeep thread safety
     resourceController.GetOrLoadBlockType(generator.stone.ID);
+    resourceController.GetOrLoadBlockType(generator.cobblestone.ID);
     resourceController.GetOrLoadBlockType(generator.log.ID);
     resourceController.GetOrLoadBlockType(generator.mud.ID);
     resourceController.GetOrLoadBlockType(generator.water.ID);
@@ -12,6 +13,7 @@ WorldManager::WorldManager(Renderer &renderer, ResourceController& manager)
     resourceController.GetOrLoadBlockType(generator.sand.ID);
     resourceController.GetOrLoadBlockType(generator.grass.ID);
     resourceController.GetOrLoadBlockType(generator.redSand.ID);
+
 }
 
 WorldManager::~WorldManager()

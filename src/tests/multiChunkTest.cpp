@@ -61,8 +61,8 @@ int main()
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // ---- Frame timing ----
     double lastReport = glfwGetTime();
@@ -92,7 +92,7 @@ int main()
         currentTime = glfwGetTime();
         delta = currentTime - lastFrameTime;
         lastFrameTime     = currentTime;
-        glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+        glClearColor(0.45f, 0.68f, 0.83f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.Inputs(window, float(delta));

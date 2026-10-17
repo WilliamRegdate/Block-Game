@@ -1,181 +1,181 @@
 [
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Camera.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Camera.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Camera.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Camera.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/Camera.cpp",
   "output": "CMakeFiles/MyProject.dir/src/Camera.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Allocator.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Allocator.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Allocator.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Allocator.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/Allocator.cpp",
   "output": "CMakeFiles/MyProject.dir/src/Allocator.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\EntityManager.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\EntityManager.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\EntityManager.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\EntityManager.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/EntityManager.cpp",
   "output": "CMakeFiles/MyProject.dir/src/EntityManager.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe  @CMakeFiles/MyProject.dir/includes_C.rsp -g -o CMakeFiles\\MyProject.dir\\src\\glad.c.obj -c D:\\apps\\GitHub\\Block-Game\\src\\glad.c",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe  @CMakeFiles/MyProject.dir/includes_C.rsp -O3 -DNDEBUG -o CMakeFiles\\MyProject.dir\\src\\glad.c.obj -c D:\\apps\\GitHub\\Block-Game\\src\\glad.c",
   "file": "D:/apps/GitHub/Block-Game/src/glad.c",
   "output": "CMakeFiles/MyProject.dir/src/glad.c.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\MaterialLoader.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\MaterialLoader.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\MaterialLoader.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\MaterialLoader.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/MaterialLoader.cpp",
   "output": "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Mesh.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Mesh.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Mesh.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Mesh.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/Mesh.cpp",
   "output": "CMakeFiles/MyProject.dir/src/Mesh.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\MeshLoader.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\MeshLoader.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\MeshLoader.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\MeshLoader.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/MeshLoader.cpp",
   "output": "CMakeFiles/MyProject.dir/src/MeshLoader.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Renderer.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Renderer.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Renderer.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Renderer.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/Renderer.cpp",
   "output": "CMakeFiles/MyProject.dir/src/Renderer.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\RenderTypes.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\RenderTypes.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\RenderTypes.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\RenderTypes.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/RenderTypes.cpp",
   "output": "CMakeFiles/MyProject.dir/src/RenderTypes.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Shader.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Shader.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Shader.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Shader.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/Shader.cpp",
   "output": "CMakeFiles/MyProject.dir/src/Shader.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\stb.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\stb.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\stb.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\stb.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/stb.cpp",
   "output": "CMakeFiles/MyProject.dir/src/stb.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Texture.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Texture.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Texture.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Texture.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/Texture.cpp",
   "output": "CMakeFiles/MyProject.dir/src/Texture.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Animation.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Animation.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Animation.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Animation.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/Animation.cpp",
   "output": "CMakeFiles/MyProject.dir/src/Animation.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\AnimationPlayer.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\AnimationPlayer.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\AnimationPlayer.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\AnimationPlayer.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/AnimationPlayer.cpp",
   "output": "CMakeFiles/MyProject.dir/src/AnimationPlayer.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Chunk.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Chunk.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Chunk.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Chunk.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/Chunk.cpp",
   "output": "CMakeFiles/MyProject.dir/src/Chunk.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\ChunkMesher.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\ChunkMesher.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\ChunkMesher.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\ChunkMesher.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/ChunkMesher.cpp",
   "output": "CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\VoxelTypes.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\VoxelTypes.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\VoxelTypes.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\VoxelTypes.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/VoxelTypes.cpp",
   "output": "CMakeFiles/MyProject.dir/src/VoxelTypes.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\WorldGenerator.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\WorldGenerator.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\WorldGenerator.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\WorldGenerator.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/WorldGenerator.cpp",
   "output": "CMakeFiles/MyProject.dir/src/WorldGenerator.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\ResourceController.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\ResourceController.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\ResourceController.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\ResourceController.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/ResourceController.cpp",
   "output": "CMakeFiles/MyProject.dir/src/ResourceController.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\WorldManager.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\WorldManager.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\WorldManager.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\WorldManager.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/WorldManager.cpp",
   "output": "CMakeFiles/MyProject.dir/src/WorldManager.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\BlockLoader.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\BlockLoader.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\BlockLoader.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\BlockLoader.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/BlockLoader.cpp",
   "output": "CMakeFiles/MyProject.dir/src/BlockLoader.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\editor\\EntityEditor.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\editor\\EntityEditor.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\editor\\EntityEditor.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\editor\\EntityEditor.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/editor/EntityEditor.cpp",
   "output": "CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\editor\\ResourceEditor.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\editor\\ResourceEditor.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\editor\\ResourceEditor.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\editor\\ResourceEditor.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/editor/ResourceEditor.cpp",
   "output": "CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\tests\\multiChunkTest.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\tests\\multiChunkTest.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\tests\\multiChunkTest.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\tests\\multiChunkTest.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/tests/multiChunkTest.cpp",
   "output": "CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\imgui.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\imgui.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\imgui.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\imgui.cpp",
   "file": "D:/apps/GitHub/Block-Game/external/imgui/imgui.cpp",
   "output": "CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\imgui_draw.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\imgui_draw.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\imgui_draw.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\imgui_draw.cpp",
   "file": "D:/apps/GitHub/Block-Game/external/imgui/imgui_draw.cpp",
   "output": "CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\imgui_tables.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\imgui_tables.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\imgui_tables.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\imgui_tables.cpp",
   "file": "D:/apps/GitHub/Block-Game/external/imgui/imgui_tables.cpp",
   "output": "CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\imgui_widgets.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\imgui_widgets.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\imgui_widgets.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\imgui_widgets.cpp",
   "file": "D:/apps/GitHub/Block-Game/external/imgui/imgui_widgets.cpp",
   "output": "CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\backends\\imgui_impl_glfw.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\backends\\imgui_impl_glfw.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\backends\\imgui_impl_glfw.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\backends\\imgui_impl_glfw.cpp",
   "file": "D:/apps/GitHub/Block-Game/external/imgui/backends/imgui_impl_glfw.cpp",
   "output": "CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\backends\\imgui_impl_opengl3.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\backends\\imgui_impl_opengl3.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\external\\imgui\\backends\\imgui_impl_opengl3.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\external\\imgui\\backends\\imgui_impl_opengl3.cpp",
   "file": "D:/apps/GitHub/Block-Game/external/imgui/backends/imgui_impl_opengl3.cpp",
   "output": "CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.obj"
 }

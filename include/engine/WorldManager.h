@@ -11,7 +11,7 @@
 class WorldManager
 {
     public:
-        uint32_t renderDistance = 6;
+        uint32_t renderDistance = 16;
         
         explicit WorldManager(Renderer& renderer, ResourceController& manager);
         ~WorldManager();

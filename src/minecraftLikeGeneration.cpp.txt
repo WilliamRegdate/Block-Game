@@ -1,0 +1,412 @@
+#include "WorldGenerator.h"
+#include <algorithm>
+#include <cmath>
+
+namespace
+{
+    // Minecraft's octave noise: octave i has frequency f0 * 0.5^i and amplitude 2^i
+    // (coarsest octave dominates). FastNoiseLite FBm with lacunarity 0.5 and gain 2.0
+    // gives exactly that shape, but it normalises the result by 1/(2^n - 1).
+    // Multiplying by (2^n - 1) restores Minecraft's raw value range.
+    constexpr float kAmp16 = 65535.0f;
+    constexpr float kAmp10 = 1023.0f;
+    constexpr float kAmp8  = 255.0f;
+    constexpr float kAmp4  = 15.0f;
+    constexpr float kAmp2  = 3.0f;
+
+    constexpr float kTerrainScale = 684.412f;
+
+    // Cold biomes get a snow top block instead of grass (Beta used a snow layer in populate)
+    constexpr bool kSnowOnColdBiomes = true;
+
+    void ConfigureOctaves(FastNoiseLite& n, FastNoiseLite::NoiseType type,
+                          int seed, int octaves, float lacunarity)
+    {
+        n.SetSeed(seed);
+        n.SetNoiseType(type);
+        n.SetFrequency(1.0f);
+        n.SetFractalType(FastNoiseLite::FractalType_FBm);
+        n.SetFractalOctaves(octaves);
+        n.SetFractalLacunarity(lacunarity);
+        n.SetFractalGain(2.0f);
+    }
+
+    inline int FloorDiv(int a, int b)
+    {
+        int q = a / b;
+        if ((a % b != 0) && ((a < 0) != (b < 0))) --q;
+        return q;
+    }
+
+    inline uint64_t Key(int a, int b)
+    {
+        return (uint64_t(uint32_t(a)) << 32) | uint64_t(uint32_t(b));
+    }
+
+    inline float Lerp(float a, float b, float t) { return a + (b - a) * t; }
+}
+
+WorldGenerator::WorldGenerator(int64_t worldSeed)
+    : seed(static_cast<int32_t>(worldSeed))
+{
+    using FNL = FastNoiseLite;
+
+    // ---- terrain (Perlin, like Minecraft) ----
+    ConfigureOctaves(noise1, FNL::NoiseType_OpenSimplex2, seed + 1, 16, 0.3f);
+    ConfigureOctaves(noise2, FNL::NoiseType_OpenSimplex2, seed + 2, 16, 0.5f);
+    ConfigureOctaves(noise3, FNL::NoiseType_OpenSimplex2, seed + 3, 8, 0.5f);
+    ConfigureOctaves(noise6, FNL::NoiseType_OpenSimplex2, seed + 4, 10, 0.5f);
+    ConfigureOctaves(noise7, FNL::NoiseType_OpenSimplex2, seed + 5, 16, 0.5f);
+
+    // ---- surface ----
+    ConfigureOctaves(sandNoise,  FNL::NoiseType_OpenSimplex2, seed + 6, 4, 0.5f);
+    ConfigureOctaves(stoneNoise, FNL::NoiseType_OpenSimplex2, seed + 7, 4, 0.5f);
+
+    // ---- climate (simplex, Minecraft seeds these with seed*9871 / *39811 / *543321) ----
+    // Frequency steps *down* per octave (0.25, 1/3, 1/1.7) while amplitude doubles.
+    ConfigureOctaves(temperatureNoise, FNL::NoiseType_OpenSimplex2,
+                     static_cast<int32_t>(worldSeed * 9871LL), 4, 0.25f);
+    temperatureNoise.SetFrequency(0.025f / 1.5f);
+
+    ConfigureOctaves(humidityNoise, FNL::NoiseType_OpenSimplex2,
+                     static_cast<int32_t>(worldSeed * 39811LL), 4, 1.0f / 3.0f);
+    humidityNoise.SetFrequency(0.05f / 1.5f);
+
+    ConfigureOctaves(biomeNoise, FNL::NoiseType_OpenSimplex2,
+                     static_cast<int32_t>(worldSeed * 543321LL), 2, 1.0f / 1.7f);
+    biomeNoise.SetFrequency(0.25f / 1.5f);
+
+    // ---- placeholder caves ----
+    caveA.SetSeed(seed + 8);
+    caveA.SetNoiseType(FNL::NoiseType_OpenSimplex2);
+    caveA.SetFrequency(0.02f);
+
+    caveB.SetSeed(seed + 9);
+    caveB.SetNoiseType(FNL::NoiseType_OpenSimplex2);
+    caveB.SetFrequency(0.02f);
+}
+
+// ---------------------------------------------------------------------------
+// Hashing (replaces Minecraft's per-chunk java.util.Random in the surface pass)
+// ---------------------------------------------------------------------------
+uint32_t WorldGenerator::Hash(int x, int y, int z, uint32_t salt) const
+{
+    uint64_t h = uint64_t(uint32_t(seed)) * 0x9E3779B97F4A7C15ull;
+    h ^= uint64_t(uint32_t(x)) * 0xBF58476D1CE4E5B9ull;
+    h ^= uint64_t(uint32_t(y)) * 0x94D049BB133111EBull;
+    h ^= uint64_t(uint32_t(z)) * 0xD6E8FEB86659FD93ull;
+    h ^= uint64_t(salt) * 0xA24BAED4963EE407ull;
+    h ^= h >> 32;
+    h *= 0xD6E8FEB86659FD93ull;
+    h ^= h >> 32;
+    return uint32_t(h);
+}
+
+float WorldGenerator::Hash01(int x, int y, int z, uint32_t salt) const
+{
+    return float(Hash(x, y, z, salt) >> 8) / 16777216.0f;
+}
+
+// ---------------------------------------------------------------------------
+// Climate -> biome
+// ---------------------------------------------------------------------------
+void WorldGenerator::Climate(int x, int z, float& temperature, float& humidity) const
+{
+    const float fx = float(x), fz = float(z);
+
+    const float t = temperatureNoise.GetNoise(fx, fz) * 0.55f * kAmp4;
+    const float h = humidityNoise.GetNoise(fx, fz)    * 0.55f * kAmp4;
+    const float n = biomeNoise.GetNoise(fx, fz)       * 0.55f * kAmp2;
+
+    const float d = n * 1.1f + 0.5f;
+
+    float w = 0.01f;
+    float temp = (t * 0.15f + 0.7f) * (1.0f - w) + d * w;
+
+    w = 0.002f;
+    float humid = (h * 0.15f + 0.5f) * (1.0f - w) + d * w;
+
+    temp = 1.0f - (1.0f - temp) * (1.0f - temp);
+
+    temperature = std::clamp(temp, 0.0f, 1.0f);
+    humidity = std::clamp(humid, 0.0f, 1.0f);
+}
+
+// This is BiomeGenBase.getBiome(temp, humid) behind the 64x64 lookup table.
+WorldGenerator::Biome WorldGenerator::BiomeFromClimate(float temperature, float humidity)
+{
+    const float t = float(int(temperature * 63.0f)) / 63.0f;
+    float h = float(int(humidity * 63.0f)) / 63.0f;
+    h *= t;
+
+    if (t < 0.1f) return Biome::Tundra;
+    if (h < 0.2f)
+    {
+        if (t < 0.5f) return Biome::Tundra;
+        if (t < 0.95f) return Biome::Savanna;
+        return Biome::Desert;
+    }
+    if (h > 0.5f && t < 0.7f) return Biome::Swampland;
+    if (t < 0.5f) return Biome::Taiga;
+    if (t < 0.97f)
+    {
+        if (h < 0.35f) return Biome::Shrubland;
+        return Biome::Forest;
+    }
+    if (h < 0.45f) return Biome::Plains;
+    if (h < 0.9f) return Biome::SeasonalForest;
+    return Biome::Rainforest;
+}
+
+// ---------------------------------------------------------------------------
+// Density field (initializeNoiseField)
+// ---------------------------------------------------------------------------
+void WorldGenerator::BuildColumn(int gx, int gz, Column& col)
+{
+    float temp, humid;
+    Climate(gx * 4, gz * 4, temp, humid);
+    humid *= temp;
+
+    float climate = 1.0f - humid;
+    climate *= climate;
+    climate *= climate;
+    climate = 1.0f - climate;
+
+    // "scale" noise: how strongly the terrain varies
+    float scale = (noise6.GetNoise(gx * 1.121f, gz * 1.121f) * kAmp10 + 256.0f) / 512.0f;
+    scale *= climate;
+    if (scale > 1.0f) scale = 1.0f;
+
+    // "depth" noise: moves the whole column up/down (oceans vs land)
+    float depth = noise7.GetNoise(gx * 200.0f, gz * 200.0f) * kAmp16 / 8000.0f;
+    if (depth < 0.0f) depth = -depth * 0.3f;
+    depth = depth * 3.0f - 2.0f;
+
+    if (depth < 0.0f)
+    {
+        depth /= 2.0f;
+        if (depth < -1.0f) depth = -1.0f;
+        depth /= 1.4f;
+        depth /= 2.0f;
+        scale = 0.0f;
+    }
+    else
+    {
+        if (depth > 1.0f) depth = 1.0f;
+        depth /= 8.0f;
+    }
+
+    if (scale < 0.0f) scale = 0.0f;
+    scale += 0.5f;
+
+    depth = depth * float(GRID_Y) / 16.0f;
+    const float centre = float(GRID_Y) / 2.0f + depth * 4.0f;
+
+    for (int k = 0; k < GRID_Y; ++k)
+    {
+        // vertical bias: positive below `centre`, negative above
+        float bias = (float(k) - centre) * 12.0f / scale;
+        if (bias < 0.0f) bias *= 4.0f; // stronger push-down above the surface
+
+        const float fx = gx * kTerrainScale;
+        const float fy = k * kTerrainScale;
+        const float fz = gz * kTerrainScale;
+
+        const float low  = noise1.GetNoise(fx, fy, fz) * kAmp16 / 512.0f;
+        const float high = noise2.GetNoise(fx, fy, fz) * kAmp16 / 512.0f;
+        const float sel  = (noise3.GetNoise(gx * (kTerrainScale / 80.0f),
+                                            k  * (kTerrainScale / 160.0f),
+                                            gz * (kTerrainScale / 80.0f)) * kAmp8 / 10.0f + 1.0f) / 2.0f;
+
+        float d;
+        if (sel < 0.0f) d = low;
+        else if (sel > 1.0f) d = high;
+        else d = low + (high - low) * sel;
+
+        d -= bias;
+
+        // fade to empty near the top of the world
+        if (k > GRID_Y - 4)
+        {
+            const float f = float(k - (GRID_Y - 4)) / 3.0f;
+            d = d * (1.0f - f) + -10.0f * f;
+        }
+
+        col.d[k] = d;
+    }
+}
+
+const WorldGenerator::Column& WorldGenerator::GetColumn(int gx, int gz)
+{
+    const uint64_t key = Key(gx, gz);
+    auto& cache = GetCaches().columns;
+    auto it = cache.find(key);
+    if (it != cache.end()) return it->second;
+
+    Column& col = cache[key];
+    BuildColumn(gx, gz, col);
+    return col;
+
+
+}
+
+// Trilinear interpolation inside a 4 x 8 x 4 cell.
+float WorldGenerator::Density(int x, int y, int z)
+{
+    const int gx = FloorDiv(x, 4);
+    const int gz = FloorDiv(z, 4);
+    const int cy = y >> 3;
+
+    const float fx = float(x - gx * 4) * 0.25f;
+    const float fz = float(z - gz * 4) * 0.25f;
+    const float fy = float(y & 7) * 0.125f;
+
+    const Column& a = GetColumn(gx,     gz);
+    const Column& b = GetColumn(gx + 1, gz);
+    const Column& c = GetColumn(gx,     gz + 1);
+    const Column& d = GetColumn(gx + 1, gz + 1);
+
+    auto at = [&](const Column& col) { return Lerp(col.d[cy], col.d[cy + 1], fy); };
+
+    return Lerp(Lerp(at(a), at(b), fx), Lerp(at(c), at(d), fx), fz);
+}
+
+bool WorldGenerator::IsSolid(int x, int y, int z)
+{
+    if (y >= WORLD_HEIGHT) return false;
+    if (y < 0) return true;
+    return Density(x, y, z) > 0.0f;
+}
+
+// ---------------------------------------------------------------------------
+// Surface info (per-column data that Minecraft computes once per chunk)
+// ---------------------------------------------------------------------------
+const WorldGenerator::SurfaceInfo& WorldGenerator::GetSurface(int x, int z)
+{
+    const int cx = FloorDiv(x, 16);
+    const int cz = FloorDiv(z, 16);
+
+    SurfaceChunk& chunk = GetCaches().surfaces[Key(cx, cz)];
+    if (!chunk.ready)
+    {
+        constexpr float s = 0.03125f;
+
+        for (int lz = 0; lz < 16; ++lz)
+        for (int lx = 0; lx < 16; ++lx)
+        {
+            const int wx = cx * 16 + lx;
+            const int wz = cz * 16 + lz;
+            SurfaceInfo& info = chunk.cols[lz * 16 + lx];
+
+            float temp, humid;
+            Climate(wx, wz, temp, humid);
+            info.temperature = temp;
+            info.biome = BiomeFromClimate(temp, humid);
+
+            const float sandV   = sandNoise.GetNoise(wx * s, 0.0f, wz * s) * kAmp4;
+            const float gravelV = sandNoise.GetNoise(wx * s, 109.0134f, wz * s) * kAmp4;
+            const float stoneV  = stoneNoise.GetNoise(wx * s * 2.0f, wz * s * 2.0f) * kAmp4;
+
+            info.sandy    = sandV   + Hash01(wx, 0, wz, 11) * 0.2f > 0.0f;
+            info.gravelly = gravelV + Hash01(wx, 0, wz, 12) * 0.2f > 3.0f;
+            info.depth    = int(stoneV / 3.0f + 3.0f + Hash01(wx, 0, wz, 13) * 0.25f);
+            info.sandstoneExtra = int(Hash(wx, 0, wz, 14) % 4u);
+        }
+        chunk.ready = true;
+    }
+
+    return chunk.cols[(z - cz * 16) * 16 + (x - cx * 16)];
+}
+
+// replaceBlocksForBiome, rewritten as a per-block query.
+// Called only for blocks that are solid in the density field.
+Voxel WorldGenerator::SurfaceBlock(const SurfaceInfo& s, int x, int y, int z)
+{
+    if (s.depth <= 0) return stone;
+
+    // How far below the surface block are we? (walk up until open air)
+    const int limit = s.depth + 3;
+    int up = 0;
+    while (up <= limit && IsSolid(x, y + up + 1, z)) ++up;
+    if (up > limit) return stone;
+
+    const int topY = y + up;
+
+    // Biome top / filler
+    Voxel top = grass;
+    Voxel filler = mud;
+    bool fillerIsSand = false;
+
+    switch (s.biome)
+    {
+        case Biome::Desert:
+            top = sand; filler = sand; fillerIsSand = true;
+            break;
+        case Biome::Tundra:
+        case Biome::Taiga:
+            if (kSnowOnColdBiomes && topY >= SEA_LEVEL) top = snow;
+            break;
+        default:
+            break;
+    }
+
+    // Beaches: sand / gravel patches near sea level
+    if (topY >= SEA_LEVEL - 4 && topY <= SEA_LEVEL + 1)
+    {
+        if (s.gravelly) { top = gravel; filler = gravel; fillerIsSand = false; }
+        if (s.sandy)    { top = sand;   filler = sand;   fillerIsSand = true;  }
+    }
+
+    if (up == 0) return top;
+    if (up <= s.depth) return filler;
+    if (fillerIsSand && s.sandstoneExtra > 0 && up <= s.depth + s.sandstoneExtra) return sandstone;
+    return stone;
+}
+
+// Placeholder: two intersecting noise "tunnels". Minecraft's MapGenCaves is a random-walk
+// worm carver that needs a chunk block array (see MapGenBase), so it can't be done
+// faithfully in a pure per-block query.
+bool WorldGenerator::IsCave(int x, int y, int z)
+{
+    if (y < 5 || y > 56) return false;
+    if (!IsSolid(x, y + 1, z)) return false; // don't open up the surface / ocean floor
+
+    constexpr float width = 0.07f;
+    return std::abs(caveA.GetNoise(float(x), float(y), float(z))) < width
+        && std::abs(caveB.GetNoise(float(x) + 173.0f, float(y), float(z) - 91.0f)) < width;
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+Voxel WorldGenerator::GetBlockAt(int x, int y, int z)
+{
+    if (y < 0 || y >= WORLD_HEIGHT) return air;
+
+    Caches& cache = GetCaches();
+    if (cache.owner != this)             // a different generator (or new world) used this thread
+    {
+        cache.columns.clear();
+        cache.surfaces.clear();
+        cache.owner = this;
+    }
+    if (cache.columns.size() > kMaxCachedColumns) cache.columns.clear();
+    if (cache.surfaces.size() > kMaxCachedChunks) cache.surfaces.clear();
+
+    const SurfaceInfo& s = GetSurface(x, z);
+
+    // Air / water / ice: anything that isn't solid in the density field
+    if (!IsSolid(x, y, z))
+    {
+        if (y < SEA_LEVEL)
+            return (s.temperature < 0.5f && y >= SEA_LEVEL - 1) ? ice : water;
+        return air;
+    }
+
+    // Bedrock: y=0 always, then 80%, 60%, 40%, 20% for y=1..4
+    if (y <= int(Hash(x, y, z, 2) % 5u)) return bedrock;
+
+    if (IsCave(x, y, z)) return y < 10 ? lava : air;
+
+    return SurfaceBlock(s, x, y, z);
+}

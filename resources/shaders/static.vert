@@ -11,7 +11,7 @@ struct InstanceData
     mat4 transform;
     uint meshID;
     uint materialID;
-    uint animOffset; // unused here - static meshes don't animate
+    uint animOffset;
     uint _pad0;
 };
 layout(std430, binding = 0) readonly buffer InstanceDataBuffer
@@ -32,10 +32,6 @@ void main()
     vec4 worldPos = instance.transform * vec4(aPosition, 1.0);
     gl_Position = viewProjection * worldPos;
 
-    // Computed per-vertex so non-uniform scale still shades correctly.
-    // If this shows up in profiling, precompute it CPU-side at upload
-    // time and add a mat3 to InstanceData instead of re-deriving it here
-    // for every vertex.
     mat3 normalMatrix = transpose(inverse(mat3(instance.transform)));
     vWorldNormal = normalize(normalMatrix * aNormal);
 

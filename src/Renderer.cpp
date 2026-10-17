@@ -1,4 +1,7 @@
 #include <algorithm>
+#include <chrono>
+#include <cmath>
+
 #include "Renderer.h"
 #include "ChunkHelpers.h"
 
@@ -121,6 +124,9 @@ void Renderer::Init()
     m_chunkCommands.assign(config.chunkCapacity, DrawIndexedIndirectCommand{});
     m_chunkVisible.assign(config.chunkCapacity, 0);
 
+    m_skyShader = std::make_unique<Shader>("../resources/shaders/sky.vert", "../resources/shaders/sky.frag");
+    m_skyVAO    = std::make_unique<VAO>();  
+
 }
 
 void Renderer::Shutdown()
@@ -152,6 +158,9 @@ void Renderer::Shutdown()
         m_animatedShader->Delete();
     if (m_chunkShader)
         m_chunkShader->Delete();
+
+    if (m_skyVAO)    m_skyVAO->Delete();
+    if (m_skyShader) m_skyShader->Delete();
 }
 
 // ============================================================
@@ -280,6 +289,7 @@ void Renderer::Render()
 {
     m_camera->updateMatrix(90, 0.01f, 5000.0f);
     FlushDirty();// CullPass();
+    DrawSky();
     DrawStatic();
     DrawAnimated();
     DrawChunks();
@@ -293,6 +303,39 @@ void Renderer::UploadCameraMatrix(Shader& shader)
 }
 
 void Renderer::CullPass()    { /* TODO(cull) */ }
+
+glm::vec3 Renderer::GetSunDirection() const
+{
+    const float a = m_timeOfDay * glm::two_pi<float>();
+    return glm::normalize(glm::vec3(std::cos(a), std::sin(a), 0.25f));
+}
+
+void Renderer::DrawSky()
+{
+    if (!m_skyShader || !m_skyVAO || !m_camera)
+        return;
+
+    static const auto start = std::chrono::steady_clock::now();
+    const float time = std::chrono::duration<float>(std::chrono::steady_clock::now() - start).count();
+
+    // Sky is a fullscreen triangle drawn first, so it needs no depth test or culling.
+    const GLboolean depthWasOn = glIsEnabled(GL_DEPTH_TEST);
+    const GLboolean cullWasOn  = glIsEnabled(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+    m_skyShader->Activate();
+    m_skyShader->SetMat4("uInvViewProj", glm::inverse(m_camera->cameraMatrix));
+    m_skyShader->SetVec3("uSunDir", GetSunDirection());
+    m_skyShader->SetFloat("uTime", time);
+
+    m_skyVAO->Bind();
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    m_skyVAO->Unbind();
+
+    if (depthWasOn) glEnable(GL_DEPTH_TEST);
+    if (cullWasOn)  glEnable(GL_CULL_FACE);
+}
 
 void Renderer::DrawStatic()
 {
@@ -363,6 +406,12 @@ void Renderer::DrawChunks()
     m_allocator->GenerateChunkTextureMipmaps();
     m_chunkShader->Activate();
     UploadCameraMatrix(*m_chunkShader);                         // needs the program active
+
+    m_chunkShader->SetVec3("uSunDir", GetSunDirection());
+
+    // optional fog
+    m_chunkShader->SetVec3("uCameraPos", m_camera->position);   // use whatever your Camera calls its position
+    m_chunkShader->SetFloat("uFogEnd", 400.0f);                 // your view distance in blocks, or less
 
     m_allocator->ChunkInstanceSSBO().BindBase(0);       // layout(std430, binding = 0) in the vert shader
     m_allocator->ChunkTriTextureSSBO().BindBase(1);    // layout(std430, binding = 1) in the vert shader

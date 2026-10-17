@@ -1,0 +1,101 @@
+#ifndef WORLDGENERATOR_H
+#define WORLDGENERATOR_H
+
+#include <FastNoiseLite/FastNoiseLite.h>
+#include "Chunk.h"
+#include "ChunkNeighbourhood.h"
+
+class WorldGenerator
+{
+    enum class Biome : uint8_t
+    {
+        // Cold
+        ColdOcean,
+        SnowyMountains,
+        Glacier,
+        Taiga,
+        Tundra,
+
+        // Temperate
+        Ocean,
+        Mountains,
+        Swamp,
+        Forest,
+        Plains,
+
+        // Hot
+        WarmOcean,
+        Mesa,
+        Savanna,
+        Jungle,
+        Desert,
+
+        // Corrupted
+        Void,
+        VoidShore,
+        Crags,
+        AcidicMarsh,
+        Wasteland,
+        RedWastes,
+
+        Count
+    };
+    public:
+        WorldGenerator(int64_t seed = 0);
+        Voxel GetBlockAt(int x, int y, int z);
+        inline Voxel GetBlockAt(glm::vec3 position);
+
+        const Voxel air = {0,0,0};
+        const Voxel stone = {0,1,1};
+        const Voxel log = {0,1,2};
+        const Voxel mud = {0,1,3};
+        const Voxel water = {0,1,4};
+        const Voxel snow = {0,1,5};
+        const Voxel sand = {0,1,6};
+        const Voxel grass = {0,1,7};
+        const Voxel redSand = {0,1,8};
+
+        int32_t seed = 0;
+    private:
+        FastNoiseLite continentalness;
+        FastNoiseLite wetness;
+        FastNoiseLite temperature;
+        FastNoiseLite erosion;
+
+        //localised noise
+        FastNoiseLite height;
+        FastNoiseLite height2;
+        FastNoiseLite plateauNoise;
+
+        // local
+        FastNoiseLite forestShape;  // 3D overhang shape
+        FastNoiseLite caveA;        // spaghetti caves: carved where caveA and caveB are both near zero
+        FastNoiseLite caveB;
+
+
+        static constexpr float SEA_LEVEL = -0.6f;
+        const float COLD_START = -0.7f;
+        const float HOT_START = 0.7f;
+
+        ChunkNeighbourhood BuildNeighbourhood(const glm::ivec3& c);
+
+        inline Biome GetBiome(int x, int y, int z, float height, float wetness, float temperature);
+
+        inline Biome ColdBiome(float height, float wetness);
+        inline Biome TemperateBiome(float height, float wetness);
+        inline Biome HotBiome(float height, float wetness);
+        inline Biome CorruptedBiome(float height, float wetness);
+
+        float DuneHeight(float x, float z);
+
+        //biome generation
+        Voxel ForestBlock(int x, int y, int z, float c);
+        Voxel PlainsBlock(int x, int y, int z, float c);
+
+        bool ForestSolid(const FastNoiseLite& shape, int x, int y, int z, float surfaceY);
+
+};
+
+
+
+#endif

@@ -1,0 +1,131 @@
+#ifndef WORLDGENERATOR_H
+#define WORLDGENERATOR_H
+
+#include <array>
+#include <cstdint>
+#include <unordered_map>
+#include <FastNoiseLite/FastNoiseLite.h>
+#include "Chunk.h"
+#include "ChunkNeighbourhood.h"
+
+// Beta 1.7.3 style terrain:
+//   * 128 blocks tall, sea level 64
+//   * 3D density field sampled on a coarse grid (every 4 blocks in X/Z, every 8 in Y)
+//     and trilinearly interpolated down to single blocks
+//   * temperature / humidity noise -> biome lookup
+//   * surface pass: grass/dirt, sand/gravel beaches, sandstone, bedrock
+//
+// NOTE: not thread-safe (internal caches). Use one WorldGenerator per thread.
+class WorldGenerator
+{
+    enum class Biome : uint8_t
+    {
+        Rainforest,
+        Swampland,
+        SeasonalForest,
+        Forest,
+        Savanna,
+        Shrubland,
+        Taiga,
+        Desert,
+        Plains,
+        Tundra,
+        Count
+    };
+
+public:
+    WorldGenerator(int64_t seed = 0);
+    Voxel GetBlockAt(int x, int y, int z);
+    inline Voxel GetBlockAt(glm::vec3 position)
+    {
+        return GetBlockAt(static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(position.z));
+    }
+
+    const Voxel air = {0, 0, 0};
+    const Voxel stone = {0, 1, 1};
+    const Voxel log = {0, 1, 2};
+    const Voxel mud = {0, 1, 3};      // used as "dirt"
+    const Voxel water = {0, 2, 4};
+    const Voxel snow = {0, 1, 5};
+    const Voxel sand = {0, 1, 6};
+    const Voxel grass = {0, 1, 7};
+    const Voxel redSand = {0, 1, 8};
+    // New: you need to register these in your block table / texture atlas
+    const Voxel gravel = {0, 1, 9};
+    const Voxel bedrock = {0, 1, 10};
+    const Voxel ice = {0, 1, 11};
+    const Voxel lava = {0, 2, 12};
+    const Voxel sandstone = {0, 1, 13};
+
+    int32_t seed = 0;
+
+    static constexpr int WORLD_HEIGHT = 128;
+    static constexpr int SEA_LEVEL = 64; // water fills y < SEA_LEVEL
+
+private:
+    static constexpr int GRID_Y = 17; // 16 cells * 8 blocks = 128
+
+    struct Column { float d[GRID_Y]; };
+
+    struct SurfaceInfo
+    {
+        Biome biome;
+        float temperature;
+        bool sandy;
+        bool gravelly;
+        int depth;           // thickness of the filler (dirt/sand) layer
+        int sandstoneExtra;  // 0..3 extra sandstone blocks under a sand filler
+    };
+
+    struct SurfaceChunk
+    {
+        bool ready = false;
+        std::array<SurfaceInfo, 256> cols;
+    };
+
+    // terrain
+    FastNoiseLite noise1;   // "lower limit" 16 octaves
+    FastNoiseLite noise2;   // "upper limit" 16 octaves
+    FastNoiseLite noise3;   // "selector"     8 octaves
+    FastNoiseLite noise6;   // "scale"       10 octaves (2D)
+    FastNoiseLite noise7;   // "depth"       16 octaves (2D)
+    // surface
+    FastNoiseLite sandNoise;
+    FastNoiseLite stoneNoise;
+    // climate
+    FastNoiseLite temperatureNoise;
+    FastNoiseLite humidityNoise;
+    FastNoiseLite biomeNoise;
+    // placeholder caves (replace with a MapGenCaves port when you have chunk arrays)
+    FastNoiseLite caveA;
+    FastNoiseLite caveB;
+
+    static constexpr size_t kMaxCachedColumns = 1 << 16;
+    static constexpr size_t kMaxCachedChunks = 256;
+    struct Caches
+    {
+        const WorldGenerator* owner = nullptr;
+        std::unordered_map<uint64_t, Column> columns;
+        std::unordered_map<uint64_t, SurfaceChunk> surfaces;
+    };
+    static Caches& GetCaches();
+
+    ChunkNeighbourhood BuildNeighbourhood(const glm::ivec3& c);
+
+    void Climate(int x, int z, float& temperature, float& humidity) const;
+    static Biome BiomeFromClimate(float temperature, float humidity);
+
+    void BuildColumn(int gx, int gz, Column& out);
+    const Column& GetColumn(int gx, int gz);
+    float Density(int x, int y, int z);
+    bool IsSolid(int x, int y, int z);
+
+    const SurfaceInfo& GetSurface(int x, int z);
+    Voxel SurfaceBlock(const SurfaceInfo& s, int x, int y, int z);
+    bool IsCave(int x, int y, int z);
+
+    uint32_t Hash(int x, int y, int z, uint32_t salt) const;
+    float Hash01(int x, int y, int z, uint32_t salt) const;
+};
+
+#endif

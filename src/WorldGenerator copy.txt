@@ -1,0 +1,334 @@
+#include "WorldGenerator.h"
+#include <algorithm>
+#include <cmath>
+namespace
+{
+    struct SplinePoint { float x; float y; };
+
+    float SampleSpline(const std::vector<SplinePoint>& pts, float x)
+    {
+        if (x <= pts.front().x) return pts.front().y;
+        if (x >= pts.back().x)  return pts.back().y;
+
+        for (size_t i = 1; i < pts.size(); ++i)
+        {
+            if (x <= pts[i].x)
+            {
+                const SplinePoint& a = pts[i - 1];
+                const SplinePoint& b = pts[i];
+                float t = (x - a.x) / (b.x - a.x);
+                return a.y + (b.y - a.y) * t;
+            }
+        }
+        return pts.back().y;
+    }
+
+    static const std::vector<SplinePoint> kContinentalness = {
+        { -0.85f, -10.0f },  // deep ocean
+        { -0.8f, 32.0f },  // ocean floor
+        {  -0.75f, 36.0f },  // ocean slope gradual slope
+        {  -0.60f, 62.0f },  // beach (sea level ~62)
+        {  -0.56f, 64.0f }, // plains start
+        {   0.0f, 66.0f },  // highlands start
+        {  0.4f, 76.0f },  // highlands start
+        {  0.6f, 80.0f },  // highlands shelf
+        {  0.63f, 105.0f },  // highlands
+        {  0.8f, 108.0f },  // mountains start
+        {  0.85f, 120.0f },  // mountains
+        {  1.0f, 200.0f }  //peak
+    };
+    //used to multiply the erosion
+    static const std::vector<SplinePoint> kErosion = {
+        { -1.0f, 0.03 }, //flats
+        { -0.2f, 0.3 }, //flats end
+        { 0.6f, 0.45 }, //medium 
+        { 1.0f, 1.3 }, //high jaggedy
+    };
+
+    // Forest 3D terrain: the surface is a density field so it can overhang.
+    constexpr float kForestRange = 28.0f;  // blocks over which solid fades to air
+    constexpr float kForestAmp   = 1.65f;  // overhang strength
+    constexpr float kForestReach = kForestRange * kForestAmp;
+
+
+    constexpr float kPlateauHeight = 6.0f;                         // blocks each plateau tier rises
+    constexpr float kPlateau1Lo = 0.48f, kPlateau1Hi = 0.52f;      // first tier: mask noise range of the ramp
+    constexpr float kPlateau2Lo = 0.78f, kPlateau2Hi = 0.82f;      // rarer second tier stacked on the first
+    constexpr float kPlainsRange = 12.0f;                          // blocks over which solid fades to air
+    constexpr float kPlainsAmp   = 1.5f;                           // cliff roughness (scaled by erosion)
+
+    float Ramp(float lo, float hi, float v) { return std::clamp((v - lo) / (hi - lo), 0.0f, 1.0f); }
+    float Smooth(float t) { return t * t * (3.0f - 2.0f * t); }
+
+    // Plains terrain as density. amp is 0 on flat ground (no 3D noise is sampled there)
+    // and only rises on the plateau ramps, so tops stay flat and cliff faces get rough.
+    bool PlainsSolid(const FastNoiseLite& shape, int x, int y, int z, float surfaceY, float amp)
+    {
+        float reach = kPlainsRange * amp;                // furthest the noise can move the surface
+        if (y > surfaceY + reach) return false;
+        if (y < surfaceY - reach) return true;
+
+        float density = (surfaceY - y) / kPlainsRange
+                      + shape.GetNoise(float(x), y * 1.2f, float(z)) * amp;
+        return density > 0.0f;
+    }
+
+}
+
+WorldGenerator::WorldGenerator(int64_t seed)
+: seed(seed)
+{
+    continentalness.SetSeed(seed);
+    wetness.SetSeed(seed+1);
+    temperature.SetSeed(seed+2);
+    height.SetSeed(seed+3);
+    height2.SetSeed(seed+4);
+    erosion.SetSeed(seed+5);
+    plateauNoise.SetSeed(seed+6);
+    forestShape.SetSeed(seed+6);
+
+    
+    
+    height.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    height.SetFractalType(FastNoiseLite::FractalType_FBm);
+    height.SetFractalOctaves(3);
+    height.SetFractalGain(0.65f);
+    height.SetFrequency(0.01f);
+    
+    height2.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    height2.SetFractalType(FastNoiseLite::FractalType_FBm);
+    height2.SetFractalOctaves(3);
+    height2.SetFractalGain(0.65f);
+    height2.SetFrequency(0.01f);
+    
+    
+    erosion.SetNoiseType(FastNoiseLite::NoiseType_Cellular);
+    erosion.SetFractalType(FastNoiseLite::FractalType_None);
+    erosion.SetFrequency(0.0035f);
+    
+    continentalness.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    continentalness.SetFractalType(FastNoiseLite::FractalType_None);
+    continentalness.SetFrequency(0.0009f);
+    
+    wetness.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    wetness.SetFractalType(FastNoiseLite::FractalType_None);
+    wetness.SetFrequency(0.003f);
+    
+    temperature.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    temperature.SetFractalType(FastNoiseLite::FractalType_None);
+    temperature.SetFrequency(0.002f);
+    
+    // Forest: 3D overhang shape + two noises whose near-zero overlap carves caves
+    forestShape.SetSeed(int(seed) + 6);
+    forestShape.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    forestShape.SetFractalType(FastNoiseLite::FractalType_FBm);
+    forestShape.SetFractalOctaves(2);
+    forestShape.SetFrequency(0.02f);
+
+    
+    plateauNoise.SetSeed(int(seed) + 6);
+    plateauNoise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    plateauNoise.SetFrequency(0.005f);
+    
+
+    caveA.SetSeed(int(seed) + 7);
+    caveA.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    caveA.SetFrequency(0.02f);
+    
+    caveB.SetSeed(int(seed) + 8);
+    caveB.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    caveB.SetFrequency(0.02f);
+
+    // Plains: low-frequency plateau mask + 3D roughness for the cliff faces
+
+    // plainsShape.SetSeed(int(seed) + 10);
+    // plainsShape.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    // plainsShape.SetFractalType(FastNoiseLite::FractalType_FBm);
+    // plainsShape.SetFractalOctaves(2);
+    // plainsShape.SetFrequency(0.04f);
+    
+}
+
+Voxel WorldGenerator::GetBlockAt(int x, int y, int z)
+{
+    float t = std::clamp(temperature.GetNoise(float(x), float(z)) * 0.5f + float(z * 0.0009f), -1.0f, 1.0f);
+    
+    float w = wetness.GetNoise(float(x),float(z));
+    float c = continentalness.GetNoise((float)x, (float)z);
+    
+    float baseHeight = SampleSpline(kContinentalness, c);
+    
+    Voxel base = stone;
+    switch (GetBiome(x, y, z, c, w, t))
+    {
+        case Biome::Swamp:
+            base = mud;
+            break;
+        case Biome::Ocean:
+        base = water;
+        break;
+        case Biome::ColdOcean:
+        base = water;
+            break;
+            case Biome::WarmOcean:
+            base = water;
+            break;
+            case Biome::Desert:
+            base = sand;
+            break;
+            case Biome::Forest:
+            return ForestBlock(x, y, z, c);
+            case Biome::Jungle:
+            base = log;
+            break;
+            case Biome::Mountains:
+            base = stone;
+            break;
+            case Biome::SnowyMountains:
+            base = snow;
+            break;
+            case Biome::Tundra:
+            base = snow;
+            break;
+            case Biome::Taiga:
+            base = log;
+            break;
+            case Biome::Plains:
+            return PlainsBlock(x, y, z, c);
+            case Biome::Savanna:
+            base = grass;
+            break;
+            case Biome::Mesa:
+            base = redSand;
+            break;
+        }
+        
+        return y > baseHeight ? air : base;
+        
+    }
+    Voxel WorldGenerator::GetBlockAt(glm::vec3 position)
+    {
+        return GetBlockAt(position.x, position.y, position.z);
+    }
+    
+float WorldGenerator::DuneHeight(float x, float z)
+{
+    return std::min(height2.GetNoise(x, z), height.GetNoise(x, z));
+}
+
+
+WorldGenerator::Biome WorldGenerator::GetBiome(int x, int y, int z, float height, float wetness, float temperature)
+{
+    if (x * x + z * z > 2500000)
+    return CorruptedBiome(height, wetness);
+    else if ( temperature < COLD_START)
+    return ColdBiome(height, wetness);
+    else if ( temperature > HOT_START)
+    return HotBiome(height, wetness);
+    else
+    return TemperateBiome(height, wetness);
+    
+}
+
+WorldGenerator::Biome WorldGenerator::ColdBiome(float height, float wetness)
+{
+    if (height < SEA_LEVEL)                    return Biome::ColdOcean;
+    if (height > 0.60f)                        return Biome::SnowyMountains;
+    if (wetness > 0.30f && height > 0.35f)     return Biome::Glacier;
+    if (wetness > 0.15f)                       return Biome::Taiga;
+    return Biome::Tundra;
+}
+
+WorldGenerator::Biome WorldGenerator::TemperateBiome(float height, float wetness)
+{
+    if (height < SEA_LEVEL)                    return Biome::Ocean;
+    if (height > 0.89f)                        return Biome::SnowyMountains;
+    if (height > 0.75f)                        return Biome::Mountains;
+    if (wetness > 0.25f && height < -0.15f)    return Biome::Swamp;
+    if (wetness > 0.10f)                       return Biome::Forest;
+    return Biome::Plains;
+}
+
+WorldGenerator::Biome WorldGenerator::HotBiome(float height, float wetness)
+{
+    if (height < SEA_LEVEL)                    return Biome::WarmOcean;
+    if (height > 0.65f)                        return Biome::Mountains;
+    if (height > 0.40f && wetness < -0.20f)     return Biome::Mesa;
+        if (wetness > -0.10f)
+        return height < 0.10f ? Biome::Savanna : Biome::Jungle;
+        return Biome::Desert;
+    }
+    
+    WorldGenerator::Biome WorldGenerator::CorruptedBiome(float height, float wetness)
+    {
+        if (height < SEA_LEVEL - 0.45f)            return Biome::Void;
+        if (height < SEA_LEVEL - 0.25f)            return Biome::VoidShore;
+        if (height > 0.60f || (wetness < 0.0f && wetness > -0.20f))
+        return Biome::Crags;
+        if (wetness > 0.30f && height < -0.15f)    return Biome::AcidicMarsh;
+        if (wetness < -0.20f)                      return Biome::Wasteland;
+        return Biome::RedWastes;
+    }
+    
+    
+    //BIOME Base Terrain
+    Voxel WorldGenerator::ForestBlock(int x, int y, int z, float c)
+    {
+        float cSpline = SampleSpline(kContinentalness, c);
+        float surfaceY =  cSpline + height.GetNoise(float(x), float(z)) * 3.0f;   // 2D rolling hills
+        
+        if (!ForestSolid(forestShape, x, y, z, surfaceY))
+        return air;
+        
+        // Spaghetti caves: tunnels run where both noises are close to zero.
+        float depth = surfaceY - y;
+        if (depth > 3.0f && depth < 40.0f)       // band limit keeps the 3D noise cost down
+        {
+            float fx = float(x), fy = float(y), fz = float(z);
+            float width = 0.06f + 0.06f * std::clamp(depth / 25.0f, 0.0f, 1.0f); // thinner near the top
+            if (std::abs(caveA.GetNoise(fx, fy, fz)) < width &&
+            std::abs(caveB.GetNoise(fx, fy, fz)) < width)
+            return air;
+        }
+        
+        // Soil layers follow the terrain shape, not the caves, so cave floors stay stone.
+        if (!ForestSolid(forestShape, x, y + 1, z, surfaceY)) return grass;
+        if (!ForestSolid(forestShape, x, y + 4, z, surfaceY)) return mud;
+        return stone;
+    }
+    
+    bool WorldGenerator::ForestSolid(const FastNoiseLite& shape, int x, int y, int z, float surfaceY)
+    {
+        if (y > surfaceY + kForestReach) return false;  // above anything the noise can reach
+        if (y < surfaceY - kForestReach) return true;   // safely underground
+    
+        float density = (surfaceY - y) / kForestRange
+                      + shape.GetNoise(float(x), y * 1.2f, float(z)) * kForestAmp * SampleSpline(kErosion, erosion.GetNoise(float(x),float(z)));
+        return density > 0.0f;
+    }
+
+    // Plains: flat ground, rare plateaus with steep sides, rough cliff faces
+    Voxel WorldGenerator::PlainsBlock(int x, int y, int z, float c)
+    {
+        float fx = float(x), fz = float(z);
+
+        // Flat ground with only a faint ripple.
+        float surfaceY = SampleSpline(kContinentalness, c) + height.GetNoise(fx, fz) * 0.8f;
+
+        // Plateaus: past a threshold in the mask noise the ground rises through a short,
+        // steep ramp. The second threshold stacks a rarer tier on top of the first.
+        float mask = plateauNoise.GetNoise(fx, fz);
+        float r1 = Ramp(kPlateau1Lo, kPlateau1Hi, mask);
+        float r2 = Ramp(kPlateau2Lo, kPlateau2Hi, mask);
+        surfaceY += kPlateauHeight * (Smooth(r1) + Smooth(r2));
+
+        // Cliff faces get 3D roughness (more with erosion); flat ground gets none.
+        float cliff = std::max(4.0f * r1 * (1.0f - r1), 4.0f * r2 * (1.0f - r2));
+        float rough = std::min(SampleSpline(kErosion, erosion.GetNoise(fx, fz)), 1.0f);
+        float amp   = kPlainsAmp * rough * cliff * 1;
+
+        if (!PlainsSolid(forestShape, x, y, z, surfaceY, amp)) return air;
+        if (!PlainsSolid(forestShape, x, y + 1, z, surfaceY, amp)) return grass;
+        if (!PlainsSolid(forestShape, x, y + 4, z, surfaceY, amp)) return mud;
+        return stone;
+    }

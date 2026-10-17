@@ -6,7 +6,8 @@
 #include<memory>
 #include<vector>
 #include<cstdint>
-#include<cstddef>
+#include <cstddef>
+#include <glm/gtc/constants.hpp>
 
 #include "Entity.h"
 #include "Allocator.h"
@@ -66,10 +67,14 @@ class Renderer
         // ---------------- Per-frame ----------------
         void Render();
 
+        void SetTimeOfDay(float t) { m_timeOfDay = t - std::floor(t); }   // 0..1
+        glm::vec3 GetSunDirection() const;                                // unit vector pointing TOWARD the sun
+
     protected:
 
         void FlushDirty();          // push DirtyTracker's entries to their GPU buffers
         void CullPass();            // dispatch compute cull -> visible-index buffers
+        void DrawSky();
         void DrawStatic();          // bind static pipeline, issue multidraw indirect
         void DrawAnimated();        // bind animated pipeline, issue multidraw indirect
         void DrawChunks();          // bind the chunk pipeline, issue multidraw indirect
@@ -130,6 +135,12 @@ class Renderer
         std::vector<Entity*>      m_dirtyEntities;  // marked by UpdateEntity, may contain duplicates
         std::vector<DirtyInstance> m_dirtyStaging;  // scratch, reused every frame
         std::vector<InstanceData>  m_runScratch;    // scratch, reused every frame
+
+
+        //simple sky shader pass
+        std::unique_ptr<Shader> m_skyShader;
+        std::unique_ptr<VAO>    m_skyVAO;       // empty VAO: core profile needs one even with no attributes
+        float m_timeOfDay = 0.25f;              // 0 = sunrise, 0.25 = noon, 0.5 = sunset, 0.75 = midnight
 };
 
 

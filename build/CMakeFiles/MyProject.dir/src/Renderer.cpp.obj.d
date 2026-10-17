@@ -54,20 +54,25 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/std_abs.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_algorithm_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
- D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
- D:/apps/GitHub/Block-Game/include/glad/glad.h \
- D:/apps/GitHub/Block-Game/include/KHR/khrplatform.h \
+ C:/msys64/mingw64/include/c++/14.1.0/chrono \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/requires_hosted.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/chrono.h \
+ C:/msys64/mingw64/include/c++/14.1.0/ratio \
+ C:/msys64/mingw64/include/c++/14.1.0/cstdint \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stdint.h \
  C:/msys64/mingw64/include/stdint.h \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/stddef.h \
  C:/msys64/mingw64/include/stddef.h \
- D:/apps/GitHub/Block-Game/include/glm/glm.hpp \
- D:/apps/GitHub/Block-Game/include/glm/detail/_fixes.hpp \
+ C:/msys64/mingw64/include/c++/14.1.0/limits \
+ C:/msys64/mingw64/include/c++/14.1.0/ctime \
+ C:/msys64/mingw64/include/time.h C:/msys64/mingw64/include/sys/timeb.h \
+ C:/msys64/mingw64/include/sec_api/sys/timeb_s.h \
+ C:/msys64/mingw64/include/_timeval.h \
+ C:/msys64/mingw64/include/pthread_time.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/parse_numbers.h \
  C:/msys64/mingw64/include/c++/14.1.0/cmath \
- C:/msys64/mingw64/include/c++/14.1.0/bits/requires_hosted.h \
  C:/msys64/mingw64/include/math.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/specfun.h \
- C:/msys64/mingw64/include/c++/14.1.0/limits \
  C:/msys64/mingw64/include/c++/14.1.0/tr1/gamma.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/tr1/special_function_util.h \
  C:/msys64/mingw64/include/c++/14.1.0/tr1/bessel_function.tcc \
@@ -80,12 +85,16 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/tr1/poly_hermite.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/tr1/poly_laguerre.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/tr1/riemann_zeta.tcc \
+ D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
+ D:/apps/GitHub/Block-Game/include/glad/glad.h \
+ D:/apps/GitHub/Block-Game/include/KHR/khrplatform.h \
+ D:/apps/GitHub/Block-Game/include/glm/glm.hpp \
+ D:/apps/GitHub/Block-Game/include/glm/detail/_fixes.hpp \
  D:/apps/GitHub/Block-Game/include/glm/detail/setup.hpp \
  C:/msys64/mingw64/include/c++/14.1.0/cassert \
  C:/msys64/mingw64/include/assert.h \
  C:/msys64/mingw64/include/c++/14.1.0/cstddef \
  D:/apps/GitHub/Block-Game/include/glm/simd/platform.h \
- C:/msys64/mingw64/include/c++/14.1.0/cstdint \
  C:/msys64/mingw64/include/c++/14.1.0/climits \
  C:/msys64/mingw64/include/c++/14.1.0/cfloat \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include/float.h \
@@ -262,10 +271,6 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/corecrt_startup.h \
  C:/msys64/mingw64/include/signal.h \
  C:/msys64/mingw64/include/pthread_signal.h \
- C:/msys64/mingw64/include/time.h C:/msys64/mingw64/include/sys/timeb.h \
- C:/msys64/mingw64/include/sec_api/sys/timeb_s.h \
- C:/msys64/mingw64/include/_timeval.h \
- C:/msys64/mingw64/include/pthread_time.h \
  C:/msys64/mingw64/include/pthread_compat.h \
  C:/msys64/mingw64/include/pthread_unistd.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/atomic_word.h \
@@ -286,13 +291,13 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/vector.tcc \
  C:/msys64/mingw64/include/c++/14.1.0/bits/memory_resource.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/uses_allocator_args.h \
- D:/apps/GitHub/Block-Game/include/engine/Entity.h \
- D:/apps/GitHub/Block-Game/include/engine/Transform.h \
- D:/apps/GitHub/Block-Game/include/glm/gtc/quaternion.hpp \
  D:/apps/GitHub/Block-Game/include/glm/gtc/constants.hpp \
  D:/apps/GitHub/Block-Game/include/glm/ext/scalar_constants.hpp \
  D:/apps/GitHub/Block-Game/include/glm/ext/scalar_constants.inl \
  D:/apps/GitHub/Block-Game/include/glm/gtc/constants.inl \
+ D:/apps/GitHub/Block-Game/include/engine/Entity.h \
+ D:/apps/GitHub/Block-Game/include/engine/Transform.h \
+ D:/apps/GitHub/Block-Game/include/glm/gtc/quaternion.hpp \
  D:/apps/GitHub/Block-Game/include/glm/gtc/matrix_transform.hpp \
  D:/apps/GitHub/Block-Game/include/glm/ext/matrix_projection.hpp \
  D:/apps/GitHub/Block-Game/include/glm/ext/matrix_projection.inl \
