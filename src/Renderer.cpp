@@ -348,6 +348,8 @@ void Renderer::DrawStatic()
     m_staticShader->Activate();
     UploadCameraMatrix(*m_staticShader);                         // needs the program active
 
+    m_staticShader->SetVec3("uSunDir", GetSunDirection());
+
     // Shared by every draw - bound once, not per mesh/material.
     m_allocator->StaticInstanceSSBO().BindBase(0);      // layout(std430, binding = 0) in the vert shader
     m_allocator->MaterialDescriptorSSBO().BindBase(1);  // layout(std430, binding = 1) in the frag shader
@@ -375,6 +377,8 @@ void Renderer::DrawAnimated()
 
     m_animatedShader->Activate();
     UploadCameraMatrix(*m_animatedShader);
+
+    m_animatedShader->SetVec3("uSunDir", GetSunDirection());
 
     // Shared by every draw - bound once, not per mesh/material.
     m_allocator->AnimatedInstanceSSBO().BindBase(0);      // layout(std430, binding = 0) in the vert shader
@@ -411,7 +415,7 @@ void Renderer::DrawChunks()
 
     // optional fog
     m_chunkShader->SetVec3("uCameraPos", m_camera->position);   // use whatever your Camera calls its position
-    m_chunkShader->SetFloat("uFogEnd", 400.0f);                 // your view distance in blocks, or less
+    m_chunkShader->SetFloat("uFogEnd", 480.0f);                 // your view distance in blocks, or less
 
     m_allocator->ChunkInstanceSSBO().BindBase(0);       // layout(std430, binding = 0) in the vert shader
     m_allocator->ChunkTriTextureSSBO().BindBase(1);    // layout(std430, binding = 1) in the vert shader

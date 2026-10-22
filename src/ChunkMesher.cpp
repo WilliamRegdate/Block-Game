@@ -70,13 +70,16 @@ void ChunkMesher::GetVoxelMesh(const ChunkNeighbourhood& nb, const Voxel& voxel,
         return;
 
     const VoxelType& type = GetVoxelType(voxel);
+    const bool identity = voxel.GetRotation() == 0;
     const glm::mat3& rot = voxel.GetRotationMat();
-
     const glm::vec3 voxelCenter = glm::vec3(Voxel::PRECISION >> 1);
+
+    // one block-type lookup per voxel instead of one per face
+    const BlockType* blockType = resourceController.GetOrLoadBlockType(voxel.ID);
 
     auto toWorld = [&](const glm::ivec3& d)
     {
-        return glm::ivec3(glm::round(rot * glm::vec3(d)));
+        return identity ? d : glm::ivec3(glm::round(rot * glm::vec3(d)));
     };
 
     for (const auto& face : type.faces)
@@ -88,7 +91,7 @@ void ChunkMesher::GetVoxelMesh(const ChunkNeighbourhood& nb, const Voxel& voxel,
         const uint32_t texture = GetFaceTexture(voxel, face);
 
         const glm::ivec3 localN = LocalFaceDir(face);
-        const glm::ivec3 worldN = toWorld(localN);   // rotations are 90-degree steps: exact axis
+        const glm::ivec3 worldN = toWorld(localN);
 
         int aoLevel[4] = { 3, 3, 3, 3 };
 
@@ -97,8 +100,11 @@ void ChunkMesher::GetVoxelMesh(const ChunkNeighbourhood& nb, const Voxel& voxel,
             const ChunkVertex& v = face.vertices[i];
             ChunkVertex out = v;
 
-            // Round before converting, so 3.9999 doesn't truncate to 3 and open gaps.
-            out.position = glm::u8vec3(glm::round(rot * (glm::vec3(v.position) - voxelCenter) + voxelCenter));
+            if (identity)
+                out.position = v.position;   // no rotation: copy as is
+            else
+                out.position = glm::u8vec3(glm::round(rot * (glm::vec3(v.position) - voxelCenter) + voxelCenter));
+
             out.position += position * glm::uint(Voxel::PRECISION);
             out.SetNormal(worldN);
             out.SetLight(15);
@@ -199,6 +205,8 @@ bool ChunkMesher::IsSideOccluded(const ChunkNeighbourhood& nb, const Voxel& voxe
 const VoxelType& ChunkMesher::GetVoxelType(const Voxel& voxel)
 {
     // TODO: needs to return the correct type instead of cube
+
+    //for complex shapes need more complex system
     return cube;
 }
 

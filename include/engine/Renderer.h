@@ -9,9 +9,9 @@
 #include <cstddef>
 #include <glm/gtc/constants.hpp>
 
-#include "Entity.h"
+#include "VisualInstance.h"
 #include "Allocator.h"
-#include "EntityManager.h"
+#include "RenderManager.h"
 #include "RenderTypes.h"
 #include "Shader.h"
 #include "Camera.h"
@@ -91,7 +91,7 @@ class Renderer
         std::unique_ptr<Shader>        m_animatedShader; // shader program for skinned entity draws
         std::unique_ptr<Shader>        m_chunkShader; // shader program for chunk draws
 
-        std::unique_ptr<EntityManager> m_entityManager;
+        std::unique_ptr<RenderManager> m_renderManager;
         std::unique_ptr<Allocator>     m_allocator;
 
         std::unique_ptr<VAO>           m_staticVAO;

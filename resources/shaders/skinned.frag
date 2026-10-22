@@ -23,13 +23,35 @@ layout(binding = 0) uniform sampler2DArray materialTextures;
 
 const uint NO_TEXTURE = 0xFFFFFFFFu;
 
+uniform vec3 uSunDir;   // unit vector pointing TOWARD the sun (same value the sky and chunks use)
 
-uniform vec3 uSunDir;   // toward the sun
+// ---- light colour ----------------------------------------------------------
+const vec3  kSunsetColor   = vec3(1.00, 0.42, 0.18);
+const vec3  kSunNoonColor  = vec3(1.00, 0.96, 0.88);   // direct sun at midday
+const vec3  kSkyFillColor  = vec3(0.85, 0.92, 1.00);   // ambient fill by day (sky blue)
+const vec3  kMoonColor     = vec3(0.55, 0.65, 1.00);   // ambient at night
+const float kTintStrength  = 0.8;                      // 0 = white light, 1 = full tint
 
-float day     = smoothstep(-0.12, 0.2, uSunDir.y);
-float ambient = mix(0.15, 0.45, day);
-float diffuse = max(dot(n, uSunDir), 0.0) * day;
-float shade   = ambient + (1.0 - ambient) * diffuse;
+// Colour of the direct sun light and of the ambient fill for the current time of day.
+// Both stay <= 1 per channel, so lighting can only darken the texture, never blow it out.
+void LightColors(out vec3 sunColor, out vec3 ambientColor)
+{
+    float day  = smoothstep(-0.12, 0.20, uSunDir.y);
+    float dusk = 1.0 - smoothstep(0.0, 0.35, abs(uSunDir.y));   // 1 at sunrise / sunset
+
+    // Direct sun: warm white at noon, orange when it's low
+    sunColor = mix(kSunNoonColor, kSunsetColor, dusk * 0.85);
+
+    // Ambient: sky-blue by day, moonlight blue at night, a little warmer at dusk
+    ambientColor = mix(kMoonColor, kSkyFillColor, day);
+    ambientColor = mix(ambientColor, kSunsetColor, dusk * 0.3 * day);
+
+    sunColor     = mix(vec3(1.0), sunColor,     kTintStrength);
+    ambientColor = mix(vec3(1.0), ambientColor, kTintStrength);
+}
+
+const float kAmbientDay   = 0.45;   // brightness of faces turned away from the sun, by day
+const float kAmbientNight = 0.15;   // ... and at night
 
 void main()
 {
@@ -45,8 +67,16 @@ void main()
 
     vec3 normal = normalize(vWorldNormal);
 
-    float diffuse = max(dot(normal, -kLightDir), 0.0);
-    vec3 lighting = kAmbient * occlusion + kLightColor * diffuse;
+    // Same day/night value as the sky and chunk shaders: 0 = night, 1 = day
+    float day     = smoothstep(-0.12, 0.20, uSunDir.y);
+    float ambient = mix(kAmbientNight, kAmbientDay, day);
+    float diffuse = max(dot(normal, uSunDir), 0.0) * day;
 
-    FragColor = vec4(albedo.rgb * lighting, albedo.a);
+    vec3 sunColor, ambientColor;
+    LightColors(sunColor, ambientColor);
+
+    // Ambient occlusion only dims the ambient part; direct sun is unaffected
+    vec3 light = ambientColor * (ambient * occlusion) + sunColor * ((1.0 - ambient) * diffuse);
+
+    FragColor = vec4(albedo.rgb * light, albedo.a);
 }

@@ -11,7 +11,7 @@ add_executable(MyProject
 
     src/Camera.cpp
     src/Allocator.cpp
-    src/EntityManager.cpp
+    src/RenderManager.cpp
     src/glad.c
     src/MaterialLoader.cpp
     src/Mesh.cpp
@@ -33,6 +33,7 @@ add_executable(MyProject
 
     src/editor/EntityEditor.cpp
     src/editor/ResourceEditor.cpp
+    src/Collision.cpp
 
     #src/main.cpp
     #src/BenchmarkAnimated.cpp

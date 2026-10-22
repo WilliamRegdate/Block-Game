@@ -1,11 +1,11 @@
-#ifndef ENTITY_H
-#define ENTITY_H
+#ifndef VISUALINSTANCE_H
+#define VISUALINSTANCE_H
 
 #include "Transform.h"
 #include "Mesh.h"
 #include "AnimationPlayer.h"
 
-class Entity
+class VisualInstance
 {
     public:
         uint32_t ID;

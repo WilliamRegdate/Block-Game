@@ -440,29 +440,29 @@ src/ChunkMesher.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.s
 .PHONY : src/ChunkMesher.cpp.s
 
-src/EntityManager.obj: src/EntityManager.cpp.obj
-.PHONY : src/EntityManager.obj
+src/Collision.obj: src/Collision.cpp.obj
+.PHONY : src/Collision.obj
 
 # target to build an object file
-src/EntityManager.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/EntityManager.cpp.obj
-.PHONY : src/EntityManager.cpp.obj
+src/Collision.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Collision.cpp.obj
+.PHONY : src/Collision.cpp.obj
 
-src/EntityManager.i: src/EntityManager.cpp.i
-.PHONY : src/EntityManager.i
+src/Collision.i: src/Collision.cpp.i
+.PHONY : src/Collision.i
 
 # target to preprocess a source file
-src/EntityManager.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/EntityManager.cpp.i
-.PHONY : src/EntityManager.cpp.i
+src/Collision.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Collision.cpp.i
+.PHONY : src/Collision.cpp.i
 
-src/EntityManager.s: src/EntityManager.cpp.s
-.PHONY : src/EntityManager.s
+src/Collision.s: src/Collision.cpp.s
+.PHONY : src/Collision.s
 
 # target to generate assembly for a file
-src/EntityManager.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/EntityManager.cpp.s
-.PHONY : src/EntityManager.cpp.s
+src/Collision.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Collision.cpp.s
+.PHONY : src/Collision.cpp.s
 
 src/MaterialLoader.obj: src/MaterialLoader.cpp.obj
 .PHONY : src/MaterialLoader.obj
@@ -535,6 +535,30 @@ src/MeshLoader.s: src/MeshLoader.cpp.s
 src/MeshLoader.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/MeshLoader.cpp.s
 .PHONY : src/MeshLoader.cpp.s
+
+src/RenderManager.obj: src/RenderManager.cpp.obj
+.PHONY : src/RenderManager.obj
+
+# target to build an object file
+src/RenderManager.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/RenderManager.cpp.obj
+.PHONY : src/RenderManager.cpp.obj
+
+src/RenderManager.i: src/RenderManager.cpp.i
+.PHONY : src/RenderManager.i
+
+# target to preprocess a source file
+src/RenderManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/RenderManager.cpp.i
+.PHONY : src/RenderManager.cpp.i
+
+src/RenderManager.s: src/RenderManager.cpp.s
+.PHONY : src/RenderManager.s
+
+# target to generate assembly for a file
+src/RenderManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/RenderManager.cpp.s
+.PHONY : src/RenderManager.cpp.s
 
 src/RenderTypes.obj: src/RenderTypes.cpp.obj
 .PHONY : src/RenderTypes.obj
@@ -896,9 +920,9 @@ help:
 	@echo ... src/ChunkMesher.obj
 	@echo ... src/ChunkMesher.i
 	@echo ... src/ChunkMesher.s
-	@echo ... src/EntityManager.obj
-	@echo ... src/EntityManager.i
-	@echo ... src/EntityManager.s
+	@echo ... src/Collision.obj
+	@echo ... src/Collision.i
+	@echo ... src/Collision.s
 	@echo ... src/MaterialLoader.obj
 	@echo ... src/MaterialLoader.i
 	@echo ... src/MaterialLoader.s
@@ -908,6 +932,9 @@ help:
 	@echo ... src/MeshLoader.obj
 	@echo ... src/MeshLoader.i
 	@echo ... src/MeshLoader.s
+	@echo ... src/RenderManager.obj
+	@echo ... src/RenderManager.i
+	@echo ... src/RenderManager.s
 	@echo ... src/RenderTypes.obj
 	@echo ... src/RenderTypes.i
 	@echo ... src/RenderTypes.s

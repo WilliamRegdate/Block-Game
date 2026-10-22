@@ -13,9 +13,9 @@
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\EntityManager.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\EntityManager.cpp",
-  "file": "D:/apps/GitHub/Block-Game/src/EntityManager.cpp",
-  "output": "CMakeFiles/MyProject.dir/src/EntityManager.cpp.obj"
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\RenderManager.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\RenderManager.cpp",
+  "file": "D:/apps/GitHub/Block-Game/src/RenderManager.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/RenderManager.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
@@ -136,6 +136,12 @@
   "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\editor\\ResourceEditor.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\editor\\ResourceEditor.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/editor/ResourceEditor.cpp",
   "output": "CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj"
+},
+{
+  "directory": "D:/apps/GitHub/Block-Game/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Collision.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Collision.cpp",
+  "file": "D:/apps/GitHub/Block-Game/src/Collision.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Collision.cpp.obj"
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",

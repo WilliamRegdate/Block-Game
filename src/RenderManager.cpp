@@ -1,106 +1,106 @@
-#include "EntityManager.h"
+#include "RenderManager.h"
 
-#include "Entity.h"
+#include "VisualInstance.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "Animation.h"
 
-bool EntityManager::AddEntity(Entity& entity, EntityTracker& tracker)
+bool RenderManager::AddInstance(VisualInstance& entity, InstanceTracker& tracker)
 {
-    auto result = m_entities.emplace(&entity, tracker);
+    auto result = m_instances.emplace(&entity, tracker);
     return result.second; // false if this exact Entity is already registered
 }
 
-void EntityManager::RemoveEntity(Entity& entity)
+void RenderManager::RemoveInstance(VisualInstance& entity)
 {
-    m_entities.erase(&entity);
+    m_instances.erase(&entity);
 }
 
-EntityTracker* EntityManager::GetEntity(Entity& entity)
+InstanceTracker* RenderManager::GetInstance(VisualInstance& entity)
 {
-    auto it = m_entities.find(&entity);
-    return it != m_entities.end() ? &it->second : nullptr;
+    auto it = m_instances.find(&entity);
+    return it != m_instances.end() ? &it->second : nullptr;
 }
 
-bool EntityManager::AddMesh(Mesh& mesh, MeshTracker& tracker)
+bool RenderManager::AddMesh(Mesh& mesh, MeshTracker& tracker)
 {
     auto result = m_meshes.emplace(mesh.ID, tracker);
     return result.second; // false if this asset ID is already registered
 }
 
-void EntityManager::RemoveMesh(uint32_t assetID)
+void RenderManager::RemoveMesh(uint32_t assetID)
 {
     m_meshes.erase(assetID);
 }
 
-MeshTracker* EntityManager::GetMesh(uint32_t assetID)
+MeshTracker* RenderManager::GetMesh(uint32_t assetID)
 {
     auto it = m_meshes.find(assetID);
     return it != m_meshes.end() ? &it->second : nullptr;
 }
 
-bool EntityManager::AddMaterial(Material& material, MaterialTracker& tracker)
+bool RenderManage::AddMaterial(Material& material, MaterialTracker& tracker)
 {
     auto result = m_materials.emplace(material.ID, tracker);
     return result.second; // false if this asset ID is already registered
 }
 
-void EntityManager::RemoveMaterial(uint32_t assetID)
+void RenderManage::RemoveMaterial(uint32_t assetID)
 {
     m_materials.erase(assetID);
 }
 
-MaterialTracker* EntityManager::GetMaterial(uint32_t assetID)
+MaterialTracker* RenderManage::GetMaterial(uint32_t assetID)
 {
     auto it = m_materials.find(assetID);
     return it != m_materials.end() ? &it->second : nullptr;
 }
 
-bool EntityManager::AddAnimation(BakedAnimationClip& clip, AnimationTracker& tracker)
+bool RenderManage::AddAnimation(BakedAnimationClip& clip, AnimationTracker& tracker)
 {
     auto result = m_animations.emplace(clip.ID, tracker);
     return result.second; // false if this asset ID is already registered
 }
 
-void EntityManager::RemoveAnimation(uint32_t assetID)
+void RenderManage::RemoveAnimation(uint32_t assetID)
 {
     m_animations.erase(assetID);
 }
 
-AnimationTracker* EntityManager::GetAnimation(uint32_t assetID)
+AnimationTracker* RenderManage::GetAnimation(uint32_t assetID)
 {
     auto it = m_animations.find(assetID);
     return it != m_animations.end() ? &it->second : nullptr;
 }
 
-bool EntityManager::AddChunk(int64_t chunkID, ChunkTracker& tracker)
+bool RenderManage::AddChunk(int64_t chunkID, ChunkTracker& tracker)
 {
     auto result = m_chunks.emplace(chunkID, tracker);
     return result.second; // false if this chunk is already registered
 }
 
-void EntityManager::RemoveChunk(int64_t chunkID)
+void RenderManage::RemoveChunk(int64_t chunkID)
 {
     m_chunks.erase(chunkID);
 }
 
-ChunkTracker* EntityManager::GetChunk(int64_t chunkID)
+ChunkTracker* RenderManage::GetChunk(int64_t chunkID)
 {
     auto it = m_chunks.find(chunkID);
     return it != m_chunks.end() ? &it->second : nullptr;
 }
-bool EntityManager::AddChunkTexture(const std::string& path, ChunkTextureTracker& tracker)
+bool RenderManage::AddChunkTexture(const std::string& path, ChunkTextureTracker& tracker)
 {
     auto result = m_chunkTextures.emplace(path, tracker);
     return result.second; // false if this path is already registered
 }
 
-void EntityManager::RemoveChunkTexture(const std::string& path)
+void RenderManage::RemoveChunkTexture(const std::string& path)
 {
     m_chunkTextures.erase(path);
 }
 
-ChunkTextureTracker* EntityManager::GetChunkTexture(const std::string& path)
+ChunkTextureTracker* RenderManage::GetChunkTexture(const std::string& path)
 {
     auto it = m_chunkTextures.find(path);
     return it != m_chunkTextures.end() ? &it->second : nullptr;

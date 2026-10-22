@@ -60,6 +60,7 @@ struct Voxel
 
 class Chunk
 {
+    
     std::vector<Voxel> palette;
     std::vector<uint64_t> data;
     uint8_t bitsPerVoxel = 0;
@@ -70,16 +71,16 @@ class Chunk
     void Repack(uint8_t newBits);
     
     public:
-    //the position of this chunk - world space
-    glm::ivec3 position;
-    explicit Chunk(Voxel initialVoxel);
-    
-    const Voxel& GetVoxel(uint32_t x, uint32_t y, uint32_t z) const;
-    void SetVoxel(uint32_t x, uint32_t y, uint32_t z, Voxel voxel);
-    inline bool IsEmpty() const {return bitsPerVoxel == 0;}
+        //the position of this chunk - world space
+        glm::ivec3 position;
+        explicit Chunk(Voxel initialVoxel);
+        
+        const Voxel& GetVoxel(uint32_t x, uint32_t y, uint32_t z) const;
+        void SetVoxel(uint32_t x, uint32_t y, uint32_t z, Voxel voxel);
+        inline bool IsEmpty() const {return bitsPerVoxel == 0;}
 
-    static constexpr uint32_t SIZE = 32;
-    static constexpr uint32_t VOXEL_COUNT = SIZE * SIZE * SIZE;
+        static constexpr uint32_t SIZE = 32;
+        static constexpr uint32_t VOXEL_COUNT = SIZE * SIZE * SIZE;
 };
 
 #endif

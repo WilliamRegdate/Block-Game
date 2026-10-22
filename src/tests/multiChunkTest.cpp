@@ -14,6 +14,7 @@
 #include "Renderer.h"
 #include "ResourceController.h"
 #include "WorldManager.h"
+#include "Collision.h"
 
 const unsigned int width  = 1920;
 const unsigned int height = 1080;
@@ -44,17 +45,17 @@ int main()
 
 
     WorldManager wm = WorldManager(renderer, resourceController);
-
+    CollisionDetector collision(&wm);
 
 
 
     bool loaded;
     Entity max = resourceController.LoadEntity("maxSternum", loaded);
-    max.transform.position = glm::vec3(0, 60, 0);
+    max.transform.position = glm::vec3(0, 70, 0);
     renderer.AddEntity(max);
 
     Entity methane = resourceController.LoadEntity("methaneMonster", loaded);
-    methane.transform.position = glm::vec3(5, 60, -10);
+    methane.transform.position = glm::vec3(5, 75, -10);
     methane.animationPlayer.Play("walk");
     renderer.AddEntity(methane);
 
@@ -62,7 +63,7 @@ int main()
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // ---- Frame timing ----
     double lastReport = glfwGetTime();
@@ -82,8 +83,61 @@ int main()
     double delta   = currentTime - lastFrameTime;
     lastFrameTime     = currentTime;
 
+    float dayLengthSeconds = 300.0f;   // one full day = 5 minutes
+    float timeOfDay = 0.25f;           // start at noon
+
+    bool mouseDown = false;
     while (!glfwWindowShouldClose(window))
     {
+
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS)
+		{
+            if (!mouseDown)
+            {
+                mouseDown = true;
+                if (collision.GetRay(camera.position, camera.orientation, 50.0f))
+                {
+                    for( auto& element : collision.contactCache)
+                    {
+                        //break block
+                        if (const BlockRef* b = std::get_if<BlockRef>(&element.target))
+                        {
+                            glm::ivec3 pos = b->pos;
+                            //equal to setblock at coords to air
+                            wm.SetBlockAt(pos, Voxel());
+                        }
+                    }
+                }
+            }
+		}
+        else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) //place block function
+		{
+            if (!mouseDown)
+            {
+                mouseDown = true;
+                if (collision.GetRay(camera.position, camera.orientation, 50.0f))
+                {
+                    for( auto& element : collision.contactCache)
+                    {
+                        if (const BlockRef* b = std::get_if<BlockRef>(&element.target))
+                        {
+                            glm::ivec3 pos = b->pos + glm::ivec3(element.normal);
+                            //equal to setblock at coords to stone
+                            wm.SetBlockAt(pos, Voxel{0, 1, 1});
+                        }
+                    }
+                }
+            }
+		}
+        else
+        {
+            mouseDown = false;
+        }
+
+        timeOfDay += delta / dayLengthSeconds;
+        timeOfDay -= std::floor(timeOfDay);   // keep it in 0..1 (SetTimeOfDay also wraps it)
+        renderer.SetTimeOfDay(timeOfDay);
+
         glm::ivec3 centerChunk = glm::ivec3(glm::floor(camera.position / 32.0f));
 
         methane.animationPlayer.Update(delta);
@@ -107,12 +161,12 @@ int main()
 
         ++frames;
         const double now = glfwGetTime();
-        if (now - lastReport >= 1.0)
-        {
-            std::cout << frames << " fps (" << 1000.0 * (now - lastReport) / frames << " ms/frame)" << std::endl;
-            frames = 0;
-            lastReport = now;
-        }
+        // if (now - lastReport >= 1.0)
+        // {
+        //     std::cout << frames << " fps (" << 1000.0 * (now - lastReport) / frames << " ms/frame)" << std::endl;
+        //     frames = 0;
+        //     lastReport = now;
+        // }
         GLenum error = glGetError();
 
     if (error != GL_NO_ERROR)

@@ -5,6 +5,14 @@ out vec4 fragColor;
 
 uniform mat4  uInvViewProj;   // inverse(projection * view)
 uniform vec3  uSunDir;        // unit vector pointing TOWARD the sun
+
+// How gradual sunrise / sunset is, in terms of the sun's height (uSunDir.y, -1..1).
+// The sky goes from night to day as the sun rises from kTwilightStart to kTwilightEnd.
+// Wider range = longer, softer fade. The sun is at the horizon when y = 0.
+const float kTwilightStart = -0.30;   // fully night below this (about 17 degrees under the horizon)
+const float kTwilightEnd   =  0.40;   // fully day above this (about 24 degrees above it)
+const float kDuskWidth     =  0.55;   // how far from the horizon the orange sunset tint reaches
+
 uniform float uTime;          // seconds, for star twinkle
 
 // ---- palette -------------------------------------------------------------
@@ -38,8 +46,8 @@ void main()
     vec3 dir   = normalize(farP.xyz / farP.w - nearP.xyz / nearP.w);
 
     float sunY  = uSunDir.y;
-    float day   = smoothstep(-0.12, 0.20, sunY);               // 0 = night, 1 = day
-    float dusk  = 1.0 - smoothstep(0.0, 0.35, abs(sunY));      // 1 when the sun is at the horizon
+    float day   = smoothstep(kTwilightStart, kTwilightEnd, sunY);               // 0 = night, 1 = day
+    float dusk  = 1.0 - smoothstep(0.0, kDuskWidth, abs(sunY));      // 1 when the sun is at the horizon
 
     // ---- base gradient -----------------------------------------------------
     vec3 zenith  = mix(kNightZenith,  kDayZenith,  day);
@@ -49,13 +57,16 @@ void main()
     vec3  sky = mix(horizon, zenith, pow(up, 0.45));           // rises fast near the horizon
 
     // ---- sunrise / sunset glow on the side facing the sun -----------------
-    float cosSun      = dot(dir, uSunDir);
-    float horizonBand = pow(1.0 - up, 5.0);
-    float sunSide     = pow(max(cosSun, 0.0), 3.0);
-    sky += kSunsetColor * dusk * horizonBand * (0.25 + 0.75 * sunSide);
+    // Below the horizon, repeat the horizon colour: use the horizontal direction for the glow
+    vec3  flatDir = vec3(dir.x, 0.0, dir.z);
+    float flatLen = length(flatDir);
+    vec3  skyDir  = dir.y >= 0.0 ? dir
+                  : (flatLen > 1e-4 ? flatDir / flatLen : vec3(1.0, 0.0, 0.0));
 
-    // ---- below the horizon: fade to a darker fog colour -------------------
-    sky = mix(sky, horizon * 0.55, smoothstep(0.0, 0.30, -dir.y));
+    float cosSun      = dot(dir, uSunDir);                         // real angle to the sun (for the disc)
+    float horizonBand = pow(1.0 - up, 5.0);
+    float sunSide     = pow(max(dot(skyDir, uSunDir), 0.0), 3.0);
+    sky += kSunsetColor * dusk * horizonBand * (0.25 + 0.75 * sunSide);
 
     // ---- stars (night only, above the horizon) -----------------------------
     float night = 1.0 - day;

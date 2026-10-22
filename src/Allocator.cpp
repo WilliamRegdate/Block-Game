@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdint>
 #include <cfloat>
+#include "AABB.h"
 
 // Everything in this block is file-local: the free-list logic has no GL
 // dependency and can be tested on its own.
@@ -20,7 +21,7 @@ namespace
             mn = glm::min(mn, v.position);
             mx = glm::max(mx, v.position);
         }
-        return AABB{ glm::vec4(mn, 0.0f), glm::vec4(mx, 0.0f) };
+        return AABB{ mn, mx };
     }
 
     constexpr uint32_t INVALID_RANGE = 0xFFFFFFFFu;
@@ -646,8 +647,8 @@ bool Allocator::UploadMeshData(Mesh& mesh)
                           static_cast<GLsizeiptr>(m.vertices.size() * sizeof(SkinnedVertex)));
                           
         AABB aabb = ComputeBounds(m.vertices);
-        descriptor.boundsMin = aabb.boundsMin;
-        descriptor.boundsMax = aabb.boundsMax;
+        descriptor.boundsMin = aabb.min;
+        descriptor.boundsMax = aabb.max;
     }
     else
     {
@@ -659,8 +660,8 @@ bool Allocator::UploadMeshData(Mesh& mesh)
                           m.vertices.data(),
                           static_cast<GLsizeiptr>(m.vertices.size() * sizeof(StaticVertex)));
         AABB aabb = ComputeBounds(m.vertices);
-        descriptor.boundsMin = aabb.boundsMin;
-        descriptor.boundsMax = aabb.boundsMax;
+        descriptor.boundsMin = aabb.min;
+        descriptor.boundsMax = aabb.max;
     }
 
     // Indices stay relative to the mesh's own vertices. baseVertex in the

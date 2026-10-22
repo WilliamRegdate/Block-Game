@@ -6,6 +6,13 @@
 #include "ChunkHelpers.h"
 #include "Chunk.h"
 
+
+
+enum class ChunkDirty : uint8_t
+{
+    Clean,
+    Dirty     // voxel data changed (or a border neighbour's did); needs a remesh
+};
 // Order matters: everything >= Generated has voxel data available.
 enum class ChunkState : uint8_t
 {
@@ -20,8 +27,10 @@ enum class ChunkState : uint8_t
 struct ChunkEntry
 {
     ChunkState state   = ChunkState::Requested;
-    uint32_t   version = 0;                    // bump on edit; mesh results with an old version are dropped
-    std::shared_ptr<const Chunk> chunk;        // null until generated
+    ChunkDirty dirty   = ChunkDirty::Clean;
+    uint32_t   version = 0;
+    bool       onGPU   = false;   // a mesh for this chunk currently lives in the renderer
+    std::shared_ptr<const Chunk> chunk;
     std::unique_ptr<ChunkMeshData> pendingMesh;
 
     bool HasData() const { return state >= ChunkState::Generated && chunk != nullptr; }

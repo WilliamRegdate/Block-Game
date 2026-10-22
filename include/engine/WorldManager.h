@@ -7,6 +7,8 @@
 #include "ChunkStorage.h"
 #include "JobSystem.h"
 
+#include "AABB.h"
+
 
 class WorldManager
 {
@@ -26,19 +28,40 @@ class WorldManager
         @param center
         CHUNKCOORDS at which chunks are loaded around
         */
-       void Update(const glm::ivec3& center);   // call once per frame, main thread
-       
+        void Update(const glm::ivec3& center);   // call once per frame, main thread
+
+        //fills the overlapping vector with AABBs  that overlap with the given area
+        //nothing is added if the area is unloaded
+        
+
+        //TODO get collisions
+        // collision functionality should be defined in the block's json file
+        // for example  if a block is a regular solid 
+        // of if a block has another function like applying an effect/ damage to the player
+        
+        const std::vector<AABB>& GetShapeAt(int x, int y, int z) const;
+
+        void RegisterShape(uint32_t voxelType, std::vector<AABB> shape);
+        //decides whether to get from storage of generate new
+        const Voxel& GetBlockAt(int x, int y, int z);
+        const Voxel& GetBlockAt(const glm::ivec3& pos);
+
+        bool SetBlockAt(const glm::ivec3& pos, const Voxel& voxel);   // false if the chunk isn't loaded
        
     private:
        
-       ChunkStorage storage;
-       ChunkMesher mesher;
-       WorldGenerator generator;
+        ChunkStorage storage;
+        ChunkMesher mesher;
+        WorldGenerator generator;
+        
+        std::unordered_map<uint32_t, std::vector<AABB>> shapeColliders;
+        void MarkDirty(const glm::ivec3& chunkCoord, ChunkEntry& entry);
+        std::vector<glm::ivec3> dirtyChunks;   // coords awaiting a priority remesh
        
-       
-       //chunk load specific attributes
-       struct GenResult
-       {
+        
+        //chunk load specific attributes
+        struct GenResult
+        {
            glm::ivec3 coord;
            std::shared_ptr<const Chunk> chunk;
         };

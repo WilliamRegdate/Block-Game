@@ -1,9 +1,9 @@
 // JobSystem.h
 #pragma once
 #include <condition_variable>
+#include <deque>
 #include <functional>
 #include <mutex>
-#include <queue>
 #include <thread>
 #include <vector>
 
@@ -22,9 +22,14 @@ class ThreadPool
             for (auto& t : workers) t.join();
         }
 
-        void Submit(std::function<void()> job)
+        // priority = true puts the job at the front of the queue
+        void Submit(std::function<void()> job, bool priority = false)
         {
-            { std::lock_guard<std::mutex> lock(m); jobs.push(std::move(job)); }
+            {
+                std::lock_guard<std::mutex> lock(m);
+                if (priority) jobs.push_front(std::move(job));
+                else          jobs.push_back(std::move(job));
+            }
             cv.notify_one();
         }
 
@@ -39,14 +44,14 @@ class ThreadPool
                     cv.wait(lock, [this] { return stop || !jobs.empty(); });
                     if (stop && jobs.empty()) return;
                     job = std::move(jobs.front());
-                    jobs.pop();
+                    jobs.pop_front();
                 }
                 job();
             }
         }
 
         std::vector<std::thread>          workers;
-        std::queue<std::function<void()>> jobs;
+        std::deque<std::function<void()>> jobs;
         std::mutex                        m;
         std::condition_variable           cv;
         bool                              stop = false;

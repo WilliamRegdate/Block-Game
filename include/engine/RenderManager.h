@@ -1,3 +1,4 @@
+
 #ifndef ENTITY_MANAGER_H
 #define ENTITY_MANAGER_H
 
@@ -11,21 +12,17 @@
 // Entity.h, Mesh.h, Material.h and Animation.h aren't included here - only
 // pointers/references to them are needed below, and Allocator.h already
 // includes what's needed alongside this header, so forward declarations
-// are enough and avoid widening EntityManager.h's own include graph.
-class Entity;
-class Mesh;
-class Material;
-struct BakedAnimationClip;
+// are enough and avoid widening RenderManager.h's own include graph.
 
-struct MeshTracker;      // defined below, EntityTracker only needs the name
-struct MaterialTracker;  // defined below, EntityTracker only needs the name
+struct MeshTracker;      // defined below, InstanceTracker only needs the name
+struct MaterialTracker;  // defined below, InstanceTracker only needs the name
 
 // ------------------------------------------------------------
-// Per-entity record - what EntityManager stores for one live
+// Per-entity record - what RenderManager stores for one live
 // entity. Just data, no behaviour: where it lives, which mesh it
 // uses, and which material it uses.
 // ------------------------------------------------------------
-struct EntityTracker
+struct InstanceTracker
 {
     EntityHandle      handle;                    // where this entity's data lives on the GPU
     MeshTracker*      meshTracker = nullptr;      // which mesh this entity uses
@@ -38,7 +35,7 @@ struct EntityTracker
 struct MeshTracker
 {
     MeshHandle handle;      // where this mesh's data lives on the GPU
-    uint32_t   assetID = 0; // Mesh::ID - the key EntityManager finds this mesh by
+    uint32_t   assetID = 0; // Mesh::ID - the key RenderManager finds this mesh by
     int        users = 0;   // how many entities use the mesh
 };
 
@@ -48,7 +45,7 @@ struct MeshTracker
 struct MaterialTracker
 {
     MaterialHandle handle;      // where this material's data lives on the GPU
-    uint32_t       assetID = 0; // Material::ID - the key EntityManager finds this material by
+    uint32_t       assetID = 0; // Material::ID - the key RenderManager finds this material by
     int            users = 0;   // how many entities use the material
 };
 
@@ -59,7 +56,7 @@ struct MaterialTracker
 struct AnimationTracker
 {
     AnimationHandle handle;      // where this animation's data lives on the GPU
-    uint32_t        assetID = 0; // BakedAnimationClip::ID - the key EntityManager finds this animation by
+    uint32_t        assetID = 0; // BakedAnimationClip::ID - the key RenderManager finds this animation by
     int             users = 0;   // how many AnimationPlayers currently reference this animation
 };
 
@@ -78,27 +75,25 @@ struct AnimationTracker
 struct ChunkTracker
 {
     ChunkHandle handle;             // where this chunk's data lives on the GPU
-    uint64_t    chunkID = 0;        // the key EntityManager finds this chunk by
+    uint64_t    chunkID = 0;        // the key RenderManager finds this chunk by
 };
 struct ChunkTextureTracker
 {
     BufferRange layer;        // the single texture-array layer this texture occupies
-    std::string path;         // the key EntityManager finds this texture by
+    std::string path;         // the key RenderManager finds this texture by
 };
 
 
-class EntityManager
+class RenderManager
 {
     public:
-        // ---- Entities ----
-        // Stores `tracker` keyed by &entity. Returns false if this exact
-        // Entity is already registered.
-        bool AddEntity(Entity& entity, EntityTracker& tracker);
-        void RemoveEntity(Entity& entity);
-        // Returns nullptr if this exact Entity has no tracker registered.
-        EntityTracker* GetEntity(Entity& entity);
 
-        // Calls func(const EntityTracker&) once per registered entity.
+        bool AddInstance(VisualInstance& entity, InstanceTracker& tracker);
+        void RemoveInstance(VisualInstance& entity);
+        // Returns nullptr if this exact Entity has no tracker registered.
+        InstanceTracker* GetInstance(VisualInstance& entity);
+
+        // Calls func(const InstanceTracker&) once per registered entity.
         // Read-only by design - mutating the tracker from inside func would
         // bypass Allocator's bookkeeping (user counts, free lists).
         template<typename Func>
@@ -165,7 +160,7 @@ class EntityManager
         // reallocate, consider keying by entity.ID instead, the same way
         // m_meshes/m_materials/m_animations are keyed by their assets' IDs
         // below rather than by address.
-        std::unordered_map<Entity*, EntityTracker> m_entities;
+        std::unordered_map<VisualInstance, InstanceTracker> m_instances;
         std::unordered_map<uint32_t, MeshTracker>      m_meshes;     // keyed by Mesh::ID
         std::unordered_map<uint32_t, MaterialTracker>  m_materials;  // keyed by Material::ID
         std::unordered_map<uint32_t, AnimationTracker> m_animations; // keyed by BakedAnimationClip::ID

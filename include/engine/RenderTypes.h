@@ -183,11 +183,6 @@ struct ChunkVertex
 // explicitly, or switch to vec4 / a bounding sphere (center+radius
 // in one vec4) if you want a tightly packed struct.
 
-struct AABB
-{
-    glm::vec3 boundsMin;
-    glm::vec3 boundsMax;
-};
 
 struct MeshDescriptor
 {
