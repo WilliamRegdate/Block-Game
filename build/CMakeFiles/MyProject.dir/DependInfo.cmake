@@ -21,6 +21,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "D:/apps/GitHub/Block-Game/src/BlockLoader.cpp" "CMakeFiles/MyProject.dir/src/BlockLoader.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/BlockLoader.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/Camera.cpp" "CMakeFiles/MyProject.dir/src/Camera.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Camera.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/Chunk.cpp" "CMakeFiles/MyProject.dir/src/Chunk.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Chunk.cpp.obj.d"
+  "D:/apps/GitHub/Block-Game/src/ChunkIO.cpp" "CMakeFiles/MyProject.dir/src/ChunkIO.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/ChunkIO.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/ChunkMesher.cpp" "CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/Collision.cpp" "CMakeFiles/MyProject.dir/src/Collision.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Collision.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/Entity.cpp" "CMakeFiles/MyProject.dir/src/Entity.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Entity.cpp.obj.d"

@@ -9,6 +9,8 @@
 
 #include "AABB.h"
 
+#include "ChunkIO.h"
+
 
 class WorldManager
 {
@@ -71,6 +73,12 @@ class WorldManager
         void LoadChunks(const glm::ivec3& center);
         void DrainGenerated();
         void SubmitGeneration();
+
+
+        struct SaveResult { glm::ivec3 coord; uint32_t version; bool ok; };
+        ResultQueue<SaveResult> saveResults;
+        void SubmitSaves(const glm::ivec3& center);
+        void DrainSaved();
         
         glm::ivec3              lastCenter{ INT_MAX }; // last tried center for loadChunks
         std::vector<glm::ivec3> pendingGeneration;   // Requested chunks, sorted FURTHEST first (pop_back = nearest)

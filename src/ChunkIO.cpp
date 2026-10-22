@@ -2,14 +2,64 @@
 #include <unordered_map>
 #include <vector>
 
-Chunk ChunkIO::LoadChunk(const glm::ivec3 &position)
+fs::path ChunkIO::PathFor(const glm::ivec3& p)
 {
-    static constexpr Voxel AIR = Voxel{0,0,0};
-    return Chunk(AIR);
+    return fs::path(DIRECTORY) /
+           (std::to_string(p.x) + "_" + std::to_string(p.y) + "_" + std::to_string(p.z) + ".chk");
 }
 
-void ChunkIO::SaveChunk(const Chunk &chunk)
+std::optional<Chunk> ChunkIO::LoadChunk(const glm::ivec3& position)
 {
+    std::ifstream file(PathFor(position), std::ios::binary | std::ios::ate);
+    if (!file)
+        return std::nullopt;                        // no saved copy
+
+    const std::streamsize size = file.tellg();
+    if (size <= 0)
+        return std::nullopt;
+    file.seekg(0);
+
+    std::vector<uint8_t> bytes(static_cast<size_t>(size));
+    if (!file.read(reinterpret_cast<char*>(bytes.data()), size))
+        return std::nullopt;
+
+    Chunk chunk = Chunk(Voxel());                   // start from air
+    if (!Deserialize(bytes.data(), bytes.size(), chunk))
+        return std::nullopt;                        // corrupt: caller regenerates
+
+    chunk.position = position;                      // not stored in the file
+    return chunk;
+}
+
+bool ChunkIO::SaveChunk(const Chunk& chunk)
+{
+    std::vector<uint8_t> bytes;
+    Serialize(chunk, bytes);
+
+    const fs::path finalPath = PathFor(chunk.position);
+    fs::path tempPath = finalPath;
+    tempPath += ".tmp";
+
+    std::lock_guard<std::mutex> lock(writeMutex);
+
+    std::error_code ec;
+    fs::create_directories(DIRECTORY, ec);          // ofstream won't create the folder
+
+    {
+        std::ofstream file(tempPath, std::ios::binary | std::ios::trunc);
+        if (!file) return false;
+        file.write(reinterpret_cast<const char*>(bytes.data()),
+                   static_cast<std::streamsize>(bytes.size()));
+        if (!file) return false;
+    }   // closed and flushed here
+
+    fs::rename(tempPath, finalPath, ec);            // replaces the old file
+    if (ec)
+    {
+        fs::remove(tempPath, ec);
+        return false;
+    }
+    return true;
 }
 
 // ChunkIO.cpp

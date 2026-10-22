@@ -151,6 +151,12 @@
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\ChunkIO.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\ChunkIO.cpp",
+  "file": "D:/apps/GitHub/Block-Game/src/ChunkIO.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/ChunkIO.cpp.obj"
+},
+{
+  "directory": "D:/apps/GitHub/Block-Game/build",
   "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\tests\\multiChunkTest.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\tests\\multiChunkTest.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/tests/multiChunkTest.cpp",
   "output": "CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj"

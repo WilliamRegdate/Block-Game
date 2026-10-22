@@ -23,9 +23,14 @@ enum class ChunkState : uint8_t
     Meshed,      // mesh ready, waiting for GL upload
     Uploaded     // in the renderer; leaving radius R goes back to Generated
 };
+enum class SaveState : uint8_t 
+{
+    Clean, Changed, Saving 
+};
 
 struct ChunkEntry
 {
+    SaveState saveState = SaveState::Clean;
     ChunkState state   = ChunkState::Requested;
     ChunkDirty dirty   = ChunkDirty::Clean;
     uint32_t   version = 0;

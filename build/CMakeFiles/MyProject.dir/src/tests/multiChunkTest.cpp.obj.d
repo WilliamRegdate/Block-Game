@@ -510,5 +510,10 @@ CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/this_thread_sleep.h \
  D:/apps/GitHub/Block-Game/include/engine/AABB.h \
  C:/msys64/mingw64/include/c++/14.1.0/variant \
+ D:/apps/GitHub/Block-Game/include/engine/ChunkIO.h \
+ C:/msys64/mingw64/include/c++/14.1.0/fstream \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/basic_file.h \
+ C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++io.h \
+ C:/msys64/mingw64/include/c++/14.1.0/bits/fstream.tcc \
  D:/apps/GitHub/Block-Game/include/engine/Collision.h \
  D:/apps/GitHub/Block-Game/include/engine/WorldManager.h

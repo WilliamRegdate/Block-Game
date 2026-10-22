@@ -23,6 +23,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/MyProject.dir/src/Camera.cpp.obj.d"
   "CMakeFiles/MyProject.dir/src/Chunk.cpp.obj"
   "CMakeFiles/MyProject.dir/src/Chunk.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/ChunkIO.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/ChunkIO.cpp.obj.d"
   "CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj"
   "CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj.d"
   "CMakeFiles/MyProject.dir/src/Collision.cpp.obj"

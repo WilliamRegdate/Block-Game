@@ -21,27 +21,31 @@ WorldManager::~WorldManager()
 
 Chunk WorldManager::LoadChunk(glm::ivec3 chunkPos)
 {
+    //try loading the chunk first
+    if (std::optional<Chunk> saved = ChunkIO::LoadChunk(chunkPos))
+        return std::move(*saved);
+
+    //generate a new chunk
     Chunk chunk = Chunk(Voxel()); //init with air
     glm::ivec3 pos;
     for (pos.x = 0; pos.x < Chunk::SIZE; pos.x++)
+    for (pos.y = 0; pos.y < Chunk::SIZE; pos.y++)
+    for (pos.z = 0; pos.z < Chunk::SIZE; pos.z++)
     {
-        for (pos.y = 0; pos.y < Chunk::SIZE; pos.y++)
-        {
-            for (pos.z = 0; pos.z < Chunk::SIZE; pos.z++)
-            {
-                chunk.SetVoxel(pos.x, pos.y, pos.z, generator.GetBlockAt(chunkPos.x * Chunk::SIZE + pos.x, chunkPos.y * Chunk::SIZE + pos.y, chunkPos.z * Chunk::SIZE + pos.z));
-            }
-        }
+        chunk.SetVoxel(pos.x, pos.y, pos.z,
+            generator.GetBlockAt(chunkPos.x * Chunk::SIZE + pos.x,
+                                 chunkPos.y * Chunk::SIZE + pos.y,
+                                 chunkPos.z * Chunk::SIZE + pos.z));
     }
     chunk.position = chunkPos;
-
-    //set a task to get vetices for special data that should be updated (tickable blocks for example)
-    
     return chunk;
 }
+
 void WorldManager::Update(const glm::ivec3& center)
 {
     LoadChunks(center);
+    SubmitSaves(center);
+    DrainSaved();
     DrainGenerated();
     SubmitGeneration();
     ScheduleMeshing(center);
@@ -206,6 +210,47 @@ void WorldManager::UploadMeshed()
     }
 }
 
+void WorldManager::SubmitSaves(const glm::ivec3& center)
+{
+    const int r        = static_cast<int>(renderDistance);
+    const int unloadSq = (r + 2) * (r + 2);
+
+    storage.ForEach([&](const glm::ivec3& coord, ChunkEntry& e)
+    {
+        if (e.saveState != SaveState::Changed || !e.chunk) return;
+
+        const glm::ivec3 d = coord - center;
+        if (d.x*d.x + d.y*d.y + d.z*d.z <= unloadSq) return;   // still in range
+
+        e.saveState = SaveState::Saving;
+        auto snapshot = e.chunk;
+        const uint32_t version = e.version;
+
+        pool.Submit([this, coord, snapshot, version]
+        {
+            const bool ok = ChunkIO::SaveChunk(*snapshot);
+            saveResults.Push({ coord, version, ok });
+        });
+    });
+}
+
+void WorldManager::DrainSaved()
+{
+    std::vector<SaveResult> results;
+    saveResults.Drain(results);
+
+    for (const SaveResult& r : results)
+    {
+        ChunkEntry* e = storage.Find(r.coord);
+        if (!e || e->saveState != SaveState::Saving) continue;
+
+        if (r.ok && e->version == r.version)
+            e->saveState = SaveState::Clean;     // now EraseIf can remove it
+        else
+            e->saveState = SaveState::Changed;   // failed, or edited mid-save: save again
+    }
+}
+
 
 void WorldManager::LoadChunks(const glm::ivec3& center)
 {
@@ -243,13 +288,15 @@ void WorldManager::LoadChunks(const glm::ivec3& center)
     std::sort(pendingGeneration.begin(), pendingGeneration.end(),
               [&](const glm::ivec3& a, const glm::ivec3& b) { return distSq(a) > distSq(b); });
 
-    // 2. Unload anything beyond R + 2.
+    // 2. Unload anything beyond R + 2 if it needs saving save it
     storage.EraseIf(
-    [&](const glm::ivec3& coord, const ChunkEntry&) { return distSq(coord) > unloadSq; },
-    [&](const glm::ivec3& coord, const ChunkEntry& entry)
+    [&](const glm::ivec3& coord, const ChunkEntry& e)
     {
-        if (entry.onGPU)
-            renderer.RemoveChunk(coord);
+        return distSq(coord) > unloadSq && e.saveState == SaveState::Clean;
+    },
+    [&](const glm::ivec3& coord, const ChunkEntry& e)
+    {
+        if (e.onGPU) renderer.RemoveChunk(coord);
     });
 
     const int demoteSq = (r + 1) * (r + 1);
@@ -329,6 +376,7 @@ bool WorldManager::SetBlockAt(const glm::ivec3& pos, const Voxel& voxel)
 
     ChunkEntry* entry = storage.Find(cc);
     if (!entry || !entry->HasData()) return false;
+    entry->saveState = SaveState::Changed;
 
     // copy-on-write: workers may still be reading the old snapshot
     auto copy = std::make_shared<Chunk>(*entry->chunk);

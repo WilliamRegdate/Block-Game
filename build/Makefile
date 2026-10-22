@@ -416,6 +416,30 @@ src/Chunk.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Chunk.cpp.s
 .PHONY : src/Chunk.cpp.s
 
+src/ChunkIO.obj: src/ChunkIO.cpp.obj
+.PHONY : src/ChunkIO.obj
+
+# target to build an object file
+src/ChunkIO.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/ChunkIO.cpp.obj
+.PHONY : src/ChunkIO.cpp.obj
+
+src/ChunkIO.i: src/ChunkIO.cpp.i
+.PHONY : src/ChunkIO.i
+
+# target to preprocess a source file
+src/ChunkIO.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/ChunkIO.cpp.i
+.PHONY : src/ChunkIO.cpp.i
+
+src/ChunkIO.s: src/ChunkIO.cpp.s
+.PHONY : src/ChunkIO.s
+
+# target to generate assembly for a file
+src/ChunkIO.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/ChunkIO.cpp.s
+.PHONY : src/ChunkIO.cpp.s
+
 src/ChunkMesher.obj: src/ChunkMesher.cpp.obj
 .PHONY : src/ChunkMesher.obj
 
@@ -941,6 +965,9 @@ help:
 	@echo ... src/Chunk.obj
 	@echo ... src/Chunk.i
 	@echo ... src/Chunk.s
+	@echo ... src/ChunkIO.obj
+	@echo ... src/ChunkIO.i
+	@echo ... src/ChunkIO.s
 	@echo ... src/ChunkMesher.obj
 	@echo ... src/ChunkMesher.i
 	@echo ... src/ChunkMesher.s

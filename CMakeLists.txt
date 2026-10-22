@@ -35,6 +35,7 @@ add_executable(MyProject
     src/editor/EntityEditor.cpp
     src/editor/ResourceEditor.cpp
     src/Collision.cpp
+    src/ChunkIO.cpp
 
     #src/main.cpp
     #src/BenchmarkAnimated.cpp
