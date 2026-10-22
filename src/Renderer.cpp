@@ -19,7 +19,7 @@ Renderer::~Renderer()
 void Renderer::Init()
 {
     //setup config
-    EntityRendererConfig config;
+    RenderConfig config;
     config.staticVertexCapacityBytes  = 64 * 1024 * 1024;
     config.staticIndexCapacityBytes   = 32 * 1024 * 1024;
     config.skinnedVertexCapacityBytes = 32 * 1024 * 1024;
@@ -46,8 +46,8 @@ void Renderer::Init()
     config.maxAnimations = 1024;
 
     // Manager first: the Allocator keeps a pointer to it.
-    m_entityManager = std::make_unique<EntityManager>();
-    m_allocator     = std::make_unique<Allocator>(config, m_entityManager.get());
+    m_renderManager = std::make_unique<RenderManager>();
+    m_allocator     = std::make_unique<Allocator>(config, m_renderManager.get());
 
     // setup shaders
     m_staticShader = std::make_unique<Shader>("../resources/shaders/static.vert", "../resources/shaders/static.frag");
@@ -149,7 +149,7 @@ void Renderer::Shutdown()
 
     // Allocator before manager, since the allocator points at the manager.
     m_allocator.reset();
-    m_entityManager.reset();
+    m_renderManager.reset();
 
     //free shaders
     if (m_staticShader)
@@ -167,59 +167,59 @@ void Renderer::Shutdown()
 // Entities
 // ============================================================
 
-bool Renderer::AddEntity(Entity& entity)
+bool Renderer::AddInstance(VisualInstance& instance)
 {
-    if (!m_allocator || entity.mesh == nullptr)
+    if (!m_allocator || instance.mesh == nullptr)
         return false;
 
-    const bool meshIsNew = (m_entityManager->GetMesh(entity.mesh->ID) == nullptr);
-    const bool materialIsNew = (entity.material != nullptr) &&
-                               (m_entityManager->GetMaterial(entity.material->ID) == nullptr);
+    const bool meshIsNew = (m_renderManager->GetMesh(instance.mesh->ID) == nullptr);
+    const bool materialIsNew = (instance.material != nullptr) &&
+                               (m_renderManager->GetMaterial(instance.material->ID) == nullptr);
     std::vector<bool> areAnimationsNew;
-    std::vector<BakedAnimationClip*> animations = entity.animationPlayer.GetClips();
+    std::vector<BakedAnimationClip*> animations = instance.animationPlayer.GetClips();
     for (unsigned int i = 0; i < animations.size(); i++)
     {
-        areAnimationsNew.push_back(m_entityManager->GetAnimation(animations[i]->ID) == nullptr);
+        areAnimationsNew.push_back(m_renderManager->GetAnimation(animations[i]->ID) == nullptr);
     }
 
-    EntityTracker tracker = m_allocator->Allocate(entity);
+    InstanceTracker tracker = m_allocator->Allocate(instance);
     if (!tracker.handle.IsValid())
         return false;
 
     bool ok = true;
-    if (meshIsNew)     ok = ok && m_allocator->UploadMeshData(*entity.mesh);
-    if (materialIsNew) ok = ok && m_allocator->UploadMaterialData(*entity.material);
+    if (meshIsNew)     ok = ok && m_allocator->UploadMeshData(*instance.mesh);
+    if (materialIsNew) ok = ok && m_allocator->UploadMaterialData(*instance.material);
     for (unsigned int i = 0; i < animations.size(); i++)
     {
         if (areAnimationsNew[i]) ok = ok && m_allocator->UploadAnimationData(*animations[i]);
     }
 
-    ok = ok && m_allocator->UploadEntityData(entity);
+    ok = ok && m_allocator->UploadInstanceData(instance);
 
     if (!ok)
     {
         // Deallocate drops the user counts and frees the new mesh/material,
         // since this entity was their only user.
-        m_allocator->Deallocate(entity);
+        m_allocator->Deallocate(instance);
         return false;
     }
     m_listsDirty = true;
     return true;
 }
 
-void Renderer::UpdateEntity(Entity& entity)
+void Renderer::UpdateInstance(VisualInstance& instance)
 {
     if (!m_allocator)
         return;
-    m_dirtyEntities.push_back(&entity);
+    m_dirtyInstances.push_back(&instance);
 }
 
-void Renderer::RemoveEntity(Entity& entity)
+void Renderer::RemoveInstance(VisualInstance& instance)
 {
     if (!m_allocator)
         return;
     m_listsDirty = true;
-    m_allocator->Deallocate(entity);
+    m_allocator->Deallocate(instance);
 }
 
 // ============================================================
@@ -437,7 +437,7 @@ void Renderer::DrawChunks()
 
 void Renderer::BuildDrawLists()
 {
-    if (!m_listsDirty || !m_entityManager)
+    if (!m_listsDirty || !m_renderManager)
         return;
     m_listsDirty = false;
 
@@ -448,7 +448,7 @@ void Renderer::BuildDrawLists()
     // animated entities route into their own command/cursor arrays based on
     // handle.isSkinned, in the same walk rather than two separate full
     // iterations over every entity.
-    m_entityManager->ForEachEntity([&](const EntityTracker& t)
+    m_renderManager->ForEachEntity([&](const InstanceTracker& t)
     {
         if (!t.handle.IsValid() || t.meshTracker == nullptr)
             return;
@@ -492,7 +492,7 @@ void Renderer::BuildDrawLists()
     const auto [animatedTotal, animatedDrawCount] = prefixSum(m_animatedCommands, m_animatedCursor);
 
     // Pass 2: write each entity's instance slot into its mesh's run.
-    m_entityManager->ForEachEntity([&](const EntityTracker& t)
+    m_renderManager->ForEachEntity([&](const InstanceTracker& t)
     {
         if (!t.handle.IsValid() || t.meshTracker == nullptr)
             return;
@@ -533,12 +533,12 @@ void Renderer::BuildDrawLists()
 // occlusion/face-connectivity work) instead of every chunk with a mesh being added.
 void Renderer::BuildChunkDrawList()
 {
-    if (!m_chunkListDirty || !m_entityManager)
+    if (!m_chunkListDirty || !m_renderManager)
         return;
     m_chunkListDirty = false;
 
     uint32_t count = 0;
-    m_entityManager->ForEachChunk([&](const ChunkTracker& t)
+    m_renderManager->ForEachChunk([&](const ChunkTracker& t)
     {
         const ChunkHandle& h = t.handle;
         if (!h.IsValid() || !h.HasMesh())
@@ -570,22 +570,22 @@ void Renderer::BuildChunkDrawList()
 
 void Renderer::FlushDirty()
 {
-    if (m_allocator && !m_dirtyEntities.empty())
+    if (m_allocator && !m_dirtyInstances.empty())
     {
         // Build the new InstanceData for everything marked dirty. Entities removed
         // since being marked aren't registered any more, so Build fails and they're skipped.
         m_dirtyStaging.clear();
-        for (Entity* e : m_dirtyEntities)
+        for (VisualInstance* e : m_dirtyInstances)
         {
             DirtyInstance d;
-            EntityHandle handle;
+            InstanceHandle handle;
             if (!m_allocator->BuildInstanceData(*e, d.data, handle))
                 continue;
             d.skinned = handle.isSkinned;
             d.slot    = handle.instanceRange.start;
             m_dirtyStaging.push_back(d);
         }
-        m_dirtyEntities.clear();
+        m_dirtyInstances.clear();
 
         // Sort by (pool, slot), then drop duplicates (same entity updated twice).
         auto keyLess = [](const DirtyInstance& a, const DirtyInstance& b)

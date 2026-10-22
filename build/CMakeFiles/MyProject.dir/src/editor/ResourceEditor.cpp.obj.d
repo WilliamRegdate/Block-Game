@@ -113,6 +113,7 @@ CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
  D:/apps/GitHub/Block-Game/include/engine/Entity.h \
+ D:/apps/GitHub/Block-Game/include/engine/VisualInstance.h \
  D:/apps/GitHub/Block-Game/include/engine/Transform.h \
  D:/apps/GitHub/Block-Game/include/glm/glm.hpp \
  D:/apps/GitHub/Block-Game/include/glm/detail/_fixes.hpp \
@@ -469,7 +470,7 @@ CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/engine/Block.h \
  D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
  D:/apps/GitHub/Block-Game/include/engine/Allocator.h \
- D:/apps/GitHub/Block-Game/include/engine/EntityManager.h \
+ D:/apps/GitHub/Block-Game/include/engine/RenderManager.h \
  D:/apps/GitHub/Block-Game/include/engine/Shader.h \
  D:/apps/GitHub/Block-Game/include/Camera.h \
  D:/apps/GitHub/Block-Game/include/GLFW/glfw3.h \

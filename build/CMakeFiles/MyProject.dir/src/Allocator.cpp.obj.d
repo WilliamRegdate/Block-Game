@@ -63,7 +63,7 @@ CMakeFiles/MyProject.dir/src/Allocator.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/tuple \
  C:/msys64/mingw64/include/c++/14.1.0/utility \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
- D:/apps/GitHub/Block-Game/include/engine/Entity.h \
+ D:/apps/GitHub/Block-Game/include/engine/VisualInstance.h \
  D:/apps/GitHub/Block-Game/include/engine/Transform.h \
  D:/apps/GitHub/Block-Game/include/glm/glm.hpp \
  D:/apps/GitHub/Block-Game/include/glm/detail/_fixes.hpp \
@@ -338,7 +338,7 @@ CMakeFiles/MyProject.dir/src/Allocator.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/hashtable_policy.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
- D:/apps/GitHub/Block-Game/include/engine/EntityManager.h \
+ D:/apps/GitHub/Block-Game/include/engine/RenderManager.h \
  C:/msys64/mingw64/include/c++/14.1.0/algorithm \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_algo.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/algorithmfwd.h \

@@ -8,6 +8,7 @@
 #include <string>
 
 #include "RenderTypes.h"
+#include "VisualInstance.h"
 
 // Entity.h, Mesh.h, Material.h and Animation.h aren't included here - only
 // pointers/references to them are needed below, and Allocator.h already
@@ -18,15 +19,15 @@ struct MeshTracker;      // defined below, InstanceTracker only needs the name
 struct MaterialTracker;  // defined below, InstanceTracker only needs the name
 
 // ------------------------------------------------------------
-// Per-entity record - what RenderManager stores for one live
-// entity. Just data, no behaviour: where it lives, which mesh it
+// Per-instance record - what RenderManager stores for one live
+// instance. Just data, no behaviour: where it lives, which mesh it
 // uses, and which material it uses.
 // ------------------------------------------------------------
 struct InstanceTracker
 {
-    EntityHandle      handle;                    // where this entity's data lives on the GPU
-    MeshTracker*      meshTracker = nullptr;      // which mesh this entity uses
-    MaterialTracker*  materialTracker = nullptr;  // which material this entity uses; nullptr if it has none
+    InstanceHandle      handle;                    // where this instance's data lives on the GPU
+    MeshTracker*      meshTracker = nullptr;      // which mesh this instance uses
+    MaterialTracker*  materialTracker = nullptr;  // which material this instance uses; nullptr if it has none
 };
 
 // ------------------------------------------------------------
@@ -88,18 +89,18 @@ class RenderManager
 {
     public:
 
-        bool AddInstance(VisualInstance& entity, InstanceTracker& tracker);
-        void RemoveInstance(VisualInstance& entity);
+        bool AddInstance(VisualInstance& instance, InstanceTracker& tracker);
+        void RemoveInstance(VisualInstance& instance);
         // Returns nullptr if this exact Entity has no tracker registered.
-        InstanceTracker* GetInstance(VisualInstance& entity);
+        InstanceTracker* GetInstance(VisualInstance& instance);
 
-        // Calls func(const InstanceTracker&) once per registered entity.
+        // Calls func(const InstanceTracker&) once per registered instance.
         // Read-only by design - mutating the tracker from inside func would
         // bypass Allocator's bookkeeping (user counts, free lists).
         template<typename Func>
         void ForEachEntity(Func&& func) const
         {
-            for (const auto& pair : m_entities)
+            for (const auto& pair : m_instances)
                 func(pair.second);
         }
 
@@ -152,15 +153,15 @@ class RenderManager
         }
 
     private:
-        // Keyed by the entity's own address.
+        // Keyed by the instance's own address.
         // NOTE: a tracker becomes unreachable - GetEntity/RemoveEntity
         // silently stop finding it - if the Entity is ever moved or
         // reallocated (e.g. stored in a std::vector that resizes) without
         // this map being updated. If entities live somewhere that can
-        // reallocate, consider keying by entity.ID instead, the same way
+        // reallocate, consider keying by instance.ID instead, the same way
         // m_meshes/m_materials/m_animations are keyed by their assets' IDs
         // below rather than by address.
-        std::unordered_map<VisualInstance, InstanceTracker> m_instances;
+        std::unordered_map<VisualInstance*, InstanceTracker> m_instances;
         std::unordered_map<uint32_t, MeshTracker>      m_meshes;     // keyed by Mesh::ID
         std::unordered_map<uint32_t, MaterialTracker>  m_materials;  // keyed by Material::ID
         std::unordered_map<uint32_t, AnimationTracker> m_animations; // keyed by BakedAnimationClip::ID

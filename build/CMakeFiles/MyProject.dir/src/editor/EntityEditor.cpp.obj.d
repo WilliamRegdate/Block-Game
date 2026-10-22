@@ -262,6 +262,7 @@ CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/glm/integer.hpp \
  D:/apps/GitHub/Block-Game/include/glm/detail/func_integer.inl \
  D:/apps/GitHub/Block-Game/include/engine/Entity.h \
+ D:/apps/GitHub/Block-Game/include/engine/VisualInstance.h \
  D:/apps/GitHub/Block-Game/include/engine/Transform.h \
  D:/apps/GitHub/Block-Game/include/glm/gtc/quaternion.hpp \
  D:/apps/GitHub/Block-Game/include/glm/gtc/constants.hpp \
@@ -471,7 +472,7 @@ CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/engine/Block.h \
  D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
  D:/apps/GitHub/Block-Game/include/engine/Allocator.h \
- D:/apps/GitHub/Block-Game/include/engine/EntityManager.h \
+ D:/apps/GitHub/Block-Game/include/engine/RenderManager.h \
  D:/apps/GitHub/Block-Game/include/engine/Shader.h \
  D:/apps/GitHub/Block-Game/include/Camera.h \
  D:/apps/GitHub/Block-Game/include/GLFW/glfw3.h \

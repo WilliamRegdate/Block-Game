@@ -27,6 +27,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj.d"
   "CMakeFiles/MyProject.dir/src/Collision.cpp.obj"
   "CMakeFiles/MyProject.dir/src/Collision.cpp.obj.d"
+  "CMakeFiles/MyProject.dir/src/Entity.cpp.obj"
+  "CMakeFiles/MyProject.dir/src/Entity.cpp.obj.d"
   "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj"
   "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj.d"
   "CMakeFiles/MyProject.dir/src/Mesh.cpp.obj"

@@ -30,6 +30,7 @@ add_executable(MyProject
     src/ResourceController.cpp
     src/WorldManager.cpp
     src/BlockLoader.cpp
+    src/Entity.cpp
 
     src/editor/EntityEditor.cpp
     src/editor/ResourceEditor.cpp

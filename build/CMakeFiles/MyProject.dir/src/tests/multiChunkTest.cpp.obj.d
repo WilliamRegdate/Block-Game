@@ -386,7 +386,7 @@ CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: \
  C:/msys64/mingw64/include/sec_api/string_s.h \
  D:/apps/GitHub/Block-Game/include/glm/gtc/type_ptr.inl \
  D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
- D:/apps/GitHub/Block-Game/include/engine/Entity.h \
+ D:/apps/GitHub/Block-Game/include/engine/VisualInstance.h \
  D:/apps/GitHub/Block-Game/include/engine/Transform.h \
  D:/apps/GitHub/Block-Game/include/engine/Mesh.h \
  D:/apps/GitHub/Block-Game/include/engine/Material.h \
@@ -419,7 +419,7 @@ CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/engine/Allocator.h \
  C:/msys64/mingw64/include/c++/14.1.0/utility \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
- D:/apps/GitHub/Block-Game/include/engine/EntityManager.h \
+ D:/apps/GitHub/Block-Game/include/engine/RenderManager.h \
  D:/apps/GitHub/Block-Game/include/engine/Shader.h \
  D:/apps/GitHub/Block-Game/include/Camera.h \
  D:/apps/GitHub/Block-Game/include/glm/gtx/rotate_vector.hpp \
@@ -429,6 +429,7 @@ CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.hpp \
  D:/apps/GitHub/Block-Game/include/glm/gtx/vector_angle.inl \
  D:/apps/GitHub/Block-Game/include/engine/ResourceController.h \
+ D:/apps/GitHub/Block-Game/include/engine/Entity.h \
  D:/apps/GitHub/Block-Game/include/engine/MeshLoader.h \
  D:/apps/GitHub/Block-Game/include/json/json.h \
  C:/msys64/mingw64/include/c++/14.1.0/algorithm \

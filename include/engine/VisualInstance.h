@@ -9,7 +9,7 @@ class VisualInstance
 {
     public:
         uint32_t ID;
-        Transform transform;
+        Transform* transform = nullptr;
         Mesh* mesh = nullptr;
         Material* material = nullptr;
         AnimationPlayer animationPlayer;

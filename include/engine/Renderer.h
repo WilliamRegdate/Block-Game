@@ -47,9 +47,9 @@ class Renderer
         void SetCamera(Camera* camera) { m_camera = camera; }
 
 
-        bool         AddEntity(Entity& entity);
-        void         UpdateEntity(Entity& entity);
-        void         RemoveEntity(Entity& entity);
+        bool         AddInstance(VisualInstance& instance);
+        void         UpdateInstance(VisualInstance& instance);
+        void         RemoveInstance(VisualInstance& instance);
 
         // ---------------- Chunks ----------------
         // Chunks are identified by their chunk coordinate (the renderer packs it into the
@@ -132,7 +132,7 @@ class Renderer
             InstanceData data;
         };
 
-        std::vector<Entity*>      m_dirtyEntities;  // marked by UpdateEntity, may contain duplicates
+        std::vector<VisualInstance*> m_dirtyInstances;  // marked by UpdateEntity, may contain duplicates
         std::vector<DirtyInstance> m_dirtyStaging;  // scratch, reused every frame
         std::vector<InstanceData>  m_runScratch;    // scratch, reused every frame
 

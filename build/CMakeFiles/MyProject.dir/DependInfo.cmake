@@ -23,6 +23,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "D:/apps/GitHub/Block-Game/src/Chunk.cpp" "CMakeFiles/MyProject.dir/src/Chunk.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Chunk.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/ChunkMesher.cpp" "CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/ChunkMesher.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/Collision.cpp" "CMakeFiles/MyProject.dir/src/Collision.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Collision.cpp.obj.d"
+  "D:/apps/GitHub/Block-Game/src/Entity.cpp" "CMakeFiles/MyProject.dir/src/Entity.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Entity.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/MaterialLoader.cpp" "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/MaterialLoader.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/Mesh.cpp" "CMakeFiles/MyProject.dir/src/Mesh.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/Mesh.cpp.obj.d"
   "D:/apps/GitHub/Block-Game/src/MeshLoader.cpp" "CMakeFiles/MyProject.dir/src/MeshLoader.cpp.obj" "gcc" "CMakeFiles/MyProject.dir/src/MeshLoader.cpp.obj.d"

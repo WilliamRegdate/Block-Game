@@ -142,8 +142,8 @@ void EntityEditor::Update(double delta)
 
     if (m_active && m_hasPreview)
     {
-        m_renderer.UpdateEntity(m_preview);
-        m_preview.animationPlayer.Update(delta);
+        m_renderer.UpdateInstance(m_preview.instance);
+        m_preview.instance.animationPlayer.Update(delta);
     }
 }
 
@@ -299,7 +299,7 @@ void EntityEditor::DrawEntityTab()
                 {
                     m_clipIndex = i;
                     if (m_hasPreview)
-                        m_preview.animationPlayer.Play(m_clipNames[i].c_str());
+                        m_preview.instance.animationPlayer.Play(m_clipNames[i].c_str());
                 }
                 ImGui::PopID();
             }
@@ -308,7 +308,7 @@ void EntityEditor::DrawEntityTab()
 
         // Ctrl+click the slider to type an exact value.
         if (ImGui::SliderFloat("Anim speed", &m_previewAnimSpeed, 0.0f, 100.0f, "%.2fx") && m_hasPreview)
-            m_preview.animationPlayer.speed = m_previewAnimSpeed;
+            m_preview.instance.animationPlayer.speed = m_previewAnimSpeed;
     }
 
     // ---- save ----
@@ -556,8 +556,8 @@ void EntityEditor::RespawnPreview()
     m_preview = entity;
     m_preview.transform.position = m_previewPosition;
     m_preview.transform.rotation = ToQuat(m_previewRotation);
-    m_preview.animationPlayer.speed = m_previewAnimSpeed;
-    m_renderer.AddEntity(m_preview);          // ADAPT if your Renderer API differs
+    m_preview.instance.animationPlayer.speed = m_previewAnimSpeed;
+    m_renderer.AddInstance(m_preview.instance);          // ADAPT if your Renderer API differs
     m_hasPreview = true;
 
     // Collect the mesh's clips; keep the same animation selected across swaps if it exists.
@@ -566,9 +566,9 @@ void EntityEditor::RespawnPreview()
     m_clipNames.clear();
     m_clipIndex = -1;
 
-    if (m_preview.mesh != nullptr && m_preview.mesh->isSkinned)
+    if (m_preview.instance.mesh != nullptr && m_preview.instance.mesh->isSkinned)
     {
-        const auto* skinned = static_cast<const SkinnedMesh*>(m_preview.mesh);
+        const auto* skinned = static_cast<const SkinnedMesh*>(m_preview.instance.mesh);
         for (const auto& clip : skinned->animations)
             m_clipNames.push_back(clip.name);
     }
@@ -577,7 +577,7 @@ void EntityEditor::RespawnPreview()
     {
         auto it = std::find(m_clipNames.begin(), m_clipNames.end(), previous);
         m_clipIndex = (it != m_clipNames.end()) ? static_cast<int>(it - m_clipNames.begin()) : 0;
-        m_preview.animationPlayer.Play(m_clipNames[m_clipIndex].c_str());
+        m_preview.instance.animationPlayer.Play(m_clipNames[m_clipIndex].c_str());
     }
 }
 
@@ -586,6 +586,6 @@ void EntityEditor::DespawnPreview()
     if (!m_hasPreview)
         return;
 
-    m_renderer.RemoveEntity(m_preview);       // ADAPT: your Renderer needs a way to remove an entity
+    m_renderer.RemoveInstance(m_preview.instance);
     m_hasPreview = false;
 }

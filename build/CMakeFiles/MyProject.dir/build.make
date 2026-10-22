@@ -386,11 +386,26 @@ CMakeFiles/MyProject.dir/src/BlockLoader.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/MyProject.dir/src/BlockLoader.cpp.s"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\apps\GitHub\Block-Game\src\BlockLoader.cpp -o CMakeFiles\MyProject.dir\src\BlockLoader.cpp.s
 
+CMakeFiles/MyProject.dir/src/Entity.cpp.obj: CMakeFiles/MyProject.dir/flags.make
+CMakeFiles/MyProject.dir/src/Entity.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
+CMakeFiles/MyProject.dir/src/Entity.cpp.obj: D:/apps/GitHub/Block-Game/src/Entity.cpp
+CMakeFiles/MyProject.dir/src/Entity.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/MyProject.dir/src/Entity.cpp.obj"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/src/Entity.cpp.obj -MF CMakeFiles\MyProject.dir\src\Entity.cpp.obj.d -o CMakeFiles\MyProject.dir\src\Entity.cpp.obj -c D:\apps\GitHub\Block-Game\src\Entity.cpp
+
+CMakeFiles/MyProject.dir/src/Entity.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/MyProject.dir/src/Entity.cpp.i"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E D:\apps\GitHub\Block-Game\src\Entity.cpp > CMakeFiles\MyProject.dir\src\Entity.cpp.i
+
+CMakeFiles/MyProject.dir/src/Entity.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/MyProject.dir/src/Entity.cpp.s"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S D:\apps\GitHub\Block-Game\src\Entity.cpp -o CMakeFiles\MyProject.dir\src\Entity.cpp.s
+
 CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj: CMakeFiles/MyProject.dir/flags.make
 CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj: D:/apps/GitHub/Block-Game/src/editor/EntityEditor.cpp
 CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj -MF CMakeFiles\MyProject.dir\src\editor\EntityEditor.cpp.obj.d -o CMakeFiles\MyProject.dir\src\editor\EntityEditor.cpp.obj -c D:\apps\GitHub\Block-Game\src\editor\EntityEditor.cpp
 
 CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.i: cmake_force
@@ -405,7 +420,7 @@ CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj: CMakeFiles/MyProject
 CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj: D:/apps/GitHub/Block-Game/src/editor/ResourceEditor.cpp
 CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj -MF CMakeFiles\MyProject.dir\src\editor\ResourceEditor.cpp.obj.d -o CMakeFiles\MyProject.dir\src\editor\ResourceEditor.cpp.obj -c D:\apps\GitHub\Block-Game\src\editor\ResourceEditor.cpp
 
 CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.i: cmake_force
@@ -420,7 +435,7 @@ CMakeFiles/MyProject.dir/src/Collision.cpp.obj: CMakeFiles/MyProject.dir/flags.m
 CMakeFiles/MyProject.dir/src/Collision.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/src/Collision.cpp.obj: D:/apps/GitHub/Block-Game/src/Collision.cpp
 CMakeFiles/MyProject.dir/src/Collision.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/MyProject.dir/src/Collision.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building CXX object CMakeFiles/MyProject.dir/src/Collision.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/src/Collision.cpp.obj -MF CMakeFiles\MyProject.dir\src\Collision.cpp.obj.d -o CMakeFiles\MyProject.dir\src\Collision.cpp.obj -c D:\apps\GitHub\Block-Game\src\Collision.cpp
 
 CMakeFiles/MyProject.dir/src/Collision.cpp.i: cmake_force
@@ -435,7 +450,7 @@ CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: CMakeFiles/MyProject.
 CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: D:/apps/GitHub/Block-Game/src/tests/multiChunkTest.cpp
 CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building CXX object CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building CXX object CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj -MF CMakeFiles\MyProject.dir\src\tests\multiChunkTest.cpp.obj.d -o CMakeFiles\MyProject.dir\src\tests\multiChunkTest.cpp.obj -c D:\apps\GitHub\Block-Game\src\tests\multiChunkTest.cpp
 
 CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.i: cmake_force
@@ -450,7 +465,7 @@ CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.obj: CMakeFiles/MyProject.dir/
 CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.obj: D:/apps/GitHub/Block-Game/external/imgui/imgui.cpp
 CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.obj -MF CMakeFiles\MyProject.dir\external\imgui\imgui.cpp.obj.d -o CMakeFiles\MyProject.dir\external\imgui\imgui.cpp.obj -c D:\apps\GitHub\Block-Game\external\imgui\imgui.cpp
 
 CMakeFiles/MyProject.dir/external/imgui/imgui.cpp.i: cmake_force
@@ -465,7 +480,7 @@ CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.obj: CMakeFiles/MyProject
 CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.obj: D:/apps/GitHub/Block-Game/external/imgui/imgui_draw.cpp
 CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.obj -MF CMakeFiles\MyProject.dir\external\imgui\imgui_draw.cpp.obj.d -o CMakeFiles\MyProject.dir\external\imgui\imgui_draw.cpp.obj -c D:\apps\GitHub\Block-Game\external\imgui\imgui_draw.cpp
 
 CMakeFiles/MyProject.dir/external/imgui/imgui_draw.cpp.i: cmake_force
@@ -480,7 +495,7 @@ CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.obj: CMakeFiles/MyProje
 CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.obj: D:/apps/GitHub/Block-Game/external/imgui/imgui_tables.cpp
 CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.obj -MF CMakeFiles\MyProject.dir\external\imgui\imgui_tables.cpp.obj.d -o CMakeFiles\MyProject.dir\external\imgui\imgui_tables.cpp.obj -c D:\apps\GitHub\Block-Game\external\imgui\imgui_tables.cpp
 
 CMakeFiles/MyProject.dir/external/imgui/imgui_tables.cpp.i: cmake_force
@@ -495,7 +510,7 @@ CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.obj: CMakeFiles/MyProj
 CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.obj: D:/apps/GitHub/Block-Game/external/imgui/imgui_widgets.cpp
 CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.obj -MF CMakeFiles\MyProject.dir\external\imgui\imgui_widgets.cpp.obj.d -o CMakeFiles\MyProject.dir\external\imgui\imgui_widgets.cpp.obj -c D:\apps\GitHub\Block-Game\external\imgui\imgui_widgets.cpp
 
 CMakeFiles/MyProject.dir/external/imgui/imgui_widgets.cpp.i: cmake_force
@@ -510,7 +525,7 @@ CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.obj: CMakeF
 CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.obj: D:/apps/GitHub/Block-Game/external/imgui/backends/imgui_impl_glfw.cpp
 CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.obj -MF CMakeFiles\MyProject.dir\external\imgui\backends\imgui_impl_glfw.cpp.obj.d -o CMakeFiles\MyProject.dir\external\imgui\backends\imgui_impl_glfw.cpp.obj -c D:\apps\GitHub\Block-Game\external\imgui\backends\imgui_impl_glfw.cpp
 
 CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_glfw.cpp.i: cmake_force
@@ -525,7 +540,7 @@ CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.obj: CMa
 CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.obj: CMakeFiles/MyProject.dir/includes_CXX.rsp
 CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.obj: D:/apps/GitHub/Block-Game/external/imgui/backends/imgui_impl_opengl3.cpp
 CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.obj: CMakeFiles/MyProject.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building CXX object CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.obj -MF CMakeFiles\MyProject.dir\external\imgui\backends\imgui_impl_opengl3.cpp.obj.d -o CMakeFiles\MyProject.dir\external\imgui\backends\imgui_impl_opengl3.cpp.obj -c D:\apps\GitHub\Block-Game\external\imgui\backends\imgui_impl_opengl3.cpp
 
 CMakeFiles/MyProject.dir/external/imgui/backends/imgui_impl_opengl3.cpp.i: cmake_force
@@ -559,6 +574,7 @@ MyProject_OBJECTS = \
 "CMakeFiles/MyProject.dir/src/ResourceController.cpp.obj" \
 "CMakeFiles/MyProject.dir/src/WorldManager.cpp.obj" \
 "CMakeFiles/MyProject.dir/src/BlockLoader.cpp.obj" \
+"CMakeFiles/MyProject.dir/src/Entity.cpp.obj" \
 "CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj" \
 "CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj" \
 "CMakeFiles/MyProject.dir/src/Collision.cpp.obj" \
@@ -594,6 +610,7 @@ D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/WorldG
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/ResourceController.cpp.obj
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/WorldManager.cpp.obj
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/BlockLoader.cpp.obj
+D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/Entity.cpp.obj
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/editor/ResourceEditor.cpp.obj
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/src/Collision.cpp.obj
@@ -609,7 +626,7 @@ D:/apps/GitHub/Block-Game/bin/MyProject.exe: D:/apps/GitHub/Block-Game/lib/libgl
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/linkLibs.rsp
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/objects1.rsp
 D:/apps/GitHub/Block-Game/bin/MyProject.exe: CMakeFiles/MyProject.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Linking CXX executable D:\apps\GitHub\Block-Game\bin\MyProject.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=D:\apps\GitHub\Block-Game\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Linking CXX executable D:\apps\GitHub\Block-Game\bin\MyProject.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\MyProject.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

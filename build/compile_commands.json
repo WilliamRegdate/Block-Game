@@ -127,6 +127,12 @@
 },
 {
   "directory": "D:/apps/GitHub/Block-Game/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\Entity.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\Entity.cpp",
+  "file": "D:/apps/GitHub/Block-Game/src/Entity.cpp",
+  "output": "CMakeFiles/MyProject.dir/src/Entity.cpp.obj"
+},
+{
+  "directory": "D:/apps/GitHub/Block-Game/build",
   "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/MyProject.dir/includes_CXX.rsp -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles\\MyProject.dir\\src\\editor\\EntityEditor.cpp.obj -c D:\\apps\\GitHub\\Block-Game\\src\\editor\\EntityEditor.cpp",
   "file": "D:/apps/GitHub/Block-Game/src/editor/EntityEditor.cpp",
   "output": "CMakeFiles/MyProject.dir/src/editor/EntityEditor.cpp.obj"

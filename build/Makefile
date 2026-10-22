@@ -464,6 +464,30 @@ src/Collision.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Collision.cpp.s
 .PHONY : src/Collision.cpp.s
 
+src/Entity.obj: src/Entity.cpp.obj
+.PHONY : src/Entity.obj
+
+# target to build an object file
+src/Entity.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Entity.cpp.obj
+.PHONY : src/Entity.cpp.obj
+
+src/Entity.i: src/Entity.cpp.i
+.PHONY : src/Entity.i
+
+# target to preprocess a source file
+src/Entity.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Entity.cpp.i
+.PHONY : src/Entity.cpp.i
+
+src/Entity.s: src/Entity.cpp.s
+.PHONY : src/Entity.s
+
+# target to generate assembly for a file
+src/Entity.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\MyProject.dir\build.make CMakeFiles/MyProject.dir/src/Entity.cpp.s
+.PHONY : src/Entity.cpp.s
+
 src/MaterialLoader.obj: src/MaterialLoader.cpp.obj
 .PHONY : src/MaterialLoader.obj
 
@@ -923,6 +947,9 @@ help:
 	@echo ... src/Collision.obj
 	@echo ... src/Collision.i
 	@echo ... src/Collision.s
+	@echo ... src/Entity.obj
+	@echo ... src/Entity.i
+	@echo ... src/Entity.s
 	@echo ... src/MaterialLoader.obj
 	@echo ... src/MaterialLoader.i
 	@echo ... src/MaterialLoader.s

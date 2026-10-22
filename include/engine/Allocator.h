@@ -3,12 +3,12 @@
 
 #include <vector>
 #include <utility>
-#include "Entity.h"
+#include "VisualInstance.h"
 #include "RenderTypes.h"
-#include "EntityManager.h"
+#include "RenderManager.h"
 #include "Animation.h"
 
-struct EntityRendererConfig
+struct RenderConfig
 {
     GLsizeiptr staticVertexCapacityBytes  = 0;
     GLsizeiptr staticIndexCapacityBytes   = 0;
@@ -66,20 +66,20 @@ class Allocator
     public:
 
         // entityManager is not owned. It must outlive the Allocator.
-        Allocator(EntityRendererConfig config, EntityManager* entityManager);
+        Allocator(RenderConfig config, RenderManager* entityManager);
         // Deletes every GL buffer/texture the allocator created. Safe to call twice.
         void Shutdown();
 
         // Reserves buffer space for an entity, its mesh, material and animation,
         // only allocates space if they dont already exist on the GPU
-        EntityTracker Allocate(Entity& entity);
+        InstanceTracker Allocate(VisualInstance& entity);
 
         // Releases the entity's space, and its mesh's/material's space if
         // this was the last entity using either.
-        void Deallocate(Entity& entity);
+        void Deallocate(VisualInstance& entity);
 
         // Writes data into space that Allocate already reserved.
-        bool UploadEntityData(Entity& entity);
+        bool UploadInstanceData(VisualInstance& entity);
         bool UploadMeshData(Mesh& mesh);
         bool UploadMaterialData(Material& material);
         bool UploadAnimationData(BakedAnimationClip& clip); //uploads a single animation
@@ -144,7 +144,7 @@ class Allocator
         TextureArray& ChunkTextureArray()       { return chunkTextureArray.buffer;}
 
 
-        bool BuildInstanceData(Entity& entity, InstanceData& out, EntityHandle& handle);
+        bool BuildInstanceData(VisualInstance& entity, InstanceData& out, InstanceHandle& handle);
         bool BuildChunkInstanceData(const glm::ivec3& chunkPosition, uint64_t chunkID, ChunkInstanceData& out, ChunkHandle& handle);
 
         // Writes `count` consecutive InstanceData starting at `firstSlot` in one call.
@@ -156,7 +156,7 @@ class Allocator
         uint32_t AddChunkTexture(Texture& texture);
 
     private:
-        EntityManager* entityManager; // not owned, declared first: constructed first
+        RenderManager* entityManager; // not owned, declared first: constructed first
 
         BufferTracker<VBO> staticVBO; // stores vertices for static meshes
         BufferTracker<EBO> staticEBO; // stores indices for static meshes
@@ -195,7 +195,7 @@ class Allocator
         // Takes nothing on failure.
         bool AllocateMesh(Mesh& mesh, MeshTracker& out);
 
-        void DeallocateEntity(Entity& entity); // frees the instance slot, forgets the entity
+        void DeallocateInstance(VisualInstance& entity); // frees the instance slot, forgets the entity
         void DeallocateMesh(MeshTracker& mesh); // frees geometry + descriptor, unregisters the mesh
 
         // Just the buffer-side free for a mesh's ranges, no entityManager

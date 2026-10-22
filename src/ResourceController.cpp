@@ -66,7 +66,7 @@ Entity ResourceController::CreateEntity(const EntityBlueprint& blueprint, bool& 
         //register the mesh
         AddMesh(mesh);
     }
-    entity.mesh = mesh;
+    entity.instance.mesh = mesh;
 
     //load/ find material
     Material* material = GetMaterial(Hash(blueprint.materialID.c_str()));
@@ -82,7 +82,7 @@ Entity ResourceController::CreateEntity(const EntityBlueprint& blueprint, bool& 
             return Entity();
         }
     }
-    entity.material = material;
+    entity.instance.material = material;
 
     //load animation clips from mesh
     if (mesh->isSkinned)
@@ -90,12 +90,12 @@ Entity ResourceController::CreateEntity(const EntityBlueprint& blueprint, bool& 
         SkinnedMesh* skinned = static_cast<SkinnedMesh*>(mesh);
         for (auto& clip : skinned->animations)
         {
-            entity.animationPlayer.AddClip(clip.name, &clip);
+            entity.instance.animationPlayer.AddClip(clip.name, &clip);
         }
     }
 
     entity.transform = Transform();
-    entity.ID = Hash(blueprint.id.c_str());
+    entity.instance.ID = Hash(blueprint.id.c_str());
     return entity;
 }
 

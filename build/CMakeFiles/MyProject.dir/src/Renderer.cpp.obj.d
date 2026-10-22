@@ -295,7 +295,7 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/glm/ext/scalar_constants.hpp \
  D:/apps/GitHub/Block-Game/include/glm/ext/scalar_constants.inl \
  D:/apps/GitHub/Block-Game/include/glm/gtc/constants.inl \
- D:/apps/GitHub/Block-Game/include/engine/Entity.h \
+ D:/apps/GitHub/Block-Game/include/engine/VisualInstance.h \
  D:/apps/GitHub/Block-Game/include/engine/Transform.h \
  D:/apps/GitHub/Block-Game/include/glm/gtc/quaternion.hpp \
  D:/apps/GitHub/Block-Game/include/glm/gtc/matrix_transform.hpp \
@@ -380,7 +380,7 @@ CMakeFiles/MyProject.dir/src/Renderer.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/engine/Allocator.h \
  C:/msys64/mingw64/include/c++/14.1.0/utility \
  C:/msys64/mingw64/include/c++/14.1.0/bits/stl_relops.h \
- D:/apps/GitHub/Block-Game/include/engine/EntityManager.h \
+ D:/apps/GitHub/Block-Game/include/engine/RenderManager.h \
  D:/apps/GitHub/Block-Game/include/engine/Shader.h \
  D:/apps/GitHub/Block-Game/include/Camera.h \
  D:/apps/GitHub/Block-Game/include/GLFW/glfw3.h \

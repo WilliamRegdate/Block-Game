@@ -81,7 +81,7 @@ namespace
     // with exactly quads * 6 indices and every chunk allocation is a multiple of
     // 6, so every firstIndex is a multiple of 6 and firstIndex / 6 is a valid
     // slot in the quad SSBO. The quad SSBO is sized from this same number.
-    uint32_t ChunkTriCapacity(const EntityRendererConfig& config)
+    uint32_t ChunkTriCapacity(const RenderConfig& config)
     {
         const uint32_t indexCapacity = static_cast<uint32_t>(config.chunkIndexCapacityBytes / sizeof(uint32_t));
         return indexCapacity / CHUNK_INDICES_PER_TRI;
@@ -94,7 +94,7 @@ namespace
 // Construction
 // ============================================================
 
-Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
+Allocator::Allocator(RenderConfig config, RenderManager* manager)
 // Members are constructed in declaration order, so this list matches
 // the order in Allocator.h. Each buffer is created at its full size.
 : entityManager(manager),
@@ -159,16 +159,16 @@ Allocator::Allocator(EntityRendererConfig config, EntityManager* manager)
 // Allocate
 // ============================================================
 
-EntityTracker Allocator::Allocate(Entity& entity)
+InstanceTracker Allocator::Allocate(VisualInstance& instance)
 {
     // Value-initialised: invalid handle and null mesh/material pointers,
     // which is what the caller gets back if allocation fails.
-    EntityTracker tracker{};
+    InstanceTracker tracker{};
 
-    if (entity.mesh == nullptr)
+    if (instance.mesh == nullptr)
         return tracker;
 
-    Mesh& mesh = *entity.mesh;
+    Mesh& mesh = *instance.mesh;
     const bool skinned = mesh.isSkinned;
 
     // 1. Find the mesh, or register it if this is the first entity using it.
@@ -200,9 +200,9 @@ EntityTracker Allocator::Allocate(Entity& entity)
     // entityManager->GetMaterial simply never found anything.
     MaterialTracker* materialTracker = nullptr;
     bool materialIsNew = false;
-    if (entity.material != nullptr)
+    if (instance.material != nullptr)
     {
-        Material& material = *entity.material;
+        Material& material = *instance.material;
         materialTracker = entityManager->GetMaterial(material.ID);
         materialIsNew = (materialTracker == nullptr);
         if (materialIsNew)
@@ -231,7 +231,7 @@ EntityTracker Allocator::Allocate(Entity& entity)
     if (skinned)
     {
         std::vector<AnimationTracker*> grantedThisCall;
-        std::vector<BakedAnimationClip*> clips = entity.animationPlayer.GetClips();
+        std::vector<BakedAnimationClip*> clips = instance.animationPlayer.GetClips();
 
         auto rollbackAnimations = [&]()
         {
@@ -296,7 +296,7 @@ EntityTracker Allocator::Allocate(Entity& entity)
 
         //dealloc/ remove users from animations
         AnimationTracker* animationTracker;
-        std::vector<BakedAnimationClip*> clips = entity.animationPlayer.GetClips();
+        std::vector<BakedAnimationClip*> clips = instance.animationPlayer.GetClips();
         for (BakedAnimationClip* clip : clips)
         {
             animationTracker = entityManager->GetAnimation(clip->ID);
@@ -320,7 +320,7 @@ EntityTracker Allocator::Allocate(Entity& entity)
 
 
     
-    if (!entityManager->AddEntity(entity, tracker))
+    if (!entityManager->AddInstance(instance, tracker))
     {
         // This exact Entity was already registered. Undo the slot and both
         // user-count bumps so state stays consistent with what's actually
@@ -338,7 +338,7 @@ EntityTracker Allocator::Allocate(Entity& entity)
 
             //dealloc or remove users from animations
             AnimationTracker* animationTracker;
-            std::vector<BakedAnimationClip*> clips = entity.animationPlayer.GetClips();
+            std::vector<BakedAnimationClip*> clips = instance.animationPlayer.GetClips();
             for (BakedAnimationClip* clip : clips)
             {
                 animationTracker = entityManager->GetAnimation(clip->ID);
@@ -350,7 +350,7 @@ EntityTracker Allocator::Allocate(Entity& entity)
             }
         }
 
-        return EntityTracker{};
+        return InstanceTracker{};
     }
 
 
@@ -491,17 +491,17 @@ bool Allocator::AllocateAnimation(const BakedAnimationClip& clip, AnimationTrack
 // Deallocate
 // ============================================================
 
-void Allocator::Deallocate(Entity& entity)
+void Allocator::Deallocate(VisualInstance& instance)
 {
-    EntityTracker* tracker = entityManager->GetEntity(entity);
+    InstanceTracker* tracker = entityManager->GetInstance(instance);
     if (tracker == nullptr || !tracker->handle.IsValid())
         return;
 
-    // Captured before DeallocateEntity erases the map entry `tracker` points into.
+    // Captured before DeallocateInstance erases the map entry `tracker` points into.
     MeshTracker*     mesh     = tracker->meshTracker;
     MaterialTracker* material = tracker->materialTracker;
 
-    DeallocateEntity(entity);
+    DeallocateInstance(instance);
 
     if (mesh != nullptr)
     {
@@ -521,7 +521,7 @@ void Allocator::Deallocate(Entity& entity)
 
     //removes users or deallocates for each animation used
     AnimationTracker* animationTracker;
-    std::vector<BakedAnimationClip*> clips = entity.animationPlayer.GetClips();
+    std::vector<BakedAnimationClip*> clips = instance.animationPlayer.GetClips();
     for (BakedAnimationClip* clip : clips)
     {
         animationTracker = entityManager->GetAnimation(clip->ID);
@@ -535,16 +535,16 @@ void Allocator::Deallocate(Entity& entity)
 
 // Frees the entity's instance slot and forgets the entity.
 // Does not touch the mesh or material - Deallocate decides that.
-void Allocator::DeallocateEntity(Entity& entity)
+void Allocator::DeallocateInstance(VisualInstance& instance)
 {
-    EntityTracker* tracker = entityManager->GetEntity(entity);
+    InstanceTracker* tracker = entityManager->GetInstance(instance);
     if (tracker == nullptr)
         return;
 
     BufferTracker<SSBO>& instances = tracker->handle.isSkinned ? skinnedInstanceDataSSBO : staticInstanceDataSSBO;
     FreeRange(instances.emptySlots, tracker->handle.instanceRange.start, tracker->handle.instanceRange.size);
 
-    entityManager->RemoveEntity(entity);
+    entityManager->RemoveInstance(instance);
 }
 
 // Frees the mesh's geometry and descriptor slot and unregisters it.
@@ -711,15 +711,15 @@ bool Allocator::UploadAnimationData(BakedAnimationClip& clip)
     return true;
 }
 
-bool Allocator::BuildInstanceData(Entity& entity, InstanceData& out, EntityHandle& handle)
+bool Allocator::BuildInstanceData(VisualInstance& instance, InstanceData& out, InstanceHandle& handle)
 {
-    EntityTracker* tracker = entityManager->GetEntity(entity);
+    InstanceTracker* tracker = entityManager->GetInstance(instance);
     if (tracker == nullptr || !tracker->handle.IsValid() || tracker->meshTracker == nullptr)
         return false;
 
     handle = tracker->handle;
 
-    out.transform  = entity.transform.GetMatrix();
+    out.transform  = instance.transform->GetMatrix();
     out.meshID     = tracker->meshTracker->handle.descriptorRange.start;
     out.materialID = tracker->materialTracker != nullptr
                          ? tracker->materialTracker->handle.descriptorRange.start
@@ -730,13 +730,13 @@ bool Allocator::BuildInstanceData(Entity& entity, InstanceData& out, EntityHandl
 
     if (handle.isSkinned)
     {
-        BakedAnimationClip* current = entity.animationPlayer.GetCurrentClip();
+        BakedAnimationClip* current = instance.animationPlayer.GetCurrentClip();
         if (current != nullptr)
         {
             AnimationTracker* animTracker = entityManager->GetAnimation(current->ID);
             if (animTracker != nullptr && animTracker->handle.IsValid() && current->frameCount > 0)
             {
-                out.animTime  = entity.animationPlayer.progress;
+                out.animTime  = instance.animationPlayer.progress;
                 out.animIndex = animTracker->handle.descriptorRange.start;
             }
         }
@@ -752,11 +752,11 @@ void Allocator::UploadInstanceRange(bool skinned, uint32_t firstSlot, const Inst
                             data, static_cast<GLsizeiptr>(count) * sizeof(InstanceData));
 }
 
-bool Allocator::UploadEntityData(Entity& entity)
+bool Allocator::UploadInstanceData(VisualInstance& instance)
 {
     InstanceData data;
-    EntityHandle handle;
-    if (!BuildInstanceData(entity, data, handle))
+    InstanceHandle handle;
+    if (!BuildInstanceData(instance, data, handle))
         return false;
 
     UploadInstanceRange(handle.isSkinned, handle.instanceRange.start, &data, 1);

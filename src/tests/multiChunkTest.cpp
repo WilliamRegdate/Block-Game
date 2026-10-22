@@ -52,12 +52,12 @@ int main()
     bool loaded;
     Entity max = resourceController.LoadEntity("maxSternum", loaded);
     max.transform.position = glm::vec3(0, 70, 0);
-    renderer.AddEntity(max);
+    renderer.AddInstance(max.instance);
 
     Entity methane = resourceController.LoadEntity("methaneMonster", loaded);
     methane.transform.position = glm::vec3(5, 75, -10);
-    methane.animationPlayer.Play("walk");
-    renderer.AddEntity(methane);
+    methane.instance.animationPlayer.Play("walk");
+    renderer.AddInstance(methane.instance);
 
 
     glEnable(GL_CULL_FACE);
@@ -140,7 +140,7 @@ int main()
 
         glm::ivec3 centerChunk = glm::ivec3(glm::floor(camera.position / 32.0f));
 
-        methane.animationPlayer.Update(delta);
+        methane.instance.animationPlayer.Update(delta);
         wm.Update(centerChunk);
 
         currentTime = glfwGetTime();
@@ -151,8 +151,8 @@ int main()
 
         camera.Inputs(window, float(delta));
 
-        renderer.UpdateEntity(max);
-        renderer.UpdateEntity(methane);
+        renderer.UpdateInstance(max.instance);
+        renderer.UpdateInstance(methane.instance);
 
         renderer.Render();
 

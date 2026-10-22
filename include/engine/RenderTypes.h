@@ -31,23 +31,23 @@ struct BufferRange
 // isn't needed for that path. Add one back if you need to validate a raw
 // handle on its own later - e.g. GPU picking, reading a slot index back from
 // a buffer and turning it into a handle.
-struct EntityHandle
+struct InstanceHandle
 {
     bool        isSkinned = false;
     BufferRange instanceRange; // in the static or skinned InstanceData SSBO; size is always 1
 
     bool IsValid() const { return instanceRange.IsValid(); }
 
-    bool operator==(const EntityHandle& other) const
+    bool operator==(const InstanceHandle& other) const
     {
         return isSkinned == other.isSkinned && instanceRange.start == other.instanceRange.start;
     }
-    bool operator!=(const EntityHandle& other) const { return !(*this == other); }
+    bool operator!=(const InstanceHandle& other) const { return !(*this == other); }
 };
 
 // Everything needed to find and upload one mesh's GPU data: which pool it's
 // in, and its ranges in that pool's VBO, EBO and MeshDescriptor SSBO.
-// Same generation caveat as EntityHandle above.
+// Same generation caveat as InstanceHandle above.
 struct MeshHandle
 {
     bool        isSkinned = false;
