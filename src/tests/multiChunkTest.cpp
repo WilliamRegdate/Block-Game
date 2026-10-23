@@ -47,8 +47,6 @@ int main()
     WorldManager wm = WorldManager(renderer, resourceController);
     CollisionDetector collision(&wm);
 
-
-
     bool loaded;
     Entity max = resourceController.LoadEntity("maxSternum", loaded);
     max.transform.position = glm::vec3(0, 70, 0);
