@@ -2,7 +2,7 @@
     "id": 5,
     "name": "snow",
     "textureIDs": [
-         "snow"
+         "32_tex/snow"
         ],
     "x_plus": 0,
     "x_minus": 0,

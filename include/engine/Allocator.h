@@ -33,8 +33,8 @@ struct RenderConfig
     GLenum  materialTextureFormat = GL_RGBA8;
 
     uint32_t maxChunkMaterials = 0;
-    GLsizei  chunkMaterialTextureWidth  = 16;
-    GLsizei  chunkMaterialTextureHeight = 16;
+    GLsizei  chunkMaterialTextureWidth  = 32;
+    GLsizei  chunkMaterialTextureHeight = 32;
     GLenum   chunkMaterialTextureFormat = GL_RGBA8;
 
     uint32_t maxAnimations = 0;

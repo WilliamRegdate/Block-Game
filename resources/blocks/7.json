@@ -2,9 +2,9 @@
     "id": 7,
     "name": "grass",
     "textureIDs": [
-         "grass",
-         "grassSide",
-         "mud"
+         "32_tex/grass",
+         "32_tex/grass_side",
+         "32_tex/soil"
         ],
     "x_plus": 1,
     "x_minus": 1,

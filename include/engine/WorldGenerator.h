@@ -60,7 +60,6 @@ private:
     FastNoiseLite highNoise;
     FastNoiseLite height;
 
-    // SEA_LEVEL is in continentalness units: the spline hits y=62 at c = -0.45.
     static constexpr float SEA_LEVEL = -0.45f;
     static constexpr float WATER_LEVEL = 62.0f;   // water fills y <= WATER_LEVEL
     static constexpr float COLD_START = -0.7f;

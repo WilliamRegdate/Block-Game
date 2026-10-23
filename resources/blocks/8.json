@@ -2,7 +2,7 @@
     "id": 8,
     "name": "redSand",
     "textureIDs": [
-         "redSand"
+         "32_tex/sand"
         ],
     "x_plus": 0,
     "x_minus": 0,

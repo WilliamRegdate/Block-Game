@@ -776,7 +776,7 @@ uint32_t Allocator::AddChunkTexture(Texture& texture)
     return INVALID_CHUNK_TEXTURE;
     
     // Every layer in a texture array has the same dimensions.
-    if (width != 16 || height != 16)
+    if (width != 32 || height != 32)
     {
         Texture::FreeImage(pixels);
         return INVALID_CHUNK_TEXTURE;

@@ -2,7 +2,7 @@
     "id": 4,
     "name": "water",
     "textureIDs": [
-         "water"
+         "32_tex/water"
         ],
     "x_plus": 0,
     "x_minus": 0,

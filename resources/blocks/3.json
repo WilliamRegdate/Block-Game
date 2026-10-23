@@ -2,7 +2,7 @@
     "id": 3,
     "name": "mud",
     "textureIDs": [
-         "mud"
+         "32_tex/soil"
         ],
     "x_plus": 0,
     "x_minus": 0,

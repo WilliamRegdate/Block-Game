@@ -2,7 +2,7 @@
     "id": 13,
     "name": "sandstone",
     "textureIDs": [
-         "sand"
+         "32_tex/sand"
         ],
     "x_plus": 0,
     "x_minus": 0,

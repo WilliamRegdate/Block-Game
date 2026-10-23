@@ -2,8 +2,8 @@
     "id": 2,
     "name" : "log",
     "textureIDs": [
-         "log",
-         "log_top"
+         "32_tex/limestone",
+         "32_tex/limestone_bricks"
         ],
     "x_plus": 0,
     "x_minus": 0,

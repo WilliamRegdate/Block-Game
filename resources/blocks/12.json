@@ -2,7 +2,7 @@
     "id": 12,
     "name": "lava",
     "textureIDs": [
-         "lava"
+         "32_tex/lava"
         ],
     "x_plus": 0,
     "x_minus": 0,
