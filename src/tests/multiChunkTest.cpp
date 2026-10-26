@@ -39,7 +39,7 @@ int main()
     gladLoadGL();
     glViewport(0, 0, width, height);
 
-    Camera camera = Camera(width, height, glm::vec3(0, 60, -10));
+    Camera camera = Camera(width, height, glm::vec3(0, 80, -10));
     Renderer renderer = Renderer(&camera);
     ResourceController resourceController(renderer);
 

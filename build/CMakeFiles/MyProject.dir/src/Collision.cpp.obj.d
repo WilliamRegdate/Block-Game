@@ -341,7 +341,7 @@ CMakeFiles/MyProject.dir/src/Collision.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/bits/node_handle.h \
  C:/msys64/mingw64/include/c++/14.1.0/bits/erase_if.h \
  D:/apps/GitHub/Block-Game/include/engine/WorldManager.h \
- D:/apps/GitHub/Block-Game/include/engine/WorldGenerator.h \
+ D:/apps/GitHub/Block-Game/include/engine/Generation/WorldGenerator.h \
  D:/apps/GitHub/Block-Game/include/FastNoiseLite/FastNoiseLite.h \
  D:/apps/GitHub/Block-Game/include/engine/Chunk.h \
  D:/apps/GitHub/Block-Game/include/engine/ChunkNeighbourhood.h \
@@ -377,6 +377,7 @@ CMakeFiles/MyProject.dir/src/Collision.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
+ D:/apps/GitHub/Block-Game/include/engine/Chunk.h \
  D:/apps/GitHub/Block-Game/include/engine/ChunkMesher.h \
  D:/apps/GitHub/Block-Game/include/engine/VoxelTypes.h \
  D:/apps/GitHub/Block-Game/include/engine/ResourceController.h \

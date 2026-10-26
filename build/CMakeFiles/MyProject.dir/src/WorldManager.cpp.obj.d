@@ -1,7 +1,7 @@
 CMakeFiles/MyProject.dir/src/WorldManager.cpp.obj: \
  D:\apps\GitHub\Block-Game\src\WorldManager.cpp \
  D:/apps/GitHub/Block-Game/include/engine/WorldManager.h \
- D:/apps/GitHub/Block-Game/include/engine/WorldGenerator.h \
+ D:/apps/GitHub/Block-Game/include/engine/Generation/WorldGenerator.h \
  C:/msys64/mingw64/include/c++/14.1.0/cstdint \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/c++config.h \
  C:/msys64/mingw64/include/c++/14.1.0/x86_64-w64-mingw32/bits/os_defines.h \
@@ -284,6 +284,7 @@ CMakeFiles/MyProject.dir/src/WorldManager.cpp.obj: \
  C:/msys64/mingw64/include/c++/14.1.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/glue_memory_defs.h \
  C:/msys64/mingw64/include/c++/14.1.0/pstl/execution_defs.h \
+ D:/apps/GitHub/Block-Game/include/engine/Chunk.h \
  D:/apps/GitHub/Block-Game/include/engine/ChunkMesher.h \
  D:/apps/GitHub/Block-Game/include/engine/VoxelTypes.h \
  D:/apps/GitHub/Block-Game/include/engine/RenderTypes.h \

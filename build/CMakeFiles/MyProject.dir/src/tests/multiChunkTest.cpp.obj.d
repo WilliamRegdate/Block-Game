@@ -488,10 +488,11 @@ CMakeFiles/MyProject.dir/src/tests/multiChunkTest.cpp.obj: \
  D:/apps/GitHub/Block-Game/include/engine/Block.h \
  D:/apps/GitHub/Block-Game/include/engine/Renderer.h \
  D:/apps/GitHub/Block-Game/include/engine/WorldManager.h \
- D:/apps/GitHub/Block-Game/include/engine/WorldGenerator.h \
+ D:/apps/GitHub/Block-Game/include/engine/Generation/WorldGenerator.h \
  D:/apps/GitHub/Block-Game/include/FastNoiseLite/FastNoiseLite.h \
  D:/apps/GitHub/Block-Game/include/engine/Chunk.h \
  D:/apps/GitHub/Block-Game/include/engine/ChunkNeighbourhood.h \
+ D:/apps/GitHub/Block-Game/include/engine/Chunk.h \
  D:/apps/GitHub/Block-Game/include/engine/ChunkMesher.h \
  D:/apps/GitHub/Block-Game/include/engine/VoxelTypes.h \
  D:/apps/GitHub/Block-Game/include/engine/ResourceController.h \
